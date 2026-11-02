@@ -1,0 +1,44 @@
+# Build output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+publish/
+
+# Rider / JetBrains
+.idea/
+*.sln.iml
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.userosscache
+*.userprefs
+
+# NuGet
+*.nupkg
+*.snupkg
+.nuget/
+project.lock.json
+
+# Test results & coverage
+TestResults/
+coverage/
+*.coverage
+*.coveragexml
+
+# Secrets & local config
+*.env
+.env.*
+appsettings.*.local.json
+secrets.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tooling
+.codegraph/
+.atl/
