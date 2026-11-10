@@ -1,5 +1,5 @@
-using PaquitoBot.Api.Extensions;
 using PaquitoBot.Api.Middleware;
+using PaquitoBot.Application;
 using PaquitoBot.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +11,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddControllers();
 
 builder.Services.AddInfrastructure(connectionString);
-builder.Services.AddUseCases();
+builder.Services.AddApplication();
 
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
 builder.Services.AddProblemDetails();

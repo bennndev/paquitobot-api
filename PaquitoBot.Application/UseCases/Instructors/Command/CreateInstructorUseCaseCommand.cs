@@ -1,38 +1,63 @@
-using PaquitoBot.Application.Common.Validation;
+using FluentValidation;
+using MediatR;
+using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Instructors;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Infrastructure.Models;
 
 namespace PaquitoBot.Application.UseCases.Instructors.Command;
 
-public class CreateInstructorUseCaseCommand
+public record CreateInstructorUseCaseCommand(
+    string? FrappeExternalId = null,
+    string? FirstName = null,
+    string? LastName = null,
+    string? FullName = null,
+    string? Email = null,
+    string? Phone = null,
+    string? Status = null) : IRequest<InstructorDto>;
+
+public class CreateInstructorUseCaseCommandValidator : AbstractValidator<CreateInstructorUseCaseCommand>
+{
+    public CreateInstructorUseCaseCommandValidator()
+    {
+        RuleLevelCascadeMode = CascadeMode.Stop;
+
+        RuleFor(c => c.FrappeExternalId).MaximumLength(140);
+        RuleFor(c => c.FirstName).MaximumLength(160);
+        RuleFor(c => c.LastName).MaximumLength(160);
+        RuleFor(c => c.FullName).MaximumLength(320);
+        RuleFor(c => c.Email).MaximumLength(254).EmailAddress().When(c => !string.IsNullOrWhiteSpace(c.Email));
+        RuleFor(c => c.Phone).MaximumLength(40);
+        RuleFor(c => c.Status).MaximumLength(40);
+    }
+}
+
+public class CreateInstructorUseCaseCommandHandler : IRequestHandler<CreateInstructorUseCaseCommand, InstructorDto>
 {
     private readonly IGenericRepository<Instructor> _instructors;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateInstructorUseCaseCommand(IGenericRepository<Instructor> instructors, IUnitOfWork unitOfWork)
+    public CreateInstructorUseCaseCommandHandler(IGenericRepository<Instructor> instructors, IUnitOfWork unitOfWork)
     {
         _instructors = instructors;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<InstructorDto> ExecuteAsync(
-        CreateInstructorRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<InstructorDto> Handle(CreateInstructorUseCaseCommand request, CancellationToken cancellationToken)
     {
-        var firstName = RequestValidator.OptionalText(request.FirstName, "FirstName", 160);
-        var lastName = RequestValidator.OptionalText(request.LastName, "LastName", 160);
-        var fullName = RequestValidator.OptionalText(request.FullName, "FullName", 320);
+        var firstName = TextNormalizer.Optional(request.FirstName);
+        var lastName = TextNormalizer.Optional(request.LastName);
+        var fullName = TextNormalizer.Optional(request.FullName);
 
         var instructor = new Instructor
         {
-            FrappeExternalId = RequestValidator.OptionalText(request.FrappeExternalId, "FrappeExternalId", 140),
+            FrappeExternalId = TextNormalizer.Optional(request.FrappeExternalId),
             FirstName = firstName,
             LastName = lastName,
             FullName = ResolveFullName(fullName, firstName, lastName),
-            Email = RequestValidator.OptionalEmail(request.Email, "Email"),
-            Phone = RequestValidator.OptionalText(request.Phone, "Phone", 40),
-            Status = RequestValidator.OptionalText(request.Status, "Status", 40)
+            Email = TextNormalizer.OptionalEmail(request.Email),
+            Phone = TextNormalizer.Optional(request.Phone),
+            Status = TextNormalizer.Optional(request.Status)
         };
 
         await _instructors.AddAsync(instructor, cancellationToken);
