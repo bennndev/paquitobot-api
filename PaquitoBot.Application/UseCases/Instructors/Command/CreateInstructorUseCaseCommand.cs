@@ -3,7 +3,7 @@ using MediatR;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Instructors;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Infrastructure.Models;
+using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Instructors.Command;
 
@@ -32,17 +32,8 @@ public class CreateInstructorUseCaseCommandValidator : AbstractValidator<CreateI
     }
 }
 
-public class CreateInstructorUseCaseCommandHandler : IRequestHandler<CreateInstructorUseCaseCommand, InstructorDto>
+public class CreateInstructorUseCaseCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<CreateInstructorUseCaseCommand, InstructorDto>
 {
-    private readonly IGenericRepository<Instructor> _instructors;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public CreateInstructorUseCaseCommandHandler(IGenericRepository<Instructor> instructors, IUnitOfWork unitOfWork)
-    {
-        _instructors = instructors;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<InstructorDto> Handle(CreateInstructorUseCaseCommand request, CancellationToken cancellationToken)
     {
         var firstName = TextNormalizer.Optional(request.FirstName);
@@ -60,7 +51,7 @@ public class CreateInstructorUseCaseCommandHandler : IRequestHandler<CreateInstr
             Status = TextNormalizer.Optional(request.Status)
         };
 
-        await _instructors.AddAsync(instructor, cancellationToken);
+        await _unitOfWork.Repository<Instructor>().AddAsync(instructor, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return InstructorDto.From(instructor);

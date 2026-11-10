@@ -7,21 +7,14 @@ namespace PaquitoBot.Application.UseCases.UserStudents.Query;
 
 public record GetUserStudentByIdUseCaseQuery(Guid LinkId) : IRequest<UserStudentDto>;
 
-public class GetUserStudentByIdUseCaseQueryHandler
+public class GetUserStudentByIdUseCaseQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetUserStudentByIdUseCaseQuery, UserStudentDto>
 {
-    private readonly IUserStudentRepository _links;
-
-    public GetUserStudentByIdUseCaseQueryHandler(IUserStudentRepository links)
-    {
-        _links = links;
-    }
-
     public async Task<UserStudentDto> Handle(
         GetUserStudentByIdUseCaseQuery request,
         CancellationToken cancellationToken)
     {
-        var link = await _links.GetByIdAsync(request.LinkId, cancellationToken)
+        var link = await _unitOfWork.UserStudents.GetByIdAsync(request.LinkId, cancellationToken)
             ?? throw new NotFoundException("UserStudent", request.LinkId);
 
         return UserStudentDto.From(link);

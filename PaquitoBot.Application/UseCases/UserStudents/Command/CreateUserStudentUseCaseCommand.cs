@@ -3,7 +3,7 @@ using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.DTOs.UserStudents;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Infrastructure.Models;
+using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.UserStudents.Command;
 
@@ -21,47 +21,31 @@ public class CreateUserStudentUseCaseCommandValidator : AbstractValidator<Create
     }
 }
 
-public class CreateUserStudentUseCaseCommandHandler
+public class CreateUserStudentUseCaseCommandHandler (IUnitOfWork _unitOfWork)
     : IRequestHandler<CreateUserStudentUseCaseCommand, UserStudentDto>
 {
-    private readonly IUserStudentRepository _links;
-    private readonly IGenericRepository<User> _users;
-    private readonly IGenericRepository<Student> _students;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public CreateUserStudentUseCaseCommandHandler(
-        IUserStudentRepository links,
-        IGenericRepository<User> users,
-        IGenericRepository<Student> students,
-        IUnitOfWork unitOfWork)
-    {
-        _links = links;
-        _users = users;
-        _students = students;
-        _unitOfWork = unitOfWork;
-    }
 
     public async Task<UserStudentDto> Handle(
         CreateUserStudentUseCaseCommand request,
         CancellationToken cancellationToken)
     {
-        if (!await _users.ExistsAsync(request.UserId, cancellationToken))
+        if (!await _unitOfWork.Repository<User>().ExistsAsync(request.UserId, cancellationToken))
         {
             throw new NotFoundException("User", request.UserId);
         }
 
-        if (!await _students.ExistsAsync(request.StudentId, cancellationToken))
+        if (!await _unitOfWork.Repository<Student>().ExistsAsync(request.StudentId, cancellationToken))
         {
             throw new NotFoundException("Student", request.StudentId);
         }
 
-        if (await _links.PairExistsAsync(request.UserId, request.StudentId, cancellationToken))
+        if (await _unitOfWork.UserStudents.PairExistsAsync(request.UserId, request.StudentId, cancellationToken))
         {
             throw new ConflictException(
                 $"User '{request.UserId}' is already linked to student '{request.StudentId}'.");
         }
 
-        if (request.IsPrimary && await _links.UserHasPrimaryAsync(request.UserId, null, cancellationToken))
+        if (request.IsPrimary && await _unitOfWork.UserStudents.UserHasPrimaryAsync(request.UserId, null, cancellationToken))
         {
             throw new ConflictException($"User '{request.UserId}' already has a primary student link.");
         }
@@ -73,7 +57,7 @@ public class CreateUserStudentUseCaseCommandHandler
             IsPrimary = request.IsPrimary
         };
 
-        await _links.AddAsync(link, cancellationToken);
+        await _unitOfWork.UserStudents.AddAsync(link, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return UserStudentDto.From(link);

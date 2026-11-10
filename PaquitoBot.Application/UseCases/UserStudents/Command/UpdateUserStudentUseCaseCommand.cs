@@ -7,26 +7,15 @@ namespace PaquitoBot.Application.UseCases.UserStudents.Command;
 
 public record UpdateUserStudentUseCaseCommand(Guid LinkId, bool IsPrimary) : IRequest<UserStudentDto>;
 
-public class UpdateUserStudentUseCaseCommandHandler
+public class UpdateUserStudentUseCaseCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<UpdateUserStudentUseCaseCommand, UserStudentDto>
 {
-    private readonly IUserStudentRepository _links;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UpdateUserStudentUseCaseCommandHandler(IUserStudentRepository links, IUnitOfWork unitOfWork)
+    public async Task<UserStudentDto> Handle(UpdateUserStudentUseCaseCommand request, CancellationToken cancellationToken)
     {
-        _links = links;
-        _unitOfWork = unitOfWork;
-    }
-
-    public async Task<UserStudentDto> Handle(
-        UpdateUserStudentUseCaseCommand request,
-        CancellationToken cancellationToken)
-    {
-        var link = await _links.GetByIdAsync(request.LinkId, cancellationToken)
+        var link = await _unitOfWork.UserStudents.GetByIdAsync(request.LinkId, cancellationToken)
             ?? throw new NotFoundException("UserStudent", request.LinkId);
 
-        if (request.IsPrimary && await _links.UserHasPrimaryAsync(link.UserId, link.LinkId, cancellationToken))
+        if (request.IsPrimary && await _unitOfWork.UserStudents.UserHasPrimaryAsync(link.UserId, link.LinkId, cancellationToken))
         {
             throw new ConflictException($"User '{link.UserId}' already has a primary student link.");
         }

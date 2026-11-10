@@ -3,7 +3,7 @@ using MediatR;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Students;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Infrastructure.Models;
+using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Students.Command;
 
@@ -37,17 +37,8 @@ public class CreateStudentUseCaseCommandValidator : AbstractValidator<CreateStud
     }
 }
 
-public class CreateStudentUseCaseCommandHandler : IRequestHandler<CreateStudentUseCaseCommand, StudentDto>
+public class CreateStudentUseCaseCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<CreateStudentUseCaseCommand, StudentDto>
 {
-    private readonly IGenericRepository<Student> _students;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public CreateStudentUseCaseCommandHandler(IGenericRepository<Student> students, IUnitOfWork unitOfWork)
-    {
-        _students = students;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<StudentDto> Handle(CreateStudentUseCaseCommand request, CancellationToken cancellationToken)
     {
         var firstNames = TextNormalizer.Optional(request.FirstNames);
@@ -68,7 +59,7 @@ public class CreateStudentUseCaseCommandHandler : IRequestHandler<CreateStudentU
             Status = TextNormalizer.Optional(request.Status)
         };
 
-        await _students.AddAsync(student, cancellationToken);
+        await _unitOfWork.Repository<Student>().AddAsync(student, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return StudentDto.From(student);
