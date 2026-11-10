@@ -36,4 +36,3 @@ public class DeleteProgramUseCaseCommandHandler(
         await unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }
-

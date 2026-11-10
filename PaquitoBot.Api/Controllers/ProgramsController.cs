@@ -2,6 +2,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.Programs;
+using PaquitoBot.Application.UseCases.Programs.Command;
 using PaquitoBot.Application.UseCases.Programs.Query;
 
 namespace PaquitoBot.Api.Controllers;
@@ -48,5 +49,77 @@ public class ProgramsController : ControllerBase
             cancellationToken);
 
         return Ok(program);
+    }
+
+    [HttpPost]
+    [ProducesResponseType(
+        typeof(ProgramDto),
+        StatusCodes.Status201Created)]
+    [ProducesResponseType(
+        typeof(ValidationProblemDetails),
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ProgramDto>> Create(
+        [FromBody] CreateProgramUseCaseCommand command,
+        CancellationToken cancellationToken)
+    {
+        var program = await _sender.Send(
+            command,
+            cancellationToken);
+
+        return CreatedAtAction(
+            nameof(GetById),
+            new { id = program.ProgramId },
+            program);
+    }
+
+    [HttpPut("{id:guid}")]
+    [ProducesResponseType(
+        typeof(ProgramDto),
+        StatusCodes.Status200OK)]
+    [ProducesResponseType(
+        typeof(ValidationProblemDetails),
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict)]
+    public async Task<ActionResult<ProgramDto>> Update(
+        Guid id,
+        [FromBody] UpdateProgramUseCaseCommand command,
+        CancellationToken cancellationToken)
+    {
+        var program = await _sender.Send(
+            command with { ProgramId = id },
+            cancellationToken);
+
+        return Ok(program);
+    }
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(
+        StatusCodes.Status204NoContent)]
+    [ProducesResponseType(
+        typeof(ValidationProblemDetails),
+        StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status404NotFound)]
+    [ProducesResponseType(
+        typeof(ProblemDetails),
+        StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> Delete(
+        Guid id,
+        CancellationToken cancellationToken)
+    {
+        await _sender.Send(
+            new DeleteProgramUseCaseCommand(id),
+            cancellationToken);
+
+        return NoContent();
     }
 }
