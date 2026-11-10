@@ -1,19 +1,35 @@
+using FluentValidation;
+using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Validation;
 using PaquitoBot.Application.DTOs.UserStudents;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Infrastructure.Models;
 
 namespace PaquitoBot.Application.UseCases.UserStudents.Command;
 
-public class CreateUserStudentUseCaseCommand
+public record CreateUserStudentUseCaseCommand(
+    Guid UserId,
+    Guid StudentId,
+    bool IsPrimary = true) : IRequest<UserStudentDto>;
+
+public class CreateUserStudentUseCaseCommandValidator : AbstractValidator<CreateUserStudentUseCaseCommand>
+{
+    public CreateUserStudentUseCaseCommandValidator()
+    {
+        RuleFor(c => c.UserId).NotEmpty();
+        RuleFor(c => c.StudentId).NotEmpty();
+    }
+}
+
+public class CreateUserStudentUseCaseCommandHandler
+    : IRequestHandler<CreateUserStudentUseCaseCommand, UserStudentDto>
 {
     private readonly IUserStudentRepository _links;
     private readonly IGenericRepository<User> _users;
     private readonly IGenericRepository<Student> _students;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateUserStudentUseCaseCommand(
+    public CreateUserStudentUseCaseCommandHandler(
         IUserStudentRepository links,
         IGenericRepository<User> users,
         IGenericRepository<Student> students,
@@ -25,38 +41,35 @@ public class CreateUserStudentUseCaseCommand
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<UserStudentDto> ExecuteAsync(
-        CreateUserStudentRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<UserStudentDto> Handle(
+        CreateUserStudentUseCaseCommand request,
+        CancellationToken cancellationToken)
     {
-        var userId = RequestValidator.RequireId(request.UserId, "UserId");
-        var studentId = RequestValidator.RequireId(request.StudentId, "StudentId");
-
-        if (!await _users.ExistsAsync(userId, cancellationToken))
+        if (!await _users.ExistsAsync(request.UserId, cancellationToken))
         {
-            throw new NotFoundException("User", userId);
+            throw new NotFoundException("User", request.UserId);
         }
 
-        if (!await _students.ExistsAsync(studentId, cancellationToken))
+        if (!await _students.ExistsAsync(request.StudentId, cancellationToken))
         {
-            throw new NotFoundException("Student", studentId);
+            throw new NotFoundException("Student", request.StudentId);
         }
 
-        if (await _links.PairExistsAsync(userId, studentId, cancellationToken))
+        if (await _links.PairExistsAsync(request.UserId, request.StudentId, cancellationToken))
         {
             throw new ConflictException(
-                $"User '{userId}' is already linked to student '{studentId}'.");
+                $"User '{request.UserId}' is already linked to student '{request.StudentId}'.");
         }
 
-        if (request.IsPrimary && await _links.UserHasPrimaryAsync(userId, null, cancellationToken))
+        if (request.IsPrimary && await _links.UserHasPrimaryAsync(request.UserId, null, cancellationToken))
         {
-            throw new ConflictException($"User '{userId}' already has a primary student link.");
+            throw new ConflictException($"User '{request.UserId}' already has a primary student link.");
         }
 
         var link = new UserStudent
         {
-            UserId = userId,
-            StudentId = studentId,
+            UserId = request.UserId,
+            StudentId = request.StudentId,
             IsPrimary = request.IsPrimary
         };
 
