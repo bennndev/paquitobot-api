@@ -25,17 +25,8 @@ public class CreateUserUseCaseCommandValidator : AbstractValidator<CreateUserUse
     }
 }
 
-public class CreateUserUseCaseCommandHandler : IRequestHandler<CreateUserUseCaseCommand, UserDto>
+public class CreateUserUseCaseCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<CreateUserUseCaseCommand, UserDto>
 {
-    private readonly IGenericRepository<User> _users;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public CreateUserUseCaseCommandHandler(IGenericRepository<User> users, IUnitOfWork unitOfWork)
-    {
-        _users = users;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<UserDto> Handle(CreateUserUseCaseCommand request, CancellationToken cancellationToken)
     {
         var user = new User
@@ -46,7 +37,7 @@ public class CreateUserUseCaseCommandHandler : IRequestHandler<CreateUserUseCase
             IsActive = request.IsActive
         };
 
-        await _users.AddAsync(user, cancellationToken);
+        await _unitOfWork.Repository<User>().AddAsync(user, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return UserDto.From(user);

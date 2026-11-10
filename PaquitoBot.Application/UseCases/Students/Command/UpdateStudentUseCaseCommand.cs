@@ -37,24 +37,15 @@ public class UpdateStudentUseCaseCommandValidator : AbstractValidator<UpdateStud
     }
 }
 
-public class UpdateStudentUseCaseCommandHandler : IRequestHandler<UpdateStudentUseCaseCommand, StudentDto>
+public class UpdateStudentUseCaseCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<UpdateStudentUseCaseCommand, StudentDto>
 {
-    private readonly IGenericRepository<Student> _students;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UpdateStudentUseCaseCommandHandler(IGenericRepository<Student> students, IUnitOfWork unitOfWork)
-    {
-        _students = students;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<StudentDto> Handle(UpdateStudentUseCaseCommand request, CancellationToken cancellationToken)
     {
         var firstNames = TextNormalizer.Optional(request.FirstNames);
         var lastNames = TextNormalizer.Optional(request.LastNames);
         var fullName = TextNormalizer.Optional(request.FullName) ?? BuildFullName(firstNames, lastNames);
 
-        var student = await _students.GetByIdAsync(request.StudentId, cancellationToken)
+        var student = await _unitOfWork.Repository<Student>().GetByIdAsync(request.StudentId, cancellationToken)
             ?? throw new NotFoundException("Student", request.StudentId);
 
         student.StudentCode = TextNormalizer.Optional(request.StudentCode);
