@@ -1,3 +1,4 @@
+
 using PaquitoBot.Api.Middleware;
 using PaquitoBot.Application;
 using PaquitoBot.Infrastructure;
@@ -12,7 +13,6 @@ builder.Services.AddControllers();
 
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddApplication();
-
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
 builder.Services.AddProblemDetails();
 

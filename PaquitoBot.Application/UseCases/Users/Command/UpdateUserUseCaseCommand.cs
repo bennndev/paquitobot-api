@@ -4,7 +4,7 @@ using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Users;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Infrastructure.Models;
+using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Users.Command;
 

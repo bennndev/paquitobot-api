@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PaquitoBot.Infrastructure.Models;
+﻿namespace PaquitoBot.Domain.Models;
 
 public partial class User
 {

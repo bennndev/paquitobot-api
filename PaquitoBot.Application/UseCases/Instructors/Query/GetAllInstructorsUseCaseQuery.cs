@@ -1,7 +1,7 @@
 using MediatR;
 using PaquitoBot.Application.DTOs.Instructors;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Infrastructure.Models;
+using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Instructors.Query;
 
