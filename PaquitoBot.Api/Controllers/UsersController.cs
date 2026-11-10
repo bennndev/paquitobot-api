@@ -1,3 +1,4 @@
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.Users;
 using PaquitoBot.Application.UseCases.Users.Command;
@@ -9,30 +10,31 @@ namespace PaquitoBot.Api.Controllers;
 [Route("api/users")]
 public class UsersController : ControllerBase
 {
-    [HttpGet]
-    public async Task<ActionResult<IReadOnlyList<UserDto>>> GetAll(
-        [FromServices] GetAllUsersUseCaseQuery useCase,
-        CancellationToken cancellationToken)
+    private readonly ISender _sender;
+
+    public UsersController(ISender sender)
     {
-        return Ok(await useCase.ExecuteAsync(cancellationToken));
+        _sender = sender;
+    }
+
+    [HttpGet]
+    public async Task<ActionResult<IReadOnlyList<UserDto>>> GetAll(CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetAllUsersUseCaseQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<UserDto>> GetById(
-        Guid id,
-        [FromServices] GetUserByIdUseCaseQuery useCase,
-        CancellationToken cancellationToken)
+    public async Task<ActionResult<UserDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await useCase.ExecuteAsync(id, cancellationToken));
+        return Ok(await _sender.Send(new GetUserByIdUseCaseQuery(id), cancellationToken));
     }
 
     [HttpPost]
     public async Task<ActionResult<UserDto>> Create(
-        [FromBody] CreateUserRequest request,
-        [FromServices] CreateUserUseCaseCommand useCase,
+        [FromBody] CreateUserUseCaseCommand command,
         CancellationToken cancellationToken)
     {
-        var user = await useCase.ExecuteAsync(request, cancellationToken);
+        var user = await _sender.Send(command, cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = user.UserId }, user);
     }
@@ -40,20 +42,16 @@ public class UsersController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<UserDto>> Update(
         Guid id,
-        [FromBody] UpdateUserRequest request,
-        [FromServices] UpdateUserUseCaseCommand useCase,
+        [FromBody] UpdateUserUseCaseCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await useCase.ExecuteAsync(id, request, cancellationToken));
+        return Ok(await _sender.Send(command with { UserId = id }, cancellationToken));
     }
 
     [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(
-        Guid id,
-        [FromServices] DeleteUserUseCaseCommand useCase,
-        CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await useCase.ExecuteAsync(id, cancellationToken);
+        await _sender.Send(new DeleteUserUseCaseCommand(id), cancellationToken);
 
         return NoContent();
     }
