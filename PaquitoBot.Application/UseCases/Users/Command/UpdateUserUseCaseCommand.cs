@@ -1,37 +1,51 @@
+using FluentValidation;
+using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Validation;
+using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Users;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Infrastructure.Models;
+using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Users.Command;
 
-public class UpdateUserUseCaseCommand
+public record UpdateUserUseCaseCommand(
+    Guid UserId,
+    string Username,
+    string Email,
+    string Role,
+    bool IsActive) : IRequest<UserDto>;
+
+public class UpdateUserUseCaseCommandValidator : AbstractValidator<UpdateUserUseCaseCommand>
+{
+    public UpdateUserUseCaseCommandValidator()
+    {
+        RuleLevelCascadeMode = CascadeMode.Stop;
+
+        RuleFor(c => c.Username).NotEmpty().MaximumLength(100);
+        RuleFor(c => c.Email).NotEmpty().MaximumLength(254).EmailAddress();
+        RuleFor(c => c.Role).NotEmpty().MaximumLength(40);
+    }
+}
+
+public class UpdateUserUseCaseCommandHandler : IRequestHandler<UpdateUserUseCaseCommand, UserDto>
 {
     private readonly IGenericRepository<User> _users;
     private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateUserUseCaseCommand(IGenericRepository<User> users, IUnitOfWork unitOfWork)
+    public UpdateUserUseCaseCommandHandler(IGenericRepository<User> users, IUnitOfWork unitOfWork)
     {
         _users = users;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<UserDto> ExecuteAsync(
-        Guid userId,
-        UpdateUserRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<UserDto> Handle(UpdateUserUseCaseCommand request, CancellationToken cancellationToken)
     {
-        var username = RequestValidator.RequireText(request.Username, "Username", 100);
-        var email = RequestValidator.RequireEmail(request.Email, "Email");
-        var role = RequestValidator.RequireText(request.Role, "Role", 40);
+        var user = await _users.GetByIdAsync(request.UserId, cancellationToken)
+            ?? throw new NotFoundException("User", request.UserId);
 
-        var user = await _users.GetByIdAsync(userId, cancellationToken)
-            ?? throw new NotFoundException("User", userId);
-
-        user.Username = username;
-        user.Email = email;
-        user.Role = role;
+        user.Username = TextNormalizer.Required(request.Username);
+        user.Email = TextNormalizer.RequiredEmail(request.Email);
+        user.Role = TextNormalizer.Required(request.Role);
         user.IsActive = request.IsActive;
         user.UpdatedAt = DateTime.UtcNow;
 

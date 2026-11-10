@@ -1,19 +1,24 @@
+using MediatR;
 using PaquitoBot.Application.DTOs.Instructors;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Infrastructure.Models;
+using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Instructors.Query;
 
-public class GetAllInstructorsUseCaseQuery
+public record GetAllInstructorsUseCaseQuery : IRequest<IReadOnlyList<InstructorDto>>;
+
+public class GetAllInstructorsUseCaseQueryHandler : IRequestHandler<GetAllInstructorsUseCaseQuery, IReadOnlyList<InstructorDto>>
 {
     private readonly IGenericRepository<Instructor> _instructors;
 
-    public GetAllInstructorsUseCaseQuery(IGenericRepository<Instructor> instructors)
+    public GetAllInstructorsUseCaseQueryHandler(IGenericRepository<Instructor> instructors)
     {
         _instructors = instructors;
     }
 
-    public async Task<IReadOnlyList<InstructorDto>> ExecuteAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<InstructorDto>> Handle(
+        GetAllInstructorsUseCaseQuery request,
+        CancellationToken cancellationToken)
     {
         var instructors = await _instructors.GetAllAsync(cancellationToken);
 

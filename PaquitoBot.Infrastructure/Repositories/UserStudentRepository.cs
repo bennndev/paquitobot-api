@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Models;
 using PaquitoBot.Infrastructure.Data;
-using PaquitoBot.Infrastructure.Models;
 
 namespace PaquitoBot.Infrastructure.Repositories;
 

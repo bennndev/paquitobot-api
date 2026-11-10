@@ -1,4 +1,6 @@
+using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.Common.Exceptions;
 
@@ -18,30 +20,48 @@ public class ApplicationExceptionHandler : IExceptionHandler
         Exception exception,
         CancellationToken cancellationToken)
     {
-        var (statusCode, title) = exception switch
+        ProblemDetails? problem = exception switch
         {
-            NotFoundException => (StatusCodes.Status404NotFound, "Resource not found"),
-            ConflictException => (StatusCodes.Status409Conflict, "Conflict"),
-            InvalidRequestException => (StatusCodes.Status400BadRequest, "Invalid request"),
-            _ => (0, string.Empty)
+            ValidationException validation => new HttpValidationProblemDetails(GroupErrors(validation))
+            {
+                Status = StatusCodes.Status400BadRequest,
+                Title = "Invalid request"
+            },
+            NotFoundException => new ProblemDetails
+            {
+                Status = StatusCodes.Status404NotFound,
+                Title = "Resource not found",
+                Detail = exception.Message
+            },
+            ConflictException => new ProblemDetails
+            {
+                Status = StatusCodes.Status409Conflict,
+                Title = "Conflict",
+                Detail = exception.Message
+            },
+            _ => null
         };
 
-        if (statusCode == 0)
+        if (problem is null)
         {
             return false;
         }
 
-        httpContext.Response.StatusCode = statusCode;
+        httpContext.Response.StatusCode = problem.Status!.Value;
 
         return await _problemDetailsService.TryWriteAsync(new ProblemDetailsContext
         {
             HttpContext = httpContext,
-            ProblemDetails = new ProblemDetails
-            {
-                Status = statusCode,
-                Title = title,
-                Detail = exception.Message
-            }
+            ProblemDetails = problem
         });
+    }
+
+    private static Dictionary<string, string[]> GroupErrors(ValidationException exception)
+    {
+        return exception.Errors
+            .GroupBy(error => error.PropertyName)
+            .ToDictionary(
+                group => group.Key,
+                group => group.Select(error => error.ErrorMessage).Distinct().ToArray());
     }
 }

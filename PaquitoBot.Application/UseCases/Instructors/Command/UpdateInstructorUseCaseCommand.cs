@@ -1,43 +1,63 @@
+using FluentValidation;
+using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Validation;
+using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Instructors;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Infrastructure.Models;
+using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Instructors.Command;
 
-public class UpdateInstructorUseCaseCommand
+public record UpdateInstructorUseCaseCommand(
+    Guid InstructorId,
+    string? FirstName = null,
+    string? LastName = null,
+    string? FullName = null,
+    string? Email = null,
+    string? Phone = null,
+    string? Status = null) : IRequest<InstructorDto>;
+
+public class UpdateInstructorUseCaseCommandValidator : AbstractValidator<UpdateInstructorUseCaseCommand>
+{
+    public UpdateInstructorUseCaseCommandValidator()
+    {
+        RuleLevelCascadeMode = CascadeMode.Stop;
+
+        RuleFor(c => c.FirstName).MaximumLength(160);
+        RuleFor(c => c.LastName).MaximumLength(160);
+        RuleFor(c => c.FullName).MaximumLength(320);
+        RuleFor(c => c.Email).MaximumLength(254).EmailAddress().When(c => !string.IsNullOrWhiteSpace(c.Email));
+        RuleFor(c => c.Phone).MaximumLength(40);
+        RuleFor(c => c.Status).MaximumLength(40);
+    }
+}
+
+public class UpdateInstructorUseCaseCommandHandler : IRequestHandler<UpdateInstructorUseCaseCommand, InstructorDto>
 {
     private readonly IGenericRepository<Instructor> _instructors;
     private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateInstructorUseCaseCommand(IGenericRepository<Instructor> instructors, IUnitOfWork unitOfWork)
+    public UpdateInstructorUseCaseCommandHandler(IGenericRepository<Instructor> instructors, IUnitOfWork unitOfWork)
     {
         _instructors = instructors;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<InstructorDto> ExecuteAsync(
-        Guid instructorId,
-        UpdateInstructorRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<InstructorDto> Handle(UpdateInstructorUseCaseCommand request, CancellationToken cancellationToken)
     {
-        var firstName = RequestValidator.OptionalText(request.FirstName, "FirstName", 160);
-        var lastName = RequestValidator.OptionalText(request.LastName, "LastName", 160);
-        var fullName = RequestValidator.OptionalText(request.FullName, "FullName", 320);
-        var email = RequestValidator.OptionalEmail(request.Email, "Email");
-        var phone = RequestValidator.OptionalText(request.Phone, "Phone", 40);
-        var status = RequestValidator.OptionalText(request.Status, "Status", 40);
+        var instructor = await _instructors.GetByIdAsync(request.InstructorId, cancellationToken)
+            ?? throw new NotFoundException("Instructor", request.InstructorId);
 
-        var instructor = await _instructors.GetByIdAsync(instructorId, cancellationToken)
-            ?? throw new NotFoundException("Instructor", instructorId);
+        var firstName = TextNormalizer.Optional(request.FirstName);
+        var lastName = TextNormalizer.Optional(request.LastName);
+        var fullName = TextNormalizer.Optional(request.FullName);
 
         instructor.FirstName = firstName;
         instructor.LastName = lastName;
         instructor.FullName = ResolveFullName(fullName, firstName, lastName);
-        instructor.Email = email;
-        instructor.Phone = phone;
-        instructor.Status = status;
+        instructor.Email = TextNormalizer.OptionalEmail(request.Email);
+        instructor.Phone = TextNormalizer.Optional(request.Phone);
+        instructor.Status = TextNormalizer.Optional(request.Status);
         instructor.UpdatedAt = DateTime.UtcNow;
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);

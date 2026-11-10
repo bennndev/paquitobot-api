@@ -1,27 +1,30 @@
+using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.DTOs.UserStudents;
 using PaquitoBot.Application.Repositories;
 
 namespace PaquitoBot.Application.UseCases.UserStudents.Command;
 
-public class UpdateUserStudentUseCaseCommand
+public record UpdateUserStudentUseCaseCommand(Guid LinkId, bool IsPrimary) : IRequest<UserStudentDto>;
+
+public class UpdateUserStudentUseCaseCommandHandler
+    : IRequestHandler<UpdateUserStudentUseCaseCommand, UserStudentDto>
 {
     private readonly IUserStudentRepository _links;
     private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateUserStudentUseCaseCommand(IUserStudentRepository links, IUnitOfWork unitOfWork)
+    public UpdateUserStudentUseCaseCommandHandler(IUserStudentRepository links, IUnitOfWork unitOfWork)
     {
         _links = links;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<UserStudentDto> ExecuteAsync(
-        Guid linkId,
-        UpdateUserStudentRequest request,
-        CancellationToken cancellationToken = default)
+    public async Task<UserStudentDto> Handle(
+        UpdateUserStudentUseCaseCommand request,
+        CancellationToken cancellationToken)
     {
-        var link = await _links.GetByIdAsync(linkId, cancellationToken)
-            ?? throw new NotFoundException("UserStudent", linkId);
+        var link = await _links.GetByIdAsync(request.LinkId, cancellationToken)
+            ?? throw new NotFoundException("UserStudent", request.LinkId);
 
         if (request.IsPrimary && await _links.UserHasPrimaryAsync(link.UserId, link.LinkId, cancellationToken))
         {
