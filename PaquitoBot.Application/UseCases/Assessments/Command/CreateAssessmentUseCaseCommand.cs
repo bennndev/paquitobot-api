@@ -1,6 +1,8 @@
-﻿namespace PaquitoBot.Application.UseCases.Assessments.Command;
+﻿using MediatR;
 
-public class CreateAssessmentUseCaseCommand
+namespace PaquitoBot.Application.UseCases.Assessments.Command;
+
+public class CreateAssessmentUseCaseCommand : IRequest
 {
     
 }

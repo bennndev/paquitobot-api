@@ -12,7 +12,6 @@ builder.Services.AddControllers();
 
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddUseCases();
-
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
 builder.Services.AddProblemDetails();
 

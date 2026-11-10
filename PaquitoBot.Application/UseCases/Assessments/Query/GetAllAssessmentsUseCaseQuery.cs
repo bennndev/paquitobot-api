@@ -1,6 +1,6 @@
 ﻿namespace PaquitoBot.Application.UseCases.Assessments.Query;
 
-public class GetAllAssessmentsUseCaseCommand
+public class GetAllAssessmentsUseCaseQuery
 {
     
 }
