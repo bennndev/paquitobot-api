@@ -1,40 +1,71 @@
-using PaquitoBot.Application.Common.Validation;
+using FluentValidation;
+using MediatR;
+using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Students;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Infrastructure.Models;
 
 namespace PaquitoBot.Application.UseCases.Students.Command;
 
-public class CreateStudentUseCaseCommand
+public record CreateStudentUseCaseCommand(
+    string FrappeExternalId,
+    string? StudentCode = null,
+    string? FirstNames = null,
+    string? LastNames = null,
+    string? FullName = null,
+    string? Email = null,
+    string? Phone = null,
+    DateOnly? BirthDate = null,
+    string? Gender = null,
+    string? Status = null) : IRequest<StudentDto>;
+
+public class CreateStudentUseCaseCommandValidator : AbstractValidator<CreateStudentUseCaseCommand>
+{
+    public CreateStudentUseCaseCommandValidator()
+    {
+        RuleLevelCascadeMode = CascadeMode.Stop;
+
+        RuleFor(c => c.FrappeExternalId).NotEmpty().MaximumLength(140);
+        RuleFor(c => c.StudentCode).MaximumLength(80);
+        RuleFor(c => c.FirstNames).MaximumLength(160);
+        RuleFor(c => c.LastNames).MaximumLength(160);
+        RuleFor(c => c.FullName).MaximumLength(320);
+        RuleFor(c => c.Email).MaximumLength(254).EmailAddress().When(c => !string.IsNullOrWhiteSpace(c.Email));
+        RuleFor(c => c.Phone).MaximumLength(40);
+        RuleFor(c => c.Gender).MaximumLength(40);
+        RuleFor(c => c.Status).MaximumLength(40);
+    }
+}
+
+public class CreateStudentUseCaseCommandHandler : IRequestHandler<CreateStudentUseCaseCommand, StudentDto>
 {
     private readonly IGenericRepository<Student> _students;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateStudentUseCaseCommand(IGenericRepository<Student> students, IUnitOfWork unitOfWork)
+    public CreateStudentUseCaseCommandHandler(IGenericRepository<Student> students, IUnitOfWork unitOfWork)
     {
         _students = students;
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<StudentDto> ExecuteAsync(CreateStudentRequest request, CancellationToken cancellationToken = default)
+    public async Task<StudentDto> Handle(CreateStudentUseCaseCommand request, CancellationToken cancellationToken)
     {
-        var firstNames = RequestValidator.OptionalText(request.FirstNames, "FirstNames", 160);
-        var lastNames = RequestValidator.OptionalText(request.LastNames, "LastNames", 160);
-        var fullName = RequestValidator.OptionalText(request.FullName, "FullName", 320)
-            ?? BuildFullName(firstNames, lastNames);
+        var firstNames = TextNormalizer.Optional(request.FirstNames);
+        var lastNames = TextNormalizer.Optional(request.LastNames);
+        var fullName = TextNormalizer.Optional(request.FullName) ?? BuildFullName(firstNames, lastNames);
 
         var student = new Student
         {
-            FrappeExternalId = RequestValidator.RequireText(request.FrappeExternalId, "FrappeExternalId", 140),
-            StudentCode = RequestValidator.OptionalText(request.StudentCode, "StudentCode", 80),
+            FrappeExternalId = TextNormalizer.Required(request.FrappeExternalId),
+            StudentCode = TextNormalizer.Optional(request.StudentCode),
             FirstNames = firstNames,
             LastNames = lastNames,
             FullName = fullName,
-            Email = RequestValidator.OptionalEmail(request.Email, "Email"),
-            Phone = RequestValidator.OptionalText(request.Phone, "Phone", 40),
+            Email = TextNormalizer.OptionalEmail(request.Email),
+            Phone = TextNormalizer.Optional(request.Phone),
             BirthDate = request.BirthDate,
-            Gender = RequestValidator.OptionalText(request.Gender, "Gender", 40),
-            Status = RequestValidator.OptionalText(request.Status, "Status", 40)
+            Gender = TextNormalizer.Optional(request.Gender),
+            Status = TextNormalizer.Optional(request.Status)
         };
 
         await _students.AddAsync(student, cancellationToken);
