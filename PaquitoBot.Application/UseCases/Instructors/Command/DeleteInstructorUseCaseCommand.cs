@@ -7,23 +7,14 @@ namespace PaquitoBot.Application.UseCases.Instructors.Command;
 
 public record DeleteInstructorUseCaseCommand(Guid InstructorId) : IRequest;
 
-public class DeleteInstructorUseCaseCommandHandler : IRequestHandler<DeleteInstructorUseCaseCommand>
+public class DeleteInstructorUseCaseCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<DeleteInstructorUseCaseCommand>
 {
-    private readonly IGenericRepository<Instructor> _instructors;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public DeleteInstructorUseCaseCommandHandler(IGenericRepository<Instructor> instructors, IUnitOfWork unitOfWork)
-    {
-        _instructors = instructors;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task Handle(DeleteInstructorUseCaseCommand request, CancellationToken cancellationToken)
     {
-        var instructor = await _instructors.GetByIdAsync(request.InstructorId, cancellationToken)
+        var instructor = await _unitOfWork.Repository<Instructor>().GetByIdAsync(request.InstructorId, cancellationToken)
             ?? throw new NotFoundException("Instructor", request.InstructorId);
 
-        _instructors.Remove(instructor);
+        _unitOfWork.Repository<Instructor>().Remove(instructor);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
     }

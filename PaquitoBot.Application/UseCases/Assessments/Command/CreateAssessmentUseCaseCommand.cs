@@ -1,5 +1,5 @@
-﻿using FluentValidation;
 using MediatR;
+using FluentValidation;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
 

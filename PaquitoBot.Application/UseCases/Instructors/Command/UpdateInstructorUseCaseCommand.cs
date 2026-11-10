@@ -32,20 +32,11 @@ public class UpdateInstructorUseCaseCommandValidator : AbstractValidator<UpdateI
     }
 }
 
-public class UpdateInstructorUseCaseCommandHandler : IRequestHandler<UpdateInstructorUseCaseCommand, InstructorDto>
+public class UpdateInstructorUseCaseCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<UpdateInstructorUseCaseCommand, InstructorDto>
 {
-    private readonly IGenericRepository<Instructor> _instructors;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UpdateInstructorUseCaseCommandHandler(IGenericRepository<Instructor> instructors, IUnitOfWork unitOfWork)
-    {
-        _instructors = instructors;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<InstructorDto> Handle(UpdateInstructorUseCaseCommand request, CancellationToken cancellationToken)
     {
-        var instructor = await _instructors.GetByIdAsync(request.InstructorId, cancellationToken)
+        var instructor = await _unitOfWork.Repository<Instructor>().GetByIdAsync(request.InstructorId, cancellationToken)
             ?? throw new NotFoundException("Instructor", request.InstructorId);
 
         var firstName = TextNormalizer.Optional(request.FirstName);

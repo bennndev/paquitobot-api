@@ -27,20 +27,11 @@ public class UpdateUserUseCaseCommandValidator : AbstractValidator<UpdateUserUse
     }
 }
 
-public class UpdateUserUseCaseCommandHandler : IRequestHandler<UpdateUserUseCaseCommand, UserDto>
+public class UpdateUserUseCaseCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<UpdateUserUseCaseCommand, UserDto>
 {
-    private readonly IGenericRepository<User> _users;
-    private readonly IUnitOfWork _unitOfWork;
-
-    public UpdateUserUseCaseCommandHandler(IGenericRepository<User> users, IUnitOfWork unitOfWork)
-    {
-        _users = users;
-        _unitOfWork = unitOfWork;
-    }
-
     public async Task<UserDto> Handle(UpdateUserUseCaseCommand request, CancellationToken cancellationToken)
     {
-        var user = await _users.GetByIdAsync(request.UserId, cancellationToken)
+        var user = await _unitOfWork.Repository<User>().GetByIdAsync(request.UserId, cancellationToken)
             ?? throw new NotFoundException("User", request.UserId);
 
         user.Username = TextNormalizer.Required(request.Username);

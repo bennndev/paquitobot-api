@@ -8,18 +8,11 @@ namespace PaquitoBot.Application.UseCases.Instructors.Query;
 
 public record GetInstructorByIdUseCaseQuery(Guid InstructorId) : IRequest<InstructorDto>;
 
-public class GetInstructorByIdUseCaseQueryHandler : IRequestHandler<GetInstructorByIdUseCaseQuery, InstructorDto>
+public class GetInstructorByIdUseCaseQueryHandler(IUnitOfWork _unitOfWork) : IRequestHandler<GetInstructorByIdUseCaseQuery, InstructorDto>
 {
-    private readonly IGenericRepository<Instructor> _instructors;
-
-    public GetInstructorByIdUseCaseQueryHandler(IGenericRepository<Instructor> instructors)
-    {
-        _instructors = instructors;
-    }
-
     public async Task<InstructorDto> Handle(GetInstructorByIdUseCaseQuery request, CancellationToken cancellationToken)
     {
-        var instructor = await _instructors.GetByIdAsync(request.InstructorId, cancellationToken)
+        var instructor = await _unitOfWork.Repository<Instructor>().GetByIdAsync(request.InstructorId, cancellationToken)
             ?? throw new NotFoundException("Instructor", request.InstructorId);
 
         return InstructorDto.From(instructor);

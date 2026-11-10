@@ -3,8 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Infrastructure.Data;
 using PaquitoBot.Infrastructure.Repositories;
-using MediatR;
-using PaquitoBot.Application;
 
 namespace PaquitoBot.Infrastructure;
 
@@ -15,9 +13,7 @@ public static class DependencyInjection
         services.AddDbContext<PaquitoBotDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-        // Mediator (MediatR)
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(typeof(ApplicationAssemblyMarker).Assembly));
-
+    
         var repositories = typeof(DependencyInjection).Assembly.GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } && type.Name.EndsWith("Repository"));
 
