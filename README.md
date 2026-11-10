@@ -32,4 +32,24 @@ Work follows **Issue → Branch → Commits → Pull Request → Review → Merg
 - Open Pull Requests against `development`. They need at least one approval and a successful build.
 - Never commit credentials, connection strings or secrets.
 
+### Commit Rules
+
+Commits follow **Conventional Commits** for the message and **Atomic Commits** for what goes inside.
+
+- **One commit per logical change, not per file.** A commit can include 1, 5 or 20 files as long as all of them serve the same goal.
+- Before committing, ask: *if I revert this commit, do I revert a single logical change and leave the project in a coherent state?* If yes, it is well grouped.
+- Keep together what only works together: a use case with its validator and handler, a migration with its designer and model snapshot, a controller with the contracts it needs.
+- Do not mix unrelated changes in one commit, and do not split one change across commits so that the intermediate ones do not build.
+- Prefer commits that compile and can be verified on their own.
+- Review `git diff --staged` before every commit, because the staged files may include changes from another task.
+
+Examples:
+
+```text
+feat(app): add student use cases
+feat(api): add students controller
+feat(db): add academic payment schema
+refactor(app): migrate use cases to MediatR
+```
+
 The full rules (branch types, commit scopes, Issue and PR conventions, labels and Definition of Done) are in [CONTRIBUTING.md](CONTRIBUTING.md).
