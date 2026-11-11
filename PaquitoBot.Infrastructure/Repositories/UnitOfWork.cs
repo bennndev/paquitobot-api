@@ -12,11 +12,16 @@ public class UnitOfWork : IUnitOfWork
     private Hashtable? _repositories;
     private readonly PaquitoBotDbContext _context;
     public IUserStudentRepository UserStudents { get; }
+    public ISyncRunRepository SyncRuns { get; }
 
-    public UnitOfWork(PaquitoBotDbContext context, IUserStudentRepository userStudents)
+    public UnitOfWork(
+        PaquitoBotDbContext context,
+        IUserStudentRepository userStudents,
+        ISyncRunRepository syncRuns)
     {
         _context = context;
         UserStudents = userStudents;
+        SyncRuns = syncRuns;
         _repositories = new Hashtable();
     }
 
