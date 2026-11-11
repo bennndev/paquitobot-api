@@ -58,4 +58,12 @@ public class SyncRunsController : ControllerBase
 
         return NoContent();
     }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new DeleteSyncRunUseCaseCommand(id), cancellationToken);
+
+        return NoContent();
+    }
 }
