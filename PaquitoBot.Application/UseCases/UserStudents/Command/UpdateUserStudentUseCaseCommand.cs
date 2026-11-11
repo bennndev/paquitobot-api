@@ -15,7 +15,7 @@ public class UpdateUserStudentUseCaseCommandHandler(IUnitOfWork _unitOfWork)
         var link = await _unitOfWork.UserStudents.GetByIdAsync(request.LinkId, cancellationToken)
             ?? throw new NotFoundException("UserStudent", request.LinkId);
 
-        if (request.IsPrimary && await _links.UserHasPrimaryAsync(link.UserId, link.LinkId, cancellationToken))
+        if (request.IsPrimary && await _unitOfWork.UserStudents.UserHasPrimaryAsync(link.UserId, link.LinkId, cancellationToken))
         {
             throw new ConflictException($"User '{link.UserId}' already has a primary student link.");
         }
