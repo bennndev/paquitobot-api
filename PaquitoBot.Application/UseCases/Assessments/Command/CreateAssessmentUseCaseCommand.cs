@@ -1,5 +1,6 @@
 using MediatR;
 using FluentValidation;
+using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
 
@@ -8,6 +9,7 @@ namespace PaquitoBot.Application.UseCases.Assessments.Command;
 public record CreateAssessmentUseCaseCommand(
     Guid SectionId,
     string Title,
+    string? FrappeExternalId = null,
     string? AssessmentType = null,
     decimal? MaximumScore = null,
     decimal? Weight = null,
@@ -20,21 +22,37 @@ public class CreateAssessmentUseCaseCommandValidator : AbstractValidator<CreateA
     public CreateAssessmentUseCaseCommandValidator()
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
-        RuleFor(c => c.SectionId).NotEmpty(); 
+        RuleFor(c => c.SectionId).NotEmpty();
         RuleFor(c => c.Title).NotEmpty().MaximumLength(255);
+        RuleFor(c => c.FrappeExternalId).MaximumLength(140);
         RuleFor(c => c.AssessmentType).MaximumLength(80);
         RuleFor(c => c.MaximumScore).PrecisionScale(10, 2, ignoreTrailingZeros: true).GreaterThanOrEqualTo(0);
-        RuleFor(c => c.Weight).InclusiveBetween(0m, 100m).PrecisionScale(7, 4, ignoreTrailingZeros: true);;
+        RuleFor(c => c.Weight).InclusiveBetween(0m, 100m).PrecisionScale(7, 4, ignoreTrailingZeros: true);
         RuleFor(c => c.AssessmentDate).GreaterThanOrEqualTo(DateOnly.FromDateTime(DateTime.UtcNow))
-            .When(c => c.AssessmentDate.HasValue); //Ejecutar unicamente cuando date tenga valor 
+            .When(c => c.AssessmentDate.HasValue);
         RuleFor(c => c.Status).MaximumLength(40);
     }
 }
 
-// internal sealed class CreateAssessmentUseCaseCommandHandler(
-//     IGenericRepository<Assessment> _assessments,
-//     IUnitOfWork _unitOfWork
-// ) : IRequestHandler<CreateAssessmentUseCaseCommand, Guid>
-// {
-// }
-//
+internal sealed class CreateAssessmentUseCaseCommandHandler(
+    IUnitOfWork _unitOfWork
+) : IRequestHandler<CreateAssessmentUseCaseCommand, Guid>
+{
+    public async Task<Guid> Handle(CreateAssessmentUseCaseCommand request, CancellationToken cancellationToken)
+    {
+        var assessment = new Assessment
+        {
+            SectionId = request.SectionId,
+            Title = TextNormalizer.Required(request.Title),
+            FrappeExternalId = TextNormalizer.Optional(request.FrappeExternalId),
+            AssessmentType = TextNormalizer.Optional(request.AssessmentType),
+            MaximumScore = request.MaximumScore,
+            Weight = request.Weight,
+            AssessmentDate = request.AssessmentDate,
+            Status = TextNormalizer.Optional(request.Status)
+        };
+        await _unitOfWork.Repository<Assessment>().AddAsync(assessment, cancellationToken);
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        return assessment.AssessmentId;
+    }
+}
