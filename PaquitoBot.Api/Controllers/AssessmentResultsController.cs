@@ -22,6 +22,19 @@ public class AssessmentResultsController(ISender sender) : ControllerBase
         return Ok(await sender.Send(new GetAssessmentResultByIdUseCaseQuery(id), cancellationToken));
     }
 
+    [HttpGet("by-assessment/{assessmentId:guid}")]
+    public async Task<ActionResult<IReadOnlyList<AssessmentResultDto>>> GetByAssessment(Guid assessmentId, CancellationToken cancellationToken)
+        => Ok(await sender.Send(new GetResultsByAssessmentIdUseCaseQuery(assessmentId), cancellationToken));
+
+    [HttpGet("by-student/{studentId:guid}")]
+    public async Task<ActionResult<IReadOnlyList<AssessmentResultDto>>> GetByStudent(Guid studentId, CancellationToken cancellationToken)
+        => Ok(await sender.Send(new GetResultsByStudentIdUseCaseQuery(studentId), cancellationToken));
+
+    [HttpGet("by-student/{studentId:guid}/assessment/{assessmentId:guid}")]
+    public async Task<ActionResult<AssessmentResultDto>> GetStudentResultByAssessment(
+        Guid studentId, Guid assessmentId, CancellationToken cancellationToken)
+        => Ok(await sender.Send(new GetStudentResultByAssessmentIdUseCaseQuery(studentId, assessmentId), cancellationToken));
+
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
         [FromBody] CreateAssessmentResultUseCaseCommand command,

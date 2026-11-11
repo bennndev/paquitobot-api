@@ -22,6 +22,14 @@ public class AssessmentPlansController(ISender sender) : ControllerBase
         return Ok(await sender.Send(new GetAssessmentPlanByIdUseCaseQuery(id), cancellationToken));
     }
 
+    [HttpGet("by-section/{sectionId:guid}")]
+    public async Task<ActionResult<IReadOnlyList<AssessmentPlanDto>>> GetBySection(Guid sectionId, CancellationToken cancellationToken)
+        => Ok(await sender.Send(new GetAssessmentPlansBySectionIdUseCaseQuery(sectionId), cancellationToken));
+
+    [HttpGet("upcoming")]
+    public async Task<ActionResult<IReadOnlyList<AssessmentPlanDto>>> GetUpcoming([FromQuery] Guid? sectionId, CancellationToken cancellationToken)
+        => Ok(await sender.Send(new GetUpcomingAssessmentPlansUseCaseQuery(sectionId), cancellationToken));
+
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
         [FromBody] CreateAssessmentPlanUseCaseCommand command,

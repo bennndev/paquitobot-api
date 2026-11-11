@@ -12,11 +12,23 @@ public class UnitOfWork : IUnitOfWork
     private Hashtable? _repositories;
     private readonly PaquitoBotDbContext _context;
     public IUserStudentRepository UserStudents { get; }
+    public IAssessmentResultRepository AssessmentResults { get; }
+    public IAssessmentPlanRepository  AssessmentPlans { get; }
+    public IAssessmentRepository  Assessments { get; }
+    public IAttendanceRecordRepository  AttendanceRecords { get; }
 
-    public UnitOfWork(PaquitoBotDbContext context, IUserStudentRepository userStudents)
+    public UnitOfWork(PaquitoBotDbContext context, IUserStudentRepository userStudents,
+        IAssessmentResultRepository assessmentResults,
+        IAssessmentPlanRepository assessmentPlans,
+        IAssessmentRepository assessments,
+        IAttendanceRecordRepository attendanceRecords)
     {
         _context = context;
         UserStudents = userStudents;
+        AssessmentResults = assessmentResults;
+        AssessmentPlans = assessmentPlans;
+        Assessments = assessments;
+        AttendanceRecords = attendanceRecords;
         _repositories = new Hashtable();
     }
 

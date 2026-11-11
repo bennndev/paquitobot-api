@@ -22,6 +22,11 @@ public class AttendanceRecordsController(ISender sender) : ControllerBase
         return Ok(await sender.Send(new GetAttendanceRecordByIdUseCaseQuery(id), cancellationToken));
     }
 
+    [HttpGet("by-student/{studentId:guid}/section/{sectionId:guid}")]
+    public async Task<ActionResult<IReadOnlyList<AttendanceRecordDto>>> GetByStudentAndSection(
+        Guid studentId, Guid sectionId, CancellationToken cancellationToken)
+        => Ok(await sender.Send(new GetAttendanceByStudentAndSectionUseCaseQuery(studentId, sectionId), cancellationToken));
+
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
         [FromBody] CreateAttendanceRecordUseCaseCommand command,
