@@ -20,18 +20,18 @@ public class UserStudentsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<UserStudentDto>>> GetAll(CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetAllUserStudentsUseCaseQuery(), cancellationToken));
+        return Ok(await _sender.Send(new GetAllUserStudentsQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<UserStudentDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetUserStudentByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetUserStudentByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
     public async Task<ActionResult<UserStudentDto>> Create(
-        [FromBody] CreateUserStudentUseCaseCommand command,
+        [FromBody] CreateUserStudentCommand command,
         CancellationToken cancellationToken)
     {
         var link = await _sender.Send(command, cancellationToken);
@@ -42,7 +42,7 @@ public class UserStudentsController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<UserStudentDto>> Update(
         Guid id,
-        [FromBody] UpdateUserStudentUseCaseCommand command,
+        [FromBody] UpdateUserStudentCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(command with { LinkId = id }, cancellationToken));
@@ -51,7 +51,7 @@ public class UserStudentsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteUserStudentUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new DeleteUserStudentCommand(id), cancellationToken);
 
         return NoContent();
     }

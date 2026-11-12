@@ -20,18 +20,18 @@ public class PaymentsController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<PaymentDto>>> GetAll(CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetAllPaymentsUseCaseQuery(), cancellationToken));
+        return Ok(await _sender.Send(new GetAllPaymentsQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PaymentDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetPaymentByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetPaymentByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
     public async Task<ActionResult<PaymentDto>> Create(
-        [FromBody] CreatePaymentUseCaseCommand command,
+        [FromBody] CreatePaymentCommand command,
         CancellationToken cancellationToken)
     {
         var payment = await _sender.Send(command, cancellationToken);
@@ -42,7 +42,7 @@ public class PaymentsController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<PaymentDto>> Update(
         Guid id,
-        [FromBody] UpdatePaymentUseCaseCommand command,
+        [FromBody] UpdatePaymentCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(command with { PaymentId = id }, cancellationToken));
@@ -51,7 +51,7 @@ public class PaymentsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeletePaymentUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new DeletePaymentCommand(id), cancellationToken);
 
         return NoContent();
     }

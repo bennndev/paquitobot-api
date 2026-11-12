@@ -25,7 +25,7 @@ public class KnowledgeDocumentsController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20)
     {
-        var query = new GetAllKnowledgeDocumentsUseCaseQuery(courseId, status, search, page, pageSize);
+        var query = new GetAllKnowledgeDocumentsQuery(courseId, status, search, page, pageSize);
 
         return Ok(await _sender.Send(query, cancellationToken));
     }
@@ -35,12 +35,12 @@ public class KnowledgeDocumentsController : ControllerBase
         Guid id,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetKnowledgeDocumentByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetKnowledgeDocumentByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
-        [FromBody] CreateKnowledgeDocumentUseCaseCommand command,
+        [FromBody] CreateKnowledgeDocumentCommand command,
         CancellationToken cancellationToken)
     {
         var documentId = await _sender.Send(command, cancellationToken);
@@ -51,7 +51,7 @@ public class KnowledgeDocumentsController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(
         Guid id,
-        [FromBody] UpdateKnowledgeDocumentUseCaseCommand command,
+        [FromBody] UpdateKnowledgeDocumentCommand command,
         CancellationToken cancellationToken)
     {
         await _sender.Send(command with { DocumentId = id }, cancellationToken);
@@ -62,7 +62,7 @@ public class KnowledgeDocumentsController : ControllerBase
     [HttpPut("{id:guid}/indexed")]
     public async Task<IActionResult> MarkAsIndexed(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new MarkKnowledgeDocumentAsIndexedUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new MarkKnowledgeDocumentAsIndexedCommand(id), cancellationToken);
 
         return NoContent();
     }
@@ -70,7 +70,7 @@ public class KnowledgeDocumentsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteKnowledgeDocumentUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new DeleteKnowledgeDocumentCommand(id), cancellationToken);
 
         return NoContent();
     }

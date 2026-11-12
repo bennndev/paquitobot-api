@@ -20,18 +20,18 @@ public class FeeStructuresController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<FeeStructureDto>>> GetAll(CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetAllFeeStructuresUseCaseQuery(), cancellationToken));
+        return Ok(await _sender.Send(new GetAllFeeStructuresQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<FeeStructureDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetFeeStructureByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetFeeStructureByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
     public async Task<ActionResult<FeeStructureDto>> Create(
-        [FromBody] CreateFeeStructureUseCaseCommand command,
+        [FromBody] CreateFeeStructureCommand command,
         CancellationToken cancellationToken)
     {
         var feeStructure = await _sender.Send(command, cancellationToken);
@@ -42,7 +42,7 @@ public class FeeStructuresController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<FeeStructureDto>> Update(
         Guid id,
-        [FromBody] UpdateFeeStructureUseCaseCommand command,
+        [FromBody] UpdateFeeStructureCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(command with { FeeStructureId = id }, cancellationToken));
@@ -51,7 +51,7 @@ public class FeeStructuresController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteFeeStructureUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new DeleteFeeStructureCommand(id), cancellationToken);
 
         return NoContent();
     }

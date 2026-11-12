@@ -20,18 +20,18 @@ public class ConversationsController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<GetAllConversationsResponse>>> GetAll(
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetAllConversationsUseCaseQuery(), cancellationToken));
+        return Ok(await _sender.Send(new GetAllConversationsQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<GetConversationByIdResponse>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetConversationByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetConversationByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
-        [FromBody] CreateConversationUseCaseCommand command,
+        [FromBody] CreateConversationCommand command,
         CancellationToken cancellationToken)
     {
         var conversationId = await _sender.Send(command, cancellationToken);
@@ -42,7 +42,7 @@ public class ConversationsController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<IActionResult> Update(
         Guid id,
-        [FromBody] UpdateConversationUseCaseCommand command,
+        [FromBody] UpdateConversationCommand command,
         CancellationToken cancellationToken)
     {
         await _sender.Send(command with { ConversationId = id }, cancellationToken);
@@ -53,7 +53,7 @@ public class ConversationsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteConversationUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new DeleteConversationCommand(id), cancellationToken);
 
         return NoContent();
     }

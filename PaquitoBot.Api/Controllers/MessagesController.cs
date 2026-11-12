@@ -21,18 +21,18 @@ public class MessagesController : ControllerBase
         Guid conversationId,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetMessagesByConversationUseCaseQuery(conversationId), cancellationToken));
+        return Ok(await _sender.Send(new GetMessagesByConversationQuery(conversationId), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<GetMessageByIdResponse>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetMessageByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetMessageByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
-        [FromBody] CreateMessageUseCaseCommand command,
+        [FromBody] CreateMessageCommand command,
         CancellationToken cancellationToken)
     {
         var messageId = await _sender.Send(command, cancellationToken);

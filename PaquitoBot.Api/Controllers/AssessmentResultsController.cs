@@ -13,31 +13,31 @@ public class AssessmentResultsController(ISender sender) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<AssessmentResultDto>>> GetAll(CancellationToken cancellationToken)
     {
-        return Ok(await sender.Send(new GetAllAssessmentResultsUseCaseQuery(), cancellationToken));
+        return Ok(await sender.Send(new GetAllAssessmentResultsQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<AssessmentResultDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await sender.Send(new GetAssessmentResultByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await sender.Send(new GetAssessmentResultByIdQuery(id), cancellationToken));
     }
 
     [HttpGet("by-assessment/{assessmentId:guid}")]
     public async Task<ActionResult<IReadOnlyList<AssessmentResultDto>>> GetByAssessment(Guid assessmentId, CancellationToken cancellationToken)
-        => Ok(await sender.Send(new GetResultsByAssessmentIdUseCaseQuery(assessmentId), cancellationToken));
+        => Ok(await sender.Send(new GetResultsByAssessmentIdQuery(assessmentId), cancellationToken));
 
     [HttpGet("by-student/{studentId:guid}")]
     public async Task<ActionResult<IReadOnlyList<AssessmentResultDto>>> GetByStudent(Guid studentId, CancellationToken cancellationToken)
-        => Ok(await sender.Send(new GetResultsByStudentIdUseCaseQuery(studentId), cancellationToken));
+        => Ok(await sender.Send(new GetResultsByStudentIdQuery(studentId), cancellationToken));
 
     [HttpGet("by-student/{studentId:guid}/assessment/{assessmentId:guid}")]
     public async Task<ActionResult<AssessmentResultDto>> GetStudentResultByAssessment(
         Guid studentId, Guid assessmentId, CancellationToken cancellationToken)
-        => Ok(await sender.Send(new GetStudentResultByAssessmentIdUseCaseQuery(studentId, assessmentId), cancellationToken));
+        => Ok(await sender.Send(new GetStudentResultByAssessmentIdQuery(studentId, assessmentId), cancellationToken));
 
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
-        [FromBody] CreateAssessmentResultUseCaseCommand command,
+        [FromBody] CreateAssessmentResultCommand command,
         CancellationToken cancellationToken)
     {
         var resultId = await sender.Send(command, cancellationToken);
@@ -47,7 +47,7 @@ public class AssessmentResultsController(ISender sender) : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<Guid>> Update(
         Guid id,
-        [FromBody] UpdateAssessmentResultUseCaseCommand command,
+        [FromBody] UpdateAssessmentResultCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await sender.Send(command with { ResultId = id }, cancellationToken));
@@ -56,7 +56,7 @@ public class AssessmentResultsController(ISender sender) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await sender.Send(new DeleteAssessmentResultUseCaseCommand(id), cancellationToken);
+        await sender.Send(new DeleteAssessmentResultCommand(id), cancellationToken);
         return NoContent();
     }
 }

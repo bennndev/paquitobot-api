@@ -20,18 +20,18 @@ public class FeeSchedulesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<FeeScheduleDto>>> GetAll(CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetAllFeeSchedulesUseCaseQuery(), cancellationToken));
+        return Ok(await _sender.Send(new GetAllFeeSchedulesQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<FeeScheduleDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetFeeScheduleByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetFeeScheduleByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
     public async Task<ActionResult<FeeScheduleDto>> Create(
-        [FromBody] CreateFeeScheduleUseCaseCommand command,
+        [FromBody] CreateFeeScheduleCommand command,
         CancellationToken cancellationToken)
     {
         var feeSchedule = await _sender.Send(command, cancellationToken);
@@ -42,7 +42,7 @@ public class FeeSchedulesController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<FeeScheduleDto>> Update(
         Guid id,
-        [FromBody] UpdateFeeScheduleUseCaseCommand command,
+        [FromBody] UpdateFeeScheduleCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(command with { FeeScheduleId = id }, cancellationToken));
@@ -51,7 +51,7 @@ public class FeeSchedulesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteFeeScheduleUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new DeleteFeeScheduleCommand(id), cancellationToken);
 
         return NoContent();
     }
