@@ -6,4 +6,5 @@ public interface IUnitOfWork
     IGenericRepository<TEntity> Repository<TEntity>() where TEntity : class;
     IUserStudentRepository UserStudents { get; }
     ISyncRunRepository SyncRuns { get; }
+    IKnowledgeDocumentRepository KnowledgeDocuments { get; }
 }

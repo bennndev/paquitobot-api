@@ -13,15 +13,18 @@ public class UnitOfWork : IUnitOfWork
     private readonly PaquitoBotDbContext _context;
     public IUserStudentRepository UserStudents { get; }
     public ISyncRunRepository SyncRuns { get; }
+    public IKnowledgeDocumentRepository KnowledgeDocuments { get; }
 
     public UnitOfWork(
         PaquitoBotDbContext context,
         IUserStudentRepository userStudents,
-        ISyncRunRepository syncRuns)
+        ISyncRunRepository syncRuns,
+        IKnowledgeDocumentRepository knowledgeDocuments)
     {
         _context = context;
         UserStudents = userStudents;
         SyncRuns = syncRuns;
+        KnowledgeDocuments = knowledgeDocuments;
         _repositories = new Hashtable();
     }
 
