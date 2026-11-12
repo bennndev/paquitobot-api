@@ -27,7 +27,7 @@ public class AcademicPeriodsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var periods = await _sender.Send(
-            new GetAllAcademicPeriodsUseCaseQuery(),
+            new GetAllAcademicPeriodsQuery(),
             cancellationToken);
 
         return Ok(periods);
@@ -45,7 +45,7 @@ public class AcademicPeriodsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var period = await _sender.Send(
-            new GetAcademicPeriodByIdUseCaseQuery(id),
+            new GetAcademicPeriodByIdQuery(id),
             cancellationToken);
 
         return Ok(period);
@@ -62,7 +62,7 @@ public class AcademicPeriodsController : ControllerBase
         typeof(ProblemDetails),
         StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AcademicPeriodDto>> Create(
-        [FromBody] CreateAcademicPeriodUseCaseCommand command,
+        [FromBody] CreateAcademicPeriodCommand command,
         CancellationToken cancellationToken)
     {
         var period = await _sender.Send(
@@ -90,7 +90,7 @@ public class AcademicPeriodsController : ControllerBase
         StatusCodes.Status409Conflict)]
     public async Task<ActionResult<AcademicPeriodDto>> Update(
         Guid id,
-        [FromBody] UpdateAcademicPeriodUseCaseCommand command,
+        [FromBody] UpdateAcademicPeriodCommand command,
         CancellationToken cancellationToken)
     {
         var period = await _sender.Send(
@@ -114,7 +114,7 @@ public class AcademicPeriodsController : ControllerBase
         CancellationToken cancellationToken)
     {
         await _sender.Send(
-            new DeleteAcademicPeriodUseCaseCommand(id),
+            new DeleteAcademicPeriodCommand(id),
             cancellationToken);
 
         return NoContent();

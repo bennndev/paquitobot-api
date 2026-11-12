@@ -6,17 +6,17 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.AcademicPeriods.Query;
 
-public record GetAllAcademicPeriodsUseCaseQuery
+public record GetAllAcademicPeriodsQuery
     : IRequest<IReadOnlyList<AcademicPeriodDto>>;
 
-public class GetAllAcademicPeriodsUseCaseQueryHandler(
+public class GetAllAcademicPeriodsQueryHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<
-        GetAllAcademicPeriodsUseCaseQuery,
+        GetAllAcademicPeriodsQuery,
         IReadOnlyList<AcademicPeriodDto>>
 {
     public async Task<IReadOnlyList<AcademicPeriodDto>> Handle(
-        GetAllAcademicPeriodsUseCaseQuery request,
+        GetAllAcademicPeriodsQuery request,
         CancellationToken cancellationToken)
     {
         var periods = await unitOfWork.Repository<AcademicPeriod>()

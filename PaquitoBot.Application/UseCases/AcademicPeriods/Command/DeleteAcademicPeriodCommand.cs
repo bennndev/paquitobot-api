@@ -7,25 +7,25 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.AcademicPeriods.Command;
 
-public record DeleteAcademicPeriodUseCaseCommand(
+public record DeleteAcademicPeriodCommand(
     Guid AcademicPeriodId) : IRequest;
 
-public class DeleteAcademicPeriodUseCaseCommandValidator
-    : AbstractValidator<DeleteAcademicPeriodUseCaseCommand>
+public class DeleteAcademicPeriodCommandValidator
+    : AbstractValidator<DeleteAcademicPeriodCommand>
 {
-    public DeleteAcademicPeriodUseCaseCommandValidator()
+    public DeleteAcademicPeriodCommandValidator()
     {
         RuleFor(x => x.AcademicPeriodId)
             .NotEmpty();
     }
 }
 
-public class DeleteAcademicPeriodUseCaseCommandHandler(
+public class DeleteAcademicPeriodCommandHandler(
     IUnitOfWork unitOfWork)
-    : IRequestHandler<DeleteAcademicPeriodUseCaseCommand>
+    : IRequestHandler<DeleteAcademicPeriodCommand>
 {
     public async Task Handle(
-        DeleteAcademicPeriodUseCaseCommand request,
+        DeleteAcademicPeriodCommand request,
         CancellationToken cancellationToken)
     {
         var period = await unitOfWork.Repository<AcademicPeriod>()
