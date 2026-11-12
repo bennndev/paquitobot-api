@@ -40,4 +40,4 @@ public class UnitOfWork : IUnitOfWork
         AttendanceRecords = attendanceRecords;
         SyncRuns = syncRuns;
         KnowledgeDocuments = knowledgeDocuments;
-
+    }
