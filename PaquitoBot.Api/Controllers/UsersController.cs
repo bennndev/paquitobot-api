@@ -20,18 +20,18 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<UserDto>>> GetAll(CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetAllUsersUseCaseQuery(), cancellationToken));
+        return Ok(await _sender.Send(new GetAllUsersQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<UserDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetUserByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetUserByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
     public async Task<ActionResult<UserDto>> Create(
-        [FromBody] CreateUserUseCaseCommand command,
+        [FromBody] CreateUserCommand command,
         CancellationToken cancellationToken)
     {
         var user = await _sender.Send(command, cancellationToken);
@@ -42,7 +42,7 @@ public class UsersController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<UserDto>> Update(
         Guid id,
-        [FromBody] UpdateUserUseCaseCommand command,
+        [FromBody] UpdateUserCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(command with { UserId = id }, cancellationToken));
@@ -51,7 +51,7 @@ public class UsersController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteUserUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new DeleteUserCommand(id), cancellationToken);
 
         return NoContent();
     }

@@ -22,25 +22,25 @@ public class SyncRunsController : ControllerBase
         [FromQuery] string? status,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetAllSyncRunsUseCaseQuery(entityName, status), cancellationToken));
+        return Ok(await _sender.Send(new GetAllSyncRunsQuery(entityName, status), cancellationToken));
     }
 
     [HttpGet("latest")]
     public async Task<ActionResult<IReadOnlyList<GetLatestSyncRunByEntityResponse>>> GetLatestByEntity(
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetLatestSyncRunByEntityUseCaseQuery(), cancellationToken));
+        return Ok(await _sender.Send(new GetLatestSyncRunByEntityQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<GetSyncRunByIdResponse>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetSyncRunByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetSyncRunByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
     public async Task<ActionResult<Guid>> Start(
-        [FromBody] StartSyncRunUseCaseCommand command,
+        [FromBody] StartSyncRunCommand command,
         CancellationToken cancellationToken)
     {
         var syncRunId = await _sender.Send(command, cancellationToken);
@@ -51,7 +51,7 @@ public class SyncRunsController : ControllerBase
     [HttpPut("{id:guid}/complete")]
     public async Task<IActionResult> Complete(
         Guid id,
-        [FromBody] CompleteSyncRunUseCaseCommand command,
+        [FromBody] CompleteSyncRunCommand command,
         CancellationToken cancellationToken)
     {
         await _sender.Send(command with { SyncRunId = id }, cancellationToken);
@@ -62,7 +62,7 @@ public class SyncRunsController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteSyncRunUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new DeleteSyncRunCommand(id), cancellationToken);
 
         return NoContent();
     }

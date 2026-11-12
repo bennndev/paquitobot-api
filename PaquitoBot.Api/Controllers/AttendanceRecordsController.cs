@@ -13,23 +13,23 @@ public class AttendanceRecordsController(ISender sender) : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<AttendanceRecordDto>>> GetAll(CancellationToken cancellationToken)
     {
-        return Ok(await sender.Send(new GetAllAttendanceRecordsUseCaseQuery(), cancellationToken));
+        return Ok(await sender.Send(new GetAllAttendanceRecordsQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<AttendanceRecordDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        return Ok(await sender.Send(new GetAttendanceRecordByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await sender.Send(new GetAttendanceRecordByIdQuery(id), cancellationToken));
     }
 
     [HttpGet("by-student/{studentId:guid}/section/{sectionId:guid}")]
     public async Task<ActionResult<IReadOnlyList<AttendanceRecordDto>>> GetByStudentAndSection(
         Guid studentId, Guid sectionId, CancellationToken cancellationToken)
-        => Ok(await sender.Send(new GetAttendanceByStudentAndSectionUseCaseQuery(studentId, sectionId), cancellationToken));
+        => Ok(await sender.Send(new GetAttendanceByStudentAndSectionQuery(studentId, sectionId), cancellationToken));
 
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
-        [FromBody] CreateAttendanceRecordUseCaseCommand command,
+        [FromBody] CreateAttendanceRecordCommand command,
         CancellationToken cancellationToken)
     {
         var attendanceId = await sender.Send(command, cancellationToken);
@@ -39,7 +39,7 @@ public class AttendanceRecordsController(ISender sender) : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<Guid>> Update(
         Guid id,
-        [FromBody] UpdateAttendanceRecordUseCaseCommand command,
+        [FromBody] UpdateAttendanceRecordCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await sender.Send(command with { AttendanceId = id }, cancellationToken));
@@ -48,7 +48,7 @@ public class AttendanceRecordsController(ISender sender) : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await sender.Send(new DeleteAttendanceRecordUseCaseCommand(id), cancellationToken);
+        await sender.Send(new DeleteAttendanceRecordCommand(id), cancellationToken);
         return NoContent();
     }
 }
