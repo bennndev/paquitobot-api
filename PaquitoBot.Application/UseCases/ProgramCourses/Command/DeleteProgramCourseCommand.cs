@@ -6,23 +6,23 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.ProgramCourses.Command;
 
-public record DeleteProgramCourseUseCaseCommand(Guid ProgramCourseId) : IRequest;
+public record DeleteProgramCourseCommand(Guid ProgramCourseId) : IRequest;
 
-public class DeleteProgramCourseUseCaseCommandValidator
-    : AbstractValidator<DeleteProgramCourseUseCaseCommand>
+public class DeleteProgramCourseCommandValidator
+    : AbstractValidator<DeleteProgramCourseCommand>
 {
-    public DeleteProgramCourseUseCaseCommandValidator()
+    public DeleteProgramCourseCommandValidator()
     {
         RuleFor(x => x.ProgramCourseId).NotEmpty();
     }
 }
 
-public class DeleteProgramCourseUseCaseCommandHandler(
+public class DeleteProgramCourseCommandHandler(
     IUnitOfWork unitOfWork)
-    : IRequestHandler<DeleteProgramCourseUseCaseCommand>
+    : IRequestHandler<DeleteProgramCourseCommand>
 {
     public async Task Handle(
-        DeleteProgramCourseUseCaseCommand request,
+        DeleteProgramCourseCommand request,
         CancellationToken cancellationToken)
     {
         var link = await unitOfWork.Repository<ProgramCourse>()

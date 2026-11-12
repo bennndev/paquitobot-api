@@ -23,7 +23,7 @@ public class ProgramCoursesController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<ProgramCourseDto>>> GetAll(
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetAllProgramCoursesUseCaseQuery(), cancellationToken));
+        return Ok(await _sender.Send(new GetAllProgramCoursesQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
@@ -33,7 +33,7 @@ public class ProgramCoursesController : ControllerBase
         Guid id,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetProgramCourseByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetProgramCourseByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
@@ -42,7 +42,7 @@ public class ProgramCoursesController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ProgramCourseDto>> Create(
-        [FromBody] CreateProgramCourseUseCaseCommand command,
+        [FromBody] CreateProgramCourseCommand command,
         CancellationToken cancellationToken)
     {
         var link = await _sender.Send(command, cancellationToken);
@@ -56,7 +56,7 @@ public class ProgramCoursesController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ProgramCourseDto>> Update(
         Guid id,
-        [FromBody] UpdateProgramCourseUseCaseCommand command,
+        [FromBody] UpdateProgramCourseCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(command with { ProgramCourseId = id }, cancellationToken));
@@ -70,7 +70,7 @@ public class ProgramCoursesController : ControllerBase
         Guid id,
         CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteProgramCourseUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new DeleteProgramCourseCommand(id), cancellationToken);
         return NoContent();
     }
 }

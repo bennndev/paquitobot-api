@@ -7,17 +7,19 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.ProgramCourses.Command;
 
-public record CreateProgramCourseUseCaseCommand(
+public record UpdateProgramCourseCommand(
+    Guid ProgramCourseId,
     Guid ProgramId,
     Guid CourseId,
     int? CycleNumber = null,
     bool IsRequired = true) : IRequest<ProgramCourseDto>;
 
-public class CreateProgramCourseUseCaseCommandValidator
-    : AbstractValidator<CreateProgramCourseUseCaseCommand>
+public class UpdateProgramCourseCommandValidator
+    : AbstractValidator<UpdateProgramCourseCommand>
 {
-    public CreateProgramCourseUseCaseCommandValidator()
+    public UpdateProgramCourseCommandValidator()
     {
+        RuleFor(x => x.ProgramCourseId).NotEmpty();
         RuleFor(x => x.ProgramId).NotEmpty();
         RuleFor(x => x.CourseId).NotEmpty();
         RuleFor(x => x.CycleNumber)
@@ -26,14 +28,18 @@ public class CreateProgramCourseUseCaseCommandValidator
     }
 }
 
-public class CreateProgramCourseUseCaseCommandHandler(
+public class UpdateProgramCourseCommandHandler(
     IUnitOfWork unitOfWork)
-    : IRequestHandler<CreateProgramCourseUseCaseCommand, ProgramCourseDto>
+    : IRequestHandler<UpdateProgramCourseCommand, ProgramCourseDto>
 {
     public async Task<ProgramCourseDto> Handle(
-        CreateProgramCourseUseCaseCommand request,
+        UpdateProgramCourseCommand request,
         CancellationToken cancellationToken)
     {
+        var link = await unitOfWork.Repository<ProgramCourse>()
+            .GetByIdAsync(request.ProgramCourseId, cancellationToken)
+            ?? throw new NotFoundException("ProgramCourse", request.ProgramCourseId);
+
         if (!await unitOfWork.Repository<Program>()
             .ExistsAsync(request.ProgramId, cancellationToken))
         {
@@ -46,16 +52,11 @@ public class CreateProgramCourseUseCaseCommandHandler(
             throw new NotFoundException("Course", request.CourseId);
         }
 
-        var link = new ProgramCourse
-        {
-            ProgramId = request.ProgramId,
-            CourseId = request.CourseId,
-            CycleNumber = request.CycleNumber,
-            IsRequired = request.IsRequired
-        };
+        link.ProgramId = request.ProgramId;
+        link.CourseId = request.CourseId;
+        link.CycleNumber = request.CycleNumber;
+        link.IsRequired = request.IsRequired;
 
-        await unitOfWork.Repository<ProgramCourse>()
-            .AddAsync(link, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         return ProgramCourseDto.From(link);

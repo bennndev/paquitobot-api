@@ -5,15 +5,15 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.ProgramCourses.Query;
 
-public record GetAllProgramCoursesUseCaseQuery
+public record GetAllProgramCoursesQuery
     : IRequest<IReadOnlyList<ProgramCourseDto>>;
 
-public class GetAllProgramCoursesUseCaseQueryHandler(
+public class GetAllProgramCoursesQueryHandler(
     IUnitOfWork unitOfWork)
-    : IRequestHandler<GetAllProgramCoursesUseCaseQuery, IReadOnlyList<ProgramCourseDto>>
+    : IRequestHandler<GetAllProgramCoursesQuery, IReadOnlyList<ProgramCourseDto>>
 {
     public async Task<IReadOnlyList<ProgramCourseDto>> Handle(
-        GetAllProgramCoursesUseCaseQuery request,
+        GetAllProgramCoursesQuery request,
         CancellationToken cancellationToken)
     {
         var links = await unitOfWork.Repository<ProgramCourse>()
