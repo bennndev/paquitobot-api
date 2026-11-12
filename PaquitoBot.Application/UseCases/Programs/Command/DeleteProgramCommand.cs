@@ -7,23 +7,23 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Programs.Command;
 
-public record DeleteProgramUseCaseCommand(Guid ProgramId) : IRequest;
+public record DeleteProgramCommand(Guid ProgramId) : IRequest;
 
-public class DeleteProgramUseCaseCommandValidator
-    : AbstractValidator<DeleteProgramUseCaseCommand>
+public class DeleteProgramCommandValidator
+    : AbstractValidator<DeleteProgramCommand>
 {
-    public DeleteProgramUseCaseCommandValidator()
+    public DeleteProgramCommandValidator()
     {
         RuleFor(x => x.ProgramId).NotEmpty();
     }
 }
 
-public class DeleteProgramUseCaseCommandHandler(
+public class DeleteProgramCommandHandler(
     IUnitOfWork unitOfWork)
-    : IRequestHandler<DeleteProgramUseCaseCommand>
+    : IRequestHandler<DeleteProgramCommand>
 {
     public async Task Handle(
-        DeleteProgramUseCaseCommand request,
+        DeleteProgramCommand request,
         CancellationToken cancellationToken)
     {
         var program = await unitOfWork.Repository<Program>()

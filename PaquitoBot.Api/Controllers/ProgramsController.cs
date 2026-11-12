@@ -27,7 +27,7 @@ public class ProgramsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var programs = await _sender.Send(
-            new GetAllProgramsUseCaseQuery(),
+            new GetAllProgramsQuery(),
             cancellationToken);
 
         return Ok(programs);
@@ -45,7 +45,7 @@ public class ProgramsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var program = await _sender.Send(
-            new GetProgramByIdUseCaseQuery(id),
+            new GetProgramByIdQuery(id),
             cancellationToken);
 
         return Ok(program);
@@ -62,7 +62,7 @@ public class ProgramsController : ControllerBase
         typeof(ProblemDetails),
         StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ProgramDto>> Create(
-        [FromBody] CreateProgramUseCaseCommand command,
+        [FromBody] CreateProgramCommand command,
         CancellationToken cancellationToken)
     {
         var program = await _sender.Send(
@@ -90,7 +90,7 @@ public class ProgramsController : ControllerBase
         StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ProgramDto>> Update(
         Guid id,
-        [FromBody] UpdateProgramUseCaseCommand command,
+        [FromBody] UpdateProgramCommand command,
         CancellationToken cancellationToken)
     {
         var program = await _sender.Send(
@@ -117,7 +117,7 @@ public class ProgramsController : ControllerBase
         CancellationToken cancellationToken)
     {
         await _sender.Send(
-            new DeleteProgramUseCaseCommand(id),
+            new DeleteProgramCommand(id),
             cancellationToken);
 
         return NoContent();

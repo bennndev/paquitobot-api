@@ -8,17 +8,17 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Programs.Command;
 
-public record CreateProgramUseCaseCommand(
+public record CreateProgramCommand(
     string FrappeExternalId,
     string Name,
     string? Code = null,
     string? Description = null,
     string? Status = null) : IRequest<ProgramDto>;
 
-public class CreateProgramUseCaseCommandValidator
-    : AbstractValidator<CreateProgramUseCaseCommand>
+public class CreateProgramCommandValidator
+    : AbstractValidator<CreateProgramCommand>
 {
-    public CreateProgramUseCaseCommandValidator()
+    public CreateProgramCommandValidator()
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
 
@@ -37,12 +37,12 @@ public class CreateProgramUseCaseCommandValidator
     }
 }
 
-public class CreateProgramUseCaseCommandHandler(
+public class CreateProgramCommandHandler(
     IUnitOfWork unitOfWork)
-    : IRequestHandler<CreateProgramUseCaseCommand, ProgramDto>
+    : IRequestHandler<CreateProgramCommand, ProgramDto>
 {
     public async Task<ProgramDto> Handle(
-        CreateProgramUseCaseCommand request,
+        CreateProgramCommand request,
         CancellationToken cancellationToken)
     {
         var program = new Program

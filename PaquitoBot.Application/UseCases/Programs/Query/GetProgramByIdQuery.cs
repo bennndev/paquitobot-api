@@ -7,13 +7,13 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Programs.Query;
 
-public record GetProgramByIdUseCaseQuery(Guid ProgramId) : IRequest<ProgramDto>;
+public record GetProgramByIdQuery(Guid ProgramId) : IRequest<ProgramDto>;
 
-public class GetProgramByIdUseCaseQueryHandler(IUnitOfWork unitOfWork)
-    : IRequestHandler<GetProgramByIdUseCaseQuery, ProgramDto>
+public class GetProgramByIdQueryHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<GetProgramByIdQuery, ProgramDto>
 {
     public async Task<ProgramDto> Handle(
-        GetProgramByIdUseCaseQuery request,
+        GetProgramByIdQuery request,
         CancellationToken cancellationToken)
     {
         var program = await unitOfWork.Repository<Program>()

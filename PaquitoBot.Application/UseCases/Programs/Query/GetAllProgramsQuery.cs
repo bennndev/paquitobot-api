@@ -6,13 +6,13 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Programs.Query;
 
-public record GetAllProgramsUseCaseQuery : IRequest<IReadOnlyList<ProgramDto>>;
+public record GetAllProgramsQuery : IRequest<IReadOnlyList<ProgramDto>>;
 
-public class GetAllProgramsUseCaseQueryHandler(IUnitOfWork unitOfWork)
-    : IRequestHandler<GetAllProgramsUseCaseQuery, IReadOnlyList<ProgramDto>>
+public class GetAllProgramsQueryHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<GetAllProgramsQuery, IReadOnlyList<ProgramDto>>
 {
     public async Task<IReadOnlyList<ProgramDto>> Handle(
-        GetAllProgramsUseCaseQuery request,
+        GetAllProgramsQuery request,
         CancellationToken cancellationToken)
     {
         var programs = await unitOfWork.Repository<Program>()

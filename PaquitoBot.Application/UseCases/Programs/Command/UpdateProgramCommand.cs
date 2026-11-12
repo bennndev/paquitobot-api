@@ -9,17 +9,17 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Programs.Command;
 
-public record UpdateProgramUseCaseCommand(
+public record UpdateProgramCommand(
     Guid ProgramId,
     string Name,
     string? Code = null,
     string? Description = null,
     string? Status = null) : IRequest<ProgramDto>;
 
-public class UpdateProgramUseCaseCommandValidator
-    : AbstractValidator<UpdateProgramUseCaseCommand>
+public class UpdateProgramCommandValidator
+    : AbstractValidator<UpdateProgramCommand>
 {
-    public UpdateProgramUseCaseCommandValidator()
+    public UpdateProgramCommandValidator()
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
 
@@ -35,12 +35,12 @@ public class UpdateProgramUseCaseCommandValidator
     }
 }
 
-public class UpdateProgramUseCaseCommandHandler(
+public class UpdateProgramCommandHandler(
     IUnitOfWork unitOfWork)
-    : IRequestHandler<UpdateProgramUseCaseCommand, ProgramDto>
+    : IRequestHandler<UpdateProgramCommand, ProgramDto>
 {
     public async Task<ProgramDto> Handle(
-        UpdateProgramUseCaseCommand request,
+        UpdateProgramCommand request,
         CancellationToken cancellationToken)
     {
         var program = await unitOfWork.Repository<Program>()
