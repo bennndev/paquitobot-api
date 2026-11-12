@@ -5,14 +5,14 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.ProgramEnrollments.Query;
 
-public record GetAllProgramEnrollmentsUseCaseQuery
+public record GetAllProgramEnrollmentsQuery
     : IRequest<IReadOnlyList<ProgramEnrollmentDto>>;
 
-public class GetAllProgramEnrollmentsUseCaseQueryHandler(IUnitOfWork unitOfWork)
-    : IRequestHandler<GetAllProgramEnrollmentsUseCaseQuery, IReadOnlyList<ProgramEnrollmentDto>>
+public class GetAllProgramEnrollmentsQueryHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<GetAllProgramEnrollmentsQuery, IReadOnlyList<ProgramEnrollmentDto>>
 {
     public async Task<IReadOnlyList<ProgramEnrollmentDto>> Handle(
-        GetAllProgramEnrollmentsUseCaseQuery request,
+        GetAllProgramEnrollmentsQuery request,
         CancellationToken cancellationToken)
     {
         var enrollments = await unitOfWork.Repository<ProgramEnrollment>()

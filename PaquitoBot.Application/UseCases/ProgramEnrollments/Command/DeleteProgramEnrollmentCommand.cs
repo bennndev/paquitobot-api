@@ -6,22 +6,22 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.ProgramEnrollments.Command;
 
-public record DeleteProgramEnrollmentUseCaseCommand(Guid ProgramEnrollmentId) : IRequest;
+public record DeleteProgramEnrollmentCommand(Guid ProgramEnrollmentId) : IRequest;
 
-public class DeleteProgramEnrollmentUseCaseCommandValidator
-    : AbstractValidator<DeleteProgramEnrollmentUseCaseCommand>
+public class DeleteProgramEnrollmentCommandValidator
+    : AbstractValidator<DeleteProgramEnrollmentCommand>
 {
-    public DeleteProgramEnrollmentUseCaseCommandValidator()
+    public DeleteProgramEnrollmentCommandValidator()
     {
         RuleFor(x => x.ProgramEnrollmentId).NotEmpty();
     }
 }
 
-public class DeleteProgramEnrollmentUseCaseCommandHandler(IUnitOfWork unitOfWork)
-    : IRequestHandler<DeleteProgramEnrollmentUseCaseCommand>
+public class DeleteProgramEnrollmentCommandHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<DeleteProgramEnrollmentCommand>
 {
     public async Task Handle(
-        DeleteProgramEnrollmentUseCaseCommand request,
+        DeleteProgramEnrollmentCommand request,
         CancellationToken cancellationToken)
     {
         var enrollment = await unitOfWork.Repository<ProgramEnrollment>()

@@ -8,7 +8,7 @@ using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.ProgramEnrollments.Command;
 
-public record CreateProgramEnrollmentUseCaseCommand(
+public record CreateProgramEnrollmentCommand(
     Guid StudentId,
     Guid ProgramId,
     Guid? AcademicPeriodId = null,
@@ -16,10 +16,10 @@ public record CreateProgramEnrollmentUseCaseCommand(
     DateOnly? EnrollmentDate = null,
     string? Status = null) : IRequest<ProgramEnrollmentDto>;
 
-public class CreateProgramEnrollmentUseCaseCommandValidator
-    : AbstractValidator<CreateProgramEnrollmentUseCaseCommand>
+public class CreateProgramEnrollmentCommandValidator
+    : AbstractValidator<CreateProgramEnrollmentCommand>
 {
-    public CreateProgramEnrollmentUseCaseCommandValidator()
+    public CreateProgramEnrollmentCommandValidator()
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
 
@@ -33,11 +33,11 @@ public class CreateProgramEnrollmentUseCaseCommandValidator
     }
 }
 
-public class CreateProgramEnrollmentUseCaseCommandHandler(IUnitOfWork unitOfWork)
-    : IRequestHandler<CreateProgramEnrollmentUseCaseCommand, ProgramEnrollmentDto>
+public class CreateProgramEnrollmentCommandHandler(IUnitOfWork unitOfWork)
+    : IRequestHandler<CreateProgramEnrollmentCommand, ProgramEnrollmentDto>
 {
     public async Task<ProgramEnrollmentDto> Handle(
-        CreateProgramEnrollmentUseCaseCommand request,
+        CreateProgramEnrollmentCommand request,
         CancellationToken cancellationToken)
     {
         if (!await unitOfWork.Repository<Student>()

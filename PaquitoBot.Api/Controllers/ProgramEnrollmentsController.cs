@@ -23,7 +23,7 @@ public class ProgramEnrollmentsController : ControllerBase
     public async Task<ActionResult<IReadOnlyList<ProgramEnrollmentDto>>> GetAll(
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetAllProgramEnrollmentsUseCaseQuery(), cancellationToken));
+        return Ok(await _sender.Send(new GetAllProgramEnrollmentsQuery(), cancellationToken));
     }
 
     [HttpGet("{id:guid}")]
@@ -33,7 +33,7 @@ public class ProgramEnrollmentsController : ControllerBase
         Guid id,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(new GetProgramEnrollmentByIdUseCaseQuery(id), cancellationToken));
+        return Ok(await _sender.Send(new GetProgramEnrollmentByIdQuery(id), cancellationToken));
     }
 
     [HttpPost]
@@ -42,7 +42,7 @@ public class ProgramEnrollmentsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ProgramEnrollmentDto>> Create(
-        [FromBody] CreateProgramEnrollmentUseCaseCommand command,
+        [FromBody] CreateProgramEnrollmentCommand command,
         CancellationToken cancellationToken)
     {
         var enrollment = await _sender.Send(command, cancellationToken);
@@ -60,7 +60,7 @@ public class ProgramEnrollmentsController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status409Conflict)]
     public async Task<ActionResult<ProgramEnrollmentDto>> Update(
         Guid id,
-        [FromBody] UpdateProgramEnrollmentUseCaseCommand command,
+        [FromBody] UpdateProgramEnrollmentCommand command,
         CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(
@@ -75,7 +75,7 @@ public class ProgramEnrollmentsController : ControllerBase
         Guid id,
         CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteProgramEnrollmentUseCaseCommand(id), cancellationToken);
+        await _sender.Send(new DeleteProgramEnrollmentCommand(id), cancellationToken);
         return NoContent();
     }
 }
