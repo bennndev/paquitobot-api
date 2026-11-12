@@ -12,3 +12,4 @@ public interface IUnitOfWork
     IAttendanceRecordRepository AttendanceRecords { get; }
     ISyncRunRepository SyncRuns { get; }
     IKnowledgeDocumentRepository KnowledgeDocuments { get; }
+}

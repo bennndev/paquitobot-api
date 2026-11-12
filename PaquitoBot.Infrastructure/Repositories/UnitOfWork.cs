@@ -41,3 +41,4 @@ public class UnitOfWork : IUnitOfWork
         SyncRuns = syncRuns;
         KnowledgeDocuments = knowledgeDocuments;
     }
+    
