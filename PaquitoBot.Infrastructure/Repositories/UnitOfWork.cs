@@ -13,15 +13,28 @@ public class UnitOfWork : IUnitOfWork
     private readonly PaquitoBotDbContext _context;
     public IUserStudentRepository UserStudents { get; }
     public IMessageRepository Messages { get; }
+    public IAssessmentResultRepository AssessmentResults { get; }
+    public IAssessmentPlanRepository AssessmentPlans { get; }
+    public IAssessmentRepository Assessments { get; }
+    public IAttendanceRecordRepository AttendanceRecords { get; }
 
     public UnitOfWork(
         PaquitoBotDbContext context,
         IUserStudentRepository userStudents,
-        IMessageRepository messages)
+        IMessageRepository messages,
+        IAssessmentResultRepository assessmentResults,
+        IAssessmentPlanRepository assessmentPlans,
+        IAssessmentRepository assessments,
+        IAttendanceRecordRepository attendanceRecords)
     {
         _context = context;
         UserStudents = userStudents;
         Messages = messages;
+        AssessmentResults = assessmentResults;
+        AssessmentPlans = assessmentPlans;
+        Assessments = assessments;
+        AttendanceRecords = attendanceRecords;
+>>>>>>> feature/assessments-attendance-uses-cases
         _repositories = new Hashtable();
     }
 
