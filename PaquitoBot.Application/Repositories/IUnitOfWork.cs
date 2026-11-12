@@ -1,4 +1,4 @@
-﻿namespace PaquitoBot.Application.Repositories;
+namespace PaquitoBot.Application.Repositories;
 
 public interface IUnitOfWork
 {
@@ -10,5 +10,5 @@ public interface IUnitOfWork
     IAssessmentPlanRepository AssessmentPlans { get; }
     IAssessmentRepository Assessments { get; }
     IAttendanceRecordRepository AttendanceRecords { get; }
-}
-}
+    ISyncRunRepository SyncRuns { get; }
+    IKnowledgeDocumentRepository KnowledgeDocuments { get; }
