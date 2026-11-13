@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.Users;
 using PaquitoBot.Application.UseCases.Users.Command;
@@ -8,6 +9,7 @@ namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
 [Route("api/users")]
+[Authorize(Policy = "Administrator")]
 public class UsersController : ControllerBase
 {
     private readonly ISender _sender;

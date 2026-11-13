@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Services;
 using PaquitoBot.Infrastructure.Data;
 using PaquitoBot.Infrastructure.Repositories;
+using PaquitoBot.Infrastructure.Services;
 
 namespace PaquitoBot.Infrastructure;
 
@@ -13,7 +15,9 @@ public static class DependencyInjection
         services.AddDbContext<PaquitoBotDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-    
+        services.AddScoped<IUserPasswordHasher, UserPasswordHasher>();
+        services.AddScoped<ITokenService, TokenService>();
+
         var repositories = typeof(DependencyInjection).Assembly.GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } && type.Name.EndsWith("Repository"));
 
