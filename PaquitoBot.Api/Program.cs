@@ -1,4 +1,5 @@
 
+using PaquitoBot.Api;
 using PaquitoBot.Api.Middleware;
 using PaquitoBot.Application;
 using PaquitoBot.Infrastructure;
@@ -9,15 +10,16 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
     ?? throw new InvalidOperationException(
         "Connection string 'DefaultConnection' was not found. Configure it with .NET User Secrets.");
 
-builder.Services.AddControllers();
 
+builder.Services.AddControllers();
+builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddApplication();
 builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwagger();
 
 var app = builder.Build();
 
@@ -30,9 +32,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-
+app.UseAuthentication();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
