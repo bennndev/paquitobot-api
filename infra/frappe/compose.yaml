@@ -1,0 +1,156 @@
+x-frappe-image: &frappe-image
+  image: ${CUSTOM_IMAGE}:${CUSTOM_TAG}
+  pull_policy: never
+
+x-backend: &backend
+  <<: *frappe-image
+  restart: unless-stopped
+  volumes:
+    - sites:/home/frappe/frappe-bench/sites
+    - logs:/home/frappe/frappe-bench/logs
+  depends_on:
+    configurator:
+      condition: service_completed_successfully
+
+services:
+  db:
+    image: mariadb:10.6
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --skip-character-set-client-handshake
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+    volumes:
+      - db-data:/var/lib/mysql
+
+  redis-cache:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+
+  redis-queue:
+    image: redis:6.2-alpine
+    restart: unless-stopped
+    volumes:
+      - redis-queue-data:/data
+
+  configurator:
+    <<: *frappe-image
+    restart: "no"
+    entrypoint: ["bash", "-c"]
+    command:
+      - >
+        ls -1 apps > sites/apps.txt;
+        bench set-config -g db_host db;
+        bench set-config -gp db_port 3306;
+        bench set-config -g redis_cache redis://redis-cache:6379;
+        bench set-config -g redis_queue redis://redis-queue:6379;
+        bench set-config -g redis_socketio redis://redis-queue:6379;
+        bench set-config -gp socketio_port 9000;
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+
+  create-site:
+    <<: *frappe-image
+    restart: "no"
+    entrypoint: ["bash", "-c"]
+    command:
+      - |
+        set -euo pipefail
+        wait-for-it -t 180 db:3306;
+        wait-for-it -t 180 redis-cache:6379;
+        wait-for-it -t 180 redis-queue:6379;
+        until test -s sites/common_site_config.json;
+        do echo 'Waiting for common site configuration'; sleep 5; done;
+        if test -d "sites/${SITE_NAME}";
+        then echo 'Site ${SITE_NAME} already exists';
+        else
+          bench new-site "${SITE_NAME}" --mariadb-user-host-login-scope='%' --admin-password="${ADMIN_PASSWORD}" --db-root-username=root --db-root-password="${DB_ROOT_PASSWORD}" --install-app=erpnext --set-default;
+          bench --site "${SITE_NAME}" install-app education;
+          bench --site "${SITE_NAME}" enable-scheduler;
+        fi;
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+    depends_on:
+      db:
+        condition: service_healthy
+      configurator:
+        condition: service_completed_successfully
+      redis-cache:
+        condition: service_started
+      redis-queue:
+        condition: service_started
+
+  backend:
+    <<: *backend
+    environment:
+      GUNICORN_WORKERS: 2
+      GUNICORN_THREADS: 4
+      GUNICORN_TIMEOUT: 120
+    depends_on:
+      configurator:
+        condition: service_completed_successfully
+      create-site:
+        condition: service_completed_successfully
+
+  frontend:
+    <<: *frappe-image
+    restart: unless-stopped
+    command: ["nginx-entrypoint.sh"]
+    environment:
+      BACKEND: backend:8000
+      SOCKETIO: websocket:9000
+      FRAPPE_SITE_NAME_HEADER: ${SITE_NAME}
+      UPSTREAM_REAL_IP_ADDRESS: 127.0.0.1
+      UPSTREAM_REAL_IP_HEADER: X-Forwarded-For
+      UPSTREAM_REAL_IP_RECURSIVE: "off"
+      PROXY_READ_TIMEOUT: 120
+      CLIENT_MAX_BODY_SIZE: 50m
+    ports:
+      - "${FRAPPE_HTTP_PORT}:8080"
+    volumes:
+      - sites:/home/frappe/frappe-bench/sites
+      - logs:/home/frappe/frappe-bench/logs
+    depends_on:
+      - backend
+      - websocket
+
+  websocket:
+    <<: *backend
+    command: ["node", "/home/frappe/frappe-bench/apps/frappe/socketio.js"]
+    environment:
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+
+  queue-short:
+    <<: *backend
+    command: ["bench", "worker", "--queue", "short,default"]
+    environment:
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+
+  queue-long:
+    <<: *backend
+    command: ["bench", "worker", "--queue", "long,default,short"]
+    environment:
+      FRAPPE_REDIS_CACHE: redis://redis-cache:6379
+      FRAPPE_REDIS_QUEUE: redis://redis-queue:6379
+
+  scheduler:
+    <<: *backend
+    command: ["bench", "schedule"]
+
+volumes:
+  db-data:
+  redis-queue-data:
+  sites:
+  logs:

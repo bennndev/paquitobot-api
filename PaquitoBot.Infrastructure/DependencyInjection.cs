@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using PaquitoBot.Application;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Infrastructure.Data;
 using PaquitoBot.Infrastructure.Repositories;
@@ -13,7 +14,7 @@ public static class DependencyInjection
         services.AddDbContext<PaquitoBotDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
-    
+
         var repositories = typeof(DependencyInjection).Assembly.GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } && type.Name.EndsWith("Repository"));
 
@@ -27,6 +28,10 @@ public static class DependencyInjection
                 services.AddScoped(contract, implementation);
             }
         }
+
+        services.AddHttpClient<
+            IFrappeEducationClient,
+            FrappeEducationClient.FrappeEducationClient>();
 
         return services;
     }
