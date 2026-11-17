@@ -39,6 +39,12 @@ public class ApplicationExceptionHandler : IExceptionHandler
                 Title = "Conflict",
                 Detail = exception.Message
             },
+            UnauthorizedAccessException => new ProblemDetails
+            {
+                Status = StatusCodes.Status401Unauthorized,
+                Title = "Unauthorized",
+                Detail = exception.Message
+            },
             _ => null
         };
 
