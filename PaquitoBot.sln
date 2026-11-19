@@ -8,6 +8,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaquitoBot.Application", "P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaquitoBot.Infrastructure", "PaquitoBot.Infrastructure\PaquitoBot.Infrastructure.csproj", "{2B462B69-BE27-47AA-9BFD-63D3B2E396E7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PaquitoBot.Infrastructure.Tests", "PaquitoBot.Infrastructure.Tests\PaquitoBot.Infrastructure.Tests.csproj", "{453B8495-F1B7-48DE-93A5-236400AF2A75}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,5 +32,9 @@ Global
 		{2B462B69-BE27-47AA-9BFD-63D3B2E396E7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B462B69-BE27-47AA-9BFD-63D3B2E396E7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B462B69-BE27-47AA-9BFD-63D3B2E396E7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{453B8495-F1B7-48DE-93A5-236400AF2A75}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{453B8495-F1B7-48DE-93A5-236400AF2A75}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{453B8495-F1B7-48DE-93A5-236400AF2A75}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{453B8495-F1B7-48DE-93A5-236400AF2A75}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
