@@ -56,6 +56,28 @@ public sealed class StudentFinancesController(ISender sender) : ControllerBase
         return Ok(payments);
     }
 
+    // Catalog only: never aggregate catalog totals into individual student debt.
+    [HttpGet("{studentId:guid}/schedules")]
+    [ProducesResponseType(typeof(StudentFinancialSchedulesDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<StudentFinancialSchedulesDto>> GetSchedules(
+        Guid studentId,
+        [FromQuery] Guid? programId,
+        [FromQuery] Guid? academicPeriodId,
+        CancellationToken cancellationToken)
+    {
+        var userId = GetAuthenticatedUserId();
+        if (userId is null) return Unauthorized();
+
+        var result = await sender.Send(
+            new GetStudentFinancialSchedulesQuery(
+                studentId, userId.Value, programId, academicPeriodId),
+            cancellationToken);
+
+        return Ok(result);
+    }
+
     // Admin-only local balance audit: never fetches from Frappe and never modifies fees/payments.
     [HttpPost("{studentId:guid}/reconcile")]
     [Authorize(Policy = "Administrator")]

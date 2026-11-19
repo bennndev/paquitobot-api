@@ -18,4 +18,16 @@ public interface IFinancialReadRepository
     Task<IReadOnlyList<Payment>> GetFilteredPaymentsAsync(
         Guid studentId, string? status, DateOnly? from, DateOnly? to,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<ProgramEnrollment>> GetProgramEnrollmentsAsync(
+        Guid studentId, Guid? programId, Guid? academicPeriodId,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<FeeStructure>> GetFeeStructuresForProgramsAsync(
+        IReadOnlyCollection<Guid> programIds,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<FeeSchedule>> GetFeeSchedulesForStructuresAsync(
+        IReadOnlyCollection<Guid> feeStructureIds, Guid? academicPeriodId,
+        CancellationToken cancellationToken = default);
 }
