@@ -2,6 +2,7 @@ using System.Globalization;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using PaquitoBot.Application.Common.Behaviors;
+using PaquitoBot.Application.Integrations.Frappe;
 
 namespace PaquitoBot.Application;
 
@@ -20,6 +21,7 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(assembly);
+        services.AddScoped<IFrappeSyncRunService, FrappeSyncRunService>();
 
         return services;
     }
