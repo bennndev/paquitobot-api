@@ -7,8 +7,9 @@ using PaquitoBot.Application.UseCases.Payments.Query;
 
 namespace PaquitoBot.Api.Controllers;
 
-// Students must use /api/student-finances/{studentId}/payments for read-only history.
-// Global payment administration is restricted to trusted administrators.
+// Global financial payment administration is restricted to administrators.
+// PUT/DELETE routes are intentionally absent until audited reversal is implemented.
+// The finance ledger must not allow untracked edits or physical deletion of payments.
 [ApiController]
 [Authorize(Policy = "Administrator")]
 [Route("api/payments")]
@@ -39,24 +40,6 @@ public class PaymentsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var payment = await _sender.Send(command, cancellationToken);
-
         return CreatedAtAction(nameof(GetById), new { id = payment.PaymentId }, payment);
-    }
-
-    [HttpPut("{id:guid}")]
-    public async Task<ActionResult<PaymentDto>> Update(
-        Guid id,
-        [FromBody] UpdatePaymentCommand command,
-        CancellationToken cancellationToken)
-    {
-        return Ok(await _sender.Send(command with { PaymentId = id }, cancellationToken));
-    }
-
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
-    {
-        await _sender.Send(new DeletePaymentCommand(id), cancellationToken);
-
-        return NoContent();
     }
 }
