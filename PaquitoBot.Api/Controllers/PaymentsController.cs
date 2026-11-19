@@ -1,4 +1,5 @@
-﻿using MediatR;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.Payments;
 using PaquitoBot.Application.UseCases.Payments.Command;
@@ -6,7 +7,10 @@ using PaquitoBot.Application.UseCases.Payments.Query;
 
 namespace PaquitoBot.Api.Controllers;
 
+// Students must use /api/student-finances/{studentId}/payments for read-only history.
+// Global payment administration is restricted to trusted administrators.
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/payments")]
 public class PaymentsController : ControllerBase
 {
