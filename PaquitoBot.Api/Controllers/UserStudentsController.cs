@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.UserStudents;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.UserStudents.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/user-students")]
 public class UserStudentsController : ControllerBase
 {

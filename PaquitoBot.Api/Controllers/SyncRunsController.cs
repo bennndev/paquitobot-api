@@ -1,11 +1,14 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.UseCases.SyncRuns.Command;
 using PaquitoBot.Application.UseCases.SyncRuns.Query;
 
 namespace PaquitoBot.Api.Controllers;
 
+// Sync execution metadata may contain operational failures: restrict the whole API.
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/sync-runs")]
 public class SyncRunsController : ControllerBase
 {
@@ -44,7 +47,6 @@ public class SyncRunsController : ControllerBase
         CancellationToken cancellationToken)
     {
         var syncRunId = await _sender.Send(command, cancellationToken);
-
         return CreatedAtAction(nameof(GetById), new { id = syncRunId }, syncRunId);
     }
 
@@ -55,7 +57,6 @@ public class SyncRunsController : ControllerBase
         CancellationToken cancellationToken)
     {
         await _sender.Send(command with { SyncRunId = id }, cancellationToken);
-
         return NoContent();
     }
 
@@ -63,7 +64,6 @@ public class SyncRunsController : ControllerBase
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await _sender.Send(new DeleteSyncRunCommand(id), cancellationToken);
-
         return NoContent();
     }
 }
