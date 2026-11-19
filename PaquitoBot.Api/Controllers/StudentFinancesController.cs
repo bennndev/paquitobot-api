@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.Payments;
 using PaquitoBot.Application.DTOs.StudentFinances;
+using PaquitoBot.Application.UseCases.StudentFinances.Command;
 using PaquitoBot.Application.UseCases.StudentFinances.Query;
 
 namespace PaquitoBot.Api.Controllers;
@@ -53,6 +54,21 @@ public sealed class StudentFinancesController(ISender sender) : ControllerBase
             cancellationToken);
 
         return Ok(payments);
+    }
+
+    // Admin-only local balance audit: never fetches from Frappe and never modifies fees/payments.
+    [HttpPost("{studentId:guid}/reconcile")]
+    [Authorize(Policy = "Administrator")]
+    [ProducesResponseType(typeof(StudentFinancialReconciliationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<StudentFinancialReconciliationDto>> Reconcile(
+        Guid studentId, CancellationToken cancellationToken)
+    {
+        var result = await sender.Send(
+            new RunStudentFinancialReconciliationCommand(studentId), cancellationToken);
+        return Ok(result);
     }
 
     private Guid? GetAuthenticatedUserId()
