@@ -3,6 +3,7 @@ using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Command;
@@ -10,7 +11,6 @@ namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Command;
 public record UpdateKnowledgeDocumentCommand(
     Guid DocumentId,
     string Title,
-    string Status,
     string? Content = null,
     string? SourceUrl = null,
     Guid? CourseId = null,
@@ -25,7 +25,6 @@ public class UpdateKnowledgeDocumentCommandValidator : AbstractValidator<UpdateK
 
         RuleFor(c => c.DocumentId).NotEmpty();
         RuleFor(c => c.Title).NotEmpty().MaximumLength(255);
-        RuleFor(c => c.Status).NotEmpty().MaximumLength(40);
         RuleFor(c => c.DocumentType).MaximumLength(60);
         RuleFor(c => c.Source).MaximumLength(255);
         RuleFor(c => c.CourseId).NotEqual(Guid.Empty).When(c => c.CourseId.HasValue);
@@ -64,10 +63,10 @@ public class UpdateKnowledgeDocumentCommandHandler(IUnitOfWork _unitOfWork)
         if (contentHash != document.ContentHash)
         {
             document.IndexedAt = null;
+            document.Status = KnowledgeDocumentStatus.Pending;
         }
 
         document.Title = TextNormalizer.Required(request.Title);
-        document.Status = TextNormalizer.Required(request.Status);
         document.CourseId = request.CourseId;
         document.DocumentType = TextNormalizer.Optional(request.DocumentType);
         document.Source = TextNormalizer.Optional(request.Source);
