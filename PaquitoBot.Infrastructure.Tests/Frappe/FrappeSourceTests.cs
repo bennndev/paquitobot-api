@@ -96,6 +96,20 @@ public class FrappeSourceTests
     }
 
     [Fact]
+    public async Task ProgramCourseSource_DerivesPairsFromCourseProgramAndSkipsCoursesWithoutProgram()
+    {
+        var handler = new StubHandler(HttpStatusCode.OK,
+            """{"data":[{"name":"CRS-1","program":"PRG-1"},{"name":"CRS-2","program":null},{"name":"CRS-3","program":""}]}""");
+
+        var pair = Assert.Single(await new FrappeProgramCourseSource(CreateClient(handler)).GetAllAsync());
+
+        Assert.Equal("PRG-1", pair.ProgramExternalId);
+        Assert.Equal("CRS-1", pair.CourseExternalId);
+        Assert.True(pair.IsRequired);
+        Assert.Null(pair.CycleNumber);
+    }
+
+    [Fact]
     public async Task AcademicPeriodSource_MapsTermDates()
     {
         var handler = new StubHandler(HttpStatusCode.OK, """
