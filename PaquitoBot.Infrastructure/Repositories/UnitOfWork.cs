@@ -68,6 +68,8 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    public void DiscardPendingChanges() => _context.ChangeTracker.Clear();
+
     public IGenericRepository<TEntity> Repository<TEntity>() where TEntity : class
     {
         var type = typeof(TEntity).Name;

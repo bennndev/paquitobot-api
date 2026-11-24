@@ -6,6 +6,10 @@ public class FakeUnitOfWork : IUnitOfWork
 {
     public int SaveCount { get; private set; }
 
+    public int DiscardCount { get; private set; }
+
+    public void DiscardPendingChanges() => DiscardCount++;
+
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         SaveCount++;
