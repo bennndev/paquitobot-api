@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.Frappe.Dtos;
+namespace PaquitoBot.Application.DTOs.Frappe;
 
 public record FrappeInstructorDto(
     string ExternalId,

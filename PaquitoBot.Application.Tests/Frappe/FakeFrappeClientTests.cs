@@ -1,5 +1,5 @@
 using PaquitoBot.Application.Frappe;
-using PaquitoBot.Application.Frappe.Dtos;
+using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Tests.Fakes;
 
 namespace PaquitoBot.Application.Tests.Frappe;
