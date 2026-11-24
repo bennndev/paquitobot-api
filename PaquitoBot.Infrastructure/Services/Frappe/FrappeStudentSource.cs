@@ -10,7 +10,7 @@ public sealed class FrappeStudentSource(FrappeApiClient client) : IFrappeSource<
 
     private static readonly string[] Fields =
     [
-        "name", "student_code", "first_name", "last_name", "student_name", "student_email",
+        "name", "first_name", "last_name", "student_name", "student_email_id",
         "student_mobile_number", "date_of_birth", "gender", "enabled", "modified"
     ];
 
@@ -26,9 +26,6 @@ public sealed class FrappeStudentSource(FrappeApiClient client) : IFrappeSource<
         [JsonPropertyName("name")]
         public string Name { get; init; } = string.Empty;
 
-        [JsonPropertyName("student_code")]
-        public string? StudentCode { get; init; }
-
         [JsonPropertyName("first_name")]
         public string? FirstName { get; init; }
 
@@ -38,7 +35,7 @@ public sealed class FrappeStudentSource(FrappeApiClient client) : IFrappeSource<
         [JsonPropertyName("student_name")]
         public string? StudentName { get; init; }
 
-        [JsonPropertyName("student_email")]
+        [JsonPropertyName("student_email_id")]
         public string? Email { get; init; }
 
         [JsonPropertyName("student_mobile_number")]
@@ -54,10 +51,11 @@ public sealed class FrappeStudentSource(FrappeApiClient client) : IFrappeSource<
         public int Enabled { get; init; }
 
         [JsonPropertyName("modified")]
-        public DateTime? Modified { get; init; }
+        public string? Modified { get; init; }
 
+        // Frappe Education has no student code field; the external id (name) is the identifier.
         public FrappeStudentDto ToDto() => new(
-            Name, StudentCode, FirstName, LastName, StudentName, Email, Phone, BirthDate, Gender,
-            Enabled == 1 ? "Active" : "Inactive", Modified);
+            Name, null, FirstName, LastName, StudentName, Email, Phone, BirthDate, Gender,
+            Enabled == 1 ? "Active" : "Inactive", FrappeFormats.ParseTimestamp(Modified));
     }
 }
