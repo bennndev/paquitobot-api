@@ -1,6 +1,6 @@
 using PaquitoBot.Application.DTOs.Frappe;
 
-namespace PaquitoBot.Application.Frappe;
+namespace PaquitoBot.Application.Services;
 
 /// <summary>
 /// Read-only contract to fetch academic master data from Frappe.

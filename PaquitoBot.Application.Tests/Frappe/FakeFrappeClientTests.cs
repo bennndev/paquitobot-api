@@ -1,4 +1,4 @@
-using PaquitoBot.Application.Frappe;
+using PaquitoBot.Application.Services;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Tests.Fakes;
 
