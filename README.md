@@ -1,5 +1,14 @@
 # PaquitoBot API
 
+## Entorno local de Frappe Education
+
+El entorno reproducible para el equipo está documentado en
+[`infra/frappe/README.md`](infra/frappe/README.md). Con Docker Desktop iniciado:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\infra\frappe\setup.ps1
+```
+
 Backend API for **PaquitoBot**, built with .NET following a hexagonal (ports and adapters) architecture.
 
 ## Solution Structure

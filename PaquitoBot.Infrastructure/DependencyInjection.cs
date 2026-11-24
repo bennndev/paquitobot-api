@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using PaquitoBot.Application;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Infrastructure.Data;
@@ -32,6 +33,10 @@ public static class DependencyInjection
                 services.AddScoped(contract, implementation);
             }
         }
+
+        services.AddHttpClient<
+            IFrappeEducationClient,
+            FrappeEducationClient.FrappeEducationClient>();
 
         return services;
     }

@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using PaquitoBot.Application;
 using PaquitoBot.Application.DTOs.Students;
 using PaquitoBot.Application.UseCases.Students.Command;
 using PaquitoBot.Application.UseCases.Students.Query;
@@ -11,10 +12,12 @@ namespace PaquitoBot.Api.Controllers;
 public class StudentsController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly IFrappeEducationClient _frappeClient;
 
-    public StudentsController(ISender sender)
+    public StudentsController(ISender sender, IFrappeEducationClient frappeClient)
     {
         _sender = sender;
+        _frappeClient = frappeClient;
     }
 
     [HttpGet]
@@ -54,5 +57,26 @@ public class StudentsController : ControllerBase
         await _sender.Send(new DeleteStudentCommand(id), cancellationToken);
 
         return NoContent();
+    }
+
+    [HttpGet("frappe/{studentExternalId}")]
+    public async Task<ActionResult<StudentDto>> GetFrappeStudent(string studentExternalId, CancellationToken cancellationToken)
+    {
+        var student = await _frappeClient.GetStudentByExternalIdAsync(studentExternalId, cancellationToken);
+
+        if (student == null)
+        {
+            return NotFound($"No se encontró el estudiante con external ID: {studentExternalId}");
+        }
+
+        return Ok(StudentDto.From(student));
+    }
+
+    [HttpGet("frappe")]
+    public async Task<ActionResult<IReadOnlyList<StudentDto>>> GetFrappeStudents(CancellationToken cancellationToken)
+    {
+        var students = await _frappeClient.GetAllStudentsAsync(cancellationToken);
+
+        return Ok(students.Select(StudentDto.From).ToList());
     }
 }
