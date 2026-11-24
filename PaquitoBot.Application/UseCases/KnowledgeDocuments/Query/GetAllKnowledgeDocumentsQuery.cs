@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Constants;
 
 namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Query;
 
@@ -31,7 +32,10 @@ public class GetAllKnowledgeDocumentsQueryValidator : AbstractValidator<GetAllKn
         RuleLevelCascadeMode = CascadeMode.Stop;
 
         RuleFor(q => q.CourseId).NotEqual(Guid.Empty).When(q => q.CourseId.HasValue);
-        RuleFor(q => q.Status).MaximumLength(40);
+        RuleFor(q => q.Status)
+            .Must(status => KnowledgeDocumentStatus.All.Contains(status!.Trim().ToLowerInvariant()))
+            .When(q => !string.IsNullOrWhiteSpace(q.Status))
+            .WithMessage($"Status must be one of: {string.Join(", ", KnowledgeDocumentStatus.All)}.");
         RuleFor(q => q.Search).MaximumLength(255);
         RuleFor(q => q.Page).InclusiveBetween(1, 100_000);
         RuleFor(q => q.PageSize).InclusiveBetween(1, 100);
@@ -45,7 +49,7 @@ public class GetAllKnowledgeDocumentsQueryHandler(IUnitOfWork _unitOfWork)
         GetAllKnowledgeDocumentsQuery request,
         CancellationToken cancellationToken)
     {
-        var status = TextNormalizer.Optional(request.Status);
+        var status = TextNormalizer.Optional(request.Status)?.ToLowerInvariant();
         var search = TextNormalizer.Optional(request.Search);
         var skip = (request.Page - 1) * request.PageSize;
 
