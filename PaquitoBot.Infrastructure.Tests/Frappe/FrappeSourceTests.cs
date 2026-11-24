@@ -110,6 +110,24 @@ public class FrappeSourceTests
     }
 
     [Fact]
+    public async Task CourseSectionSource_ReadsStudentBatchNameAndMapsDisabledToInactive()
+    {
+        var handler = new StubHandler(HttpStatusCode.OK, """
+            {"data":[{"name":"BATCH-1","batch_name":"A1","course":"CRS-1","max_strength":30,"disabled":1,
+            "start_date":"2026-04-10","end_date":"2026-07-10","modified":"2026-01-01 00:00:00"}]}
+            """);
+
+        var section = Assert.Single(await new FrappeCourseSectionSource(CreateClient(handler)).GetAllAsync());
+
+        Assert.Contains("api/resource/Student%20Batch%20Name", handler.LastRequest!.RequestUri!.AbsoluteUri);
+        Assert.Equal("CRS-1", section.CourseExternalId);
+        Assert.Equal("A1", section.SectionCode);
+        Assert.Equal(30, section.Capacity);
+        Assert.Equal("Inactive", section.Status);
+        Assert.Equal(new DateOnly(2026, 4, 10), section.StartDate);
+    }
+
+    [Fact]
     public async Task AcademicPeriodSource_MapsTermDates()
     {
         var handler = new StubHandler(HttpStatusCode.OK, """
