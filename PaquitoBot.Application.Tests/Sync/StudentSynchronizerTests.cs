@@ -8,16 +8,16 @@ namespace PaquitoBot.Application.Tests.Sync;
 
 public class StudentSynchronizerTests
 {
-    private readonly FakeFrappeClient _client = new();
+    private readonly FakeFrappeSource<FrappeStudentDto> _source = new();
     private readonly FakeFrappeSyncedRepository<Student> _repository = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
 
-    private StudentSynchronizer CreateSut() => new(_client, _repository, _unitOfWork, new FakeTimeProvider());
+    private StudentSynchronizer CreateSut() => new(_source, _repository, _unitOfWork, new FakeTimeProvider());
 
     [Fact]
     public async Task SyncAsync_MapsAndNormalizesStudentFields()
     {
-        _client.Students.Add(new FrappeStudentDto(
+        _source.Items.Add(new FrappeStudentDto(
             " STU-1 ", " S001 ", " Ana ", " Lopez ", null, " ANA@Mail.com ", null,
             new DateOnly(2000, 5, 1), "F", "Active", new DateTime(2026, 1, 1)));
 
@@ -34,7 +34,7 @@ public class StudentSynchronizerTests
     [Fact]
     public async Task SyncAsync_RunTwice_KeepsASingleStudent()
     {
-        _client.Students.Add(new FrappeStudentDto("STU-1", null, "Ana", null, null, null, null, null, null, null, new DateTime(2026, 1, 1)));
+        _source.Items.Add(new FrappeStudentDto("STU-1", null, "Ana", null, null, null, null, null, null, null, new DateTime(2026, 1, 1)));
         var sut = CreateSut();
 
         await sut.SyncAsync();
@@ -47,12 +47,12 @@ public class StudentSynchronizerTests
     [Fact]
     public async Task SyncAsync_ModifiedStudent_UpdatesTheSameRecord()
     {
-        _client.Students.Add(new FrappeStudentDto("STU-1", null, "Ana", null, null, null, null, null, null, "Active", new DateTime(2026, 1, 1)));
+        _source.Items.Add(new FrappeStudentDto("STU-1", null, "Ana", null, null, null, null, null, null, "Active", new DateTime(2026, 1, 1)));
         var sut = CreateSut();
         await sut.SyncAsync();
         var original = _repository.Items.Single();
 
-        _client.Students[0] = new FrappeStudentDto("STU-1", null, "Ana", null, null, null, null, null, null, "Inactive", new DateTime(2026, 3, 1));
+        _source.Items[0] = new FrappeStudentDto("STU-1", null, "Ana", null, null, null, null, null, null, "Inactive", new DateTime(2026, 3, 1));
         var result = await sut.SyncAsync();
 
         Assert.Equal(1, result.Updated);

@@ -6,7 +6,7 @@ using PaquitoBot.Domain.Models;
 namespace PaquitoBot.Application.Services.Sync;
 
 public class InstructorSynchronizer(
-    IFrappeClient client,
+    IFrappeSource<FrappeInstructorDto> source,
     IFrappeSyncedRepository<Instructor> repository,
     IUnitOfWork unitOfWork,
     TimeProvider timeProvider)
@@ -17,7 +17,7 @@ public class InstructorSynchronizer(
     public override int Order => SyncOrder.MasterData;
 
     protected override Task<IReadOnlyList<FrappeInstructorDto>> FetchAsync(CancellationToken cancellationToken)
-        => client.GetInstructorsAsync(cancellationToken);
+        => source.GetAllAsync(cancellationToken);
 
     protected override string GetExternalId(FrappeInstructorDto external) => external.ExternalId;
 

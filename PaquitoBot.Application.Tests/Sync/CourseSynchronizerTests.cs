@@ -8,16 +8,16 @@ namespace PaquitoBot.Application.Tests.Sync;
 
 public class CourseSynchronizerTests
 {
-    private readonly FakeFrappeClient _client = new();
+    private readonly FakeFrappeSource<FrappeCourseDto> _source = new();
     private readonly FakeFrappeSyncedRepository<Course> _repository = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
 
-    private CourseSynchronizer CreateSut() => new(_client, _repository, _unitOfWork, new FakeTimeProvider());
+    private CourseSynchronizer CreateSut() => new(_source, _repository, _unitOfWork, new FakeTimeProvider());
 
     [Fact]
     public async Task SyncAsync_MapsAndNormalizesFields()
     {
-        _client.Courses.Add(new FrappeCourseDto(" EXT-1 ", " C1 ", " Algorithms ", null, 4, "Active", new DateTime(2026, 1, 1)));
+        _source.Items.Add(new FrappeCourseDto(" EXT-1 ", " C1 ", " Algorithms ", null, 4, "Active", new DateTime(2026, 1, 1)));
 
         await CreateSut().SyncAsync();
 
@@ -31,7 +31,7 @@ public class CourseSynchronizerTests
     [Fact]
     public async Task SyncAsync_RunTwice_KeepsASingleRecord()
     {
-        _client.Courses.Add(new FrappeCourseDto(" EXT-1 ", " C1 ", " Algorithms ", null, 4, "Active", new DateTime(2026, 1, 1)));
+        _source.Items.Add(new FrappeCourseDto(" EXT-1 ", " C1 ", " Algorithms ", null, 4, "Active", new DateTime(2026, 1, 1)));
         var sut = CreateSut();
 
         await sut.SyncAsync();

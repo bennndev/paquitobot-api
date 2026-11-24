@@ -8,16 +8,16 @@ namespace PaquitoBot.Application.Tests.Sync;
 
 public class AcademicPeriodSynchronizerTests
 {
-    private readonly FakeFrappeClient _client = new();
+    private readonly FakeFrappeSource<FrappeAcademicPeriodDto> _source = new();
     private readonly FakeFrappeSyncedRepository<AcademicPeriod> _repository = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
 
-    private AcademicPeriodSynchronizer CreateSut() => new(_client, _repository, _unitOfWork, new FakeTimeProvider());
+    private AcademicPeriodSynchronizer CreateSut() => new(_source, _repository, _unitOfWork, new FakeTimeProvider());
 
     [Fact]
     public async Task SyncAsync_MapsAndNormalizesFields()
     {
-        _client.AcademicPeriods.Add(new FrappeAcademicPeriodDto(" EXT-1 ", " 2026-1 ", " Spring ", new DateOnly(2026, 3, 1), new DateOnly(2026, 7, 1), "Open", new DateTime(2026, 1, 1)));
+        _source.Items.Add(new FrappeAcademicPeriodDto(" EXT-1 ", " 2026-1 ", " Spring ", new DateOnly(2026, 3, 1), new DateOnly(2026, 7, 1), "Open", new DateTime(2026, 1, 1)));
 
         await CreateSut().SyncAsync();
 
@@ -31,7 +31,7 @@ public class AcademicPeriodSynchronizerTests
     [Fact]
     public async Task SyncAsync_RunTwice_KeepsASingleRecord()
     {
-        _client.AcademicPeriods.Add(new FrappeAcademicPeriodDto(" EXT-1 ", " 2026-1 ", " Spring ", new DateOnly(2026, 3, 1), new DateOnly(2026, 7, 1), "Open", new DateTime(2026, 1, 1)));
+        _source.Items.Add(new FrappeAcademicPeriodDto(" EXT-1 ", " 2026-1 ", " Spring ", new DateOnly(2026, 3, 1), new DateOnly(2026, 7, 1), "Open", new DateTime(2026, 1, 1)));
         var sut = CreateSut();
 
         await sut.SyncAsync();

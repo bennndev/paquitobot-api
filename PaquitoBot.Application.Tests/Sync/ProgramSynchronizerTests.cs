@@ -8,16 +8,16 @@ namespace PaquitoBot.Application.Tests.Sync;
 
 public class ProgramSynchronizerTests
 {
-    private readonly FakeFrappeClient _client = new();
+    private readonly FakeFrappeSource<FrappeProgramDto> _source = new();
     private readonly FakeFrappeSyncedRepository<Program> _repository = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
 
-    private ProgramSynchronizer CreateSut() => new(_client, _repository, _unitOfWork, new FakeTimeProvider());
+    private ProgramSynchronizer CreateSut() => new(_source, _repository, _unitOfWork, new FakeTimeProvider());
 
     [Fact]
     public async Task SyncAsync_MapsAndNormalizesFields()
     {
-        _client.Programs.Add(new FrappeProgramDto(" EXT-1 ", " P1 ", " Software ", " Desc ", "Active", new DateTime(2026, 1, 1)));
+        _source.Items.Add(new FrappeProgramDto(" EXT-1 ", " P1 ", " Software ", " Desc ", "Active", new DateTime(2026, 1, 1)));
 
         await CreateSut().SyncAsync();
 
@@ -31,7 +31,7 @@ public class ProgramSynchronizerTests
     [Fact]
     public async Task SyncAsync_RunTwice_KeepsASingleRecord()
     {
-        _client.Programs.Add(new FrappeProgramDto(" EXT-1 ", " P1 ", " Software ", " Desc ", "Active", new DateTime(2026, 1, 1)));
+        _source.Items.Add(new FrappeProgramDto(" EXT-1 ", " P1 ", " Software ", " Desc ", "Active", new DateTime(2026, 1, 1)));
         var sut = CreateSut();
 
         await sut.SyncAsync();

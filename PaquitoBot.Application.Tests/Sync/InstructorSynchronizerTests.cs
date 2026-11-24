@@ -8,16 +8,16 @@ namespace PaquitoBot.Application.Tests.Sync;
 
 public class InstructorSynchronizerTests
 {
-    private readonly FakeFrappeClient _client = new();
+    private readonly FakeFrappeSource<FrappeInstructorDto> _source = new();
     private readonly FakeFrappeSyncedRepository<Instructor> _repository = new();
     private readonly FakeUnitOfWork _unitOfWork = new();
 
-    private InstructorSynchronizer CreateSut() => new(_client, _repository, _unitOfWork, new FakeTimeProvider());
+    private InstructorSynchronizer CreateSut() => new(_source, _repository, _unitOfWork, new FakeTimeProvider());
 
     [Fact]
     public async Task SyncAsync_MapsAndNormalizesFields()
     {
-        _client.Instructors.Add(new FrappeInstructorDto(" EXT-1 ", " Ana ", " Lopez ", " Ana Lopez ", " ANA@Mail.com ", null, "Active", new DateTime(2026, 1, 1)));
+        _source.Items.Add(new FrappeInstructorDto(" EXT-1 ", " Ana ", " Lopez ", " Ana Lopez ", " ANA@Mail.com ", null, "Active", new DateTime(2026, 1, 1)));
 
         await CreateSut().SyncAsync();
 
@@ -30,7 +30,7 @@ public class InstructorSynchronizerTests
     [Fact]
     public async Task SyncAsync_RunTwice_KeepsASingleRecord()
     {
-        _client.Instructors.Add(new FrappeInstructorDto(" EXT-1 ", " Ana ", " Lopez ", " Ana Lopez ", " ANA@Mail.com ", null, "Active", new DateTime(2026, 1, 1)));
+        _source.Items.Add(new FrappeInstructorDto(" EXT-1 ", " Ana ", " Lopez ", " Ana Lopez ", " ANA@Mail.com ", null, "Active", new DateTime(2026, 1, 1)));
         var sut = CreateSut();
 
         await sut.SyncAsync();
