@@ -1,7 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application;
+using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.DTOs.Students;
+using PaquitoBot.Application.Services;
 using PaquitoBot.Application.UseCases.Students.Command;
 using PaquitoBot.Application.UseCases.Students.Query;
 
@@ -12,12 +13,12 @@ namespace PaquitoBot.Api.Controllers;
 public class StudentsController : ControllerBase
 {
     private readonly ISender _sender;
-    private readonly IFrappeEducationClient _frappeClient;
+    private readonly IFrappeSource<FrappeStudentDto> _frappeStudents;
 
-    public StudentsController(ISender sender, IFrappeEducationClient frappeClient)
+    public StudentsController(ISender sender, IFrappeSource<FrappeStudentDto> frappeStudents)
     {
         _sender = sender;
-        _frappeClient = frappeClient;
+        _frappeStudents = frappeStudents;
     }
 
     [HttpGet]
@@ -59,24 +60,9 @@ public class StudentsController : ControllerBase
         return NoContent();
     }
 
-    [HttpGet("frappe/{studentExternalId}")]
-    public async Task<ActionResult<StudentDto>> GetFrappeStudent(string studentExternalId, CancellationToken cancellationToken)
-    {
-        var student = await _frappeClient.GetStudentByExternalIdAsync(studentExternalId, cancellationToken);
-
-        if (student == null)
-        {
-            return NotFound($"No se encontró el estudiante con external ID: {studentExternalId}");
-        }
-
-        return Ok(StudentDto.From(student));
-    }
-
     [HttpGet("frappe")]
-    public async Task<ActionResult<IReadOnlyList<StudentDto>>> GetFrappeStudents(CancellationToken cancellationToken)
+    public async Task<ActionResult<IReadOnlyList<FrappeStudentDto>>> GetFrappeStudents(CancellationToken cancellationToken)
     {
-        var students = await _frappeClient.GetAllStudentsAsync(cancellationToken);
-
-        return Ok(students.Select(StudentDto.From).ToList());
+        return Ok(await _frappeStudents.GetAllAsync(cancellationToken));
     }
 }

@@ -1,11 +1,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using PaquitoBot.Application;
+using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Infrastructure.Data;
 using PaquitoBot.Infrastructure.Repositories;
 using PaquitoBot.Infrastructure.Services;
+using PaquitoBot.Infrastructure.Services.Frappe;
 
 namespace PaquitoBot.Infrastructure;
 
@@ -34,9 +35,8 @@ public static class DependencyInjection
             }
         }
 
-        services.AddHttpClient<
-            IFrappeEducationClient,
-            FrappeEducationClient.FrappeEducationClient>();
+        services.AddHttpClient<FrappeApiClient>();
+        services.AddScoped<IFrappeSource<FrappeStudentDto>, FrappeStudentSource>();
 
         return services;
     }
