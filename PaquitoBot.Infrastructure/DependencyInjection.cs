@@ -17,6 +17,8 @@ public static class DependencyInjection
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped<IUserPasswordHasher, UserPasswordHasher>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IKnowledgeRetriever, DocumentKnowledgeRetriever>();
+        services.AddScoped<IAnswerProvider, SimulatedAnswerProvider>();
 
         var repositories = typeof(DependencyInjection).Assembly.GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } && type.Name.EndsWith("Repository"));
