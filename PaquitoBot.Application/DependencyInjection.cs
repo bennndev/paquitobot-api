@@ -2,6 +2,7 @@ using System.Globalization;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using PaquitoBot.Application.Common.Behaviors;
+using PaquitoBot.Application.Services.Sync;
 
 namespace PaquitoBot.Application;
 
@@ -20,6 +21,16 @@ public static class DependencyInjection
         });
 
         services.AddValidatorsFromAssembly(assembly);
+
+        services.AddSingleton(TimeProvider.System);
+
+        var synchronizers = assembly.GetTypes()
+            .Where(type => type is { IsClass: true, IsAbstract: false } && typeof(IEntitySynchronizer).IsAssignableFrom(type));
+
+        foreach (var synchronizer in synchronizers)
+        {
+            services.AddScoped(typeof(IEntitySynchronizer), synchronizer);
+        }
 
         return services;
     }
