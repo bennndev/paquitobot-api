@@ -128,6 +128,24 @@ public class FrappeSourceTests
     }
 
     [Fact]
+    public async Task CourseScheduleSource_ParsesUnpaddedTimesAndMapsRoomAndFaculty()
+    {
+        var handler = new StubHandler(HttpStatusCode.OK, """
+            {"data":[{"name":"SCH-1","student_batch":"BATCH-1","faculty":"FAC-1","schedule_date":"2026-04-10",
+            "from_time":"9:00:00","to_time":"11:30:00","room":"Room 1","modified":"2026-01-01 00:00:00"}]}
+            """);
+
+        var slot = Assert.Single(await new FrappeCourseScheduleSource(CreateClient(handler)).GetAllAsync());
+
+        Assert.Contains("api/resource/Subject%20Schedule", handler.LastRequest!.RequestUri!.AbsoluteUri);
+        Assert.Equal("BATCH-1", slot.SectionExternalId);
+        Assert.Equal("FAC-1", slot.InstructorExternalId);
+        Assert.Equal(new TimeOnly(9, 0), slot.StartTime);
+        Assert.Equal(new TimeOnly(11, 30), slot.EndTime);
+        Assert.Equal("Room 1", slot.Location);
+    }
+
+    [Fact]
     public async Task AcademicPeriodSource_MapsTermDates()
     {
         var handler = new StubHandler(HttpStatusCode.OK, """

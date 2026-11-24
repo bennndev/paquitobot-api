@@ -17,4 +17,15 @@ public static class FrappeFormats
 
         return DateTime.Parse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal);
     }
+
+    /// <summary>Frappe may return times without zero padding, for example "9:00:00".</summary>
+    public static TimeOnly ParseTime(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            throw new FormatException("The time value is empty.");
+        }
+
+        return TimeOnly.Parse(value, CultureInfo.InvariantCulture);
+    }
 }
