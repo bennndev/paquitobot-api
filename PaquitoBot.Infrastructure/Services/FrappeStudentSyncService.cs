@@ -1,17 +1,16 @@
 using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
-using PaquitoBot.Infrastructure.Data;
 
 namespace PaquitoBot.Infrastructure.Services;
 
 public sealed class FrappeStudentSyncService(
-    HttpClient httpClient, IConfiguration configuration, PaquitoBotDbContext db) : IFrappeStudentSyncService
+    HttpClient httpClient, IConfiguration configuration, IUnitOfWork unitOfWork) : IFrappeStudentSyncService
 {
     public async Task<FrappeSyncSummary> SyncAsync(string accessToken, Guid userId, string email,
         CancellationToken cancellationToken)
@@ -31,13 +30,19 @@ public sealed class FrappeStudentSyncService(
         if (!string.Equals(Required(studentRow, "email_address"), email, StringComparison.OrdinalIgnoreCase))
             throw new UnauthorizedAccessException("Frappe returned a different student's records.");
 
+        return await unitOfWork.ExecuteInTransactionAsync(
+            token => PersistSnapshotAsync(snapshot, studentRow, userId, email, token), cancellationToken);
+    }
+
+    private async Task<FrappeSyncSummary> PersistSnapshotAsync(JsonElement snapshot, JsonElement studentRow,
+        Guid userId, string email, CancellationToken cancellationToken)
+    {
         var startedAt = DateTime.UtcNow;
         var now = DateTime.UtcNow;
         var processed = 0;
-        await using var transaction = await db.Database.BeginTransactionAsync(cancellationToken);
 
         var studentName = Required(studentRow, "name");
-        var student = await Upsert(db.Students, studentName, entity =>
+        var student = await Upsert(unitOfWork.Repository<Student>(), studentName, entity =>
         {
             entity.StudentCode = studentName;
             entity.FirstNames = Join(Optional(studentRow, "first_name"), Optional(studentRow, "middle_name"));
@@ -56,7 +61,7 @@ public sealed class FrappeStudentSyncService(
         foreach (var row in Rows(snapshot, "terms"))
         {
             var name = Required(row, "name");
-            periods[name] = await Upsert(db.AcademicPeriods, name, entity =>
+            periods[name] = await Upsert(unitOfWork.Repository<AcademicPeriod>(), name, entity =>
             {
                 entity.Code = Optional(row, "term_name");
                 entity.Name = name;
@@ -72,7 +77,7 @@ public sealed class FrappeStudentSyncService(
         foreach (var row in Rows(snapshot, "programs"))
         {
             var name = Required(row, "name");
-            programs[name] = await Upsert(db.Programs, name, entity =>
+            programs[name] = await Upsert(unitOfWork.Repository<Program>(), name, entity =>
             {
                 entity.Name = name;
                 entity.Code = Optional(row, "program_abbreviation");
@@ -87,7 +92,7 @@ public sealed class FrappeStudentSyncService(
         foreach (var row in Rows(snapshot, "courses"))
         {
             var name = Required(row, "name");
-            courses[name] = await Upsert(db.Courses, name, entity =>
+            courses[name] = await Upsert(unitOfWork.Repository<Course>(), name, entity =>
             {
                 entity.Name = name;
                 entity.Code = Optional(row, "course_abbreviation");
@@ -103,7 +108,7 @@ public sealed class FrappeStudentSyncService(
         foreach (var row in Rows(snapshot, "faculty"))
         {
             var name = Required(row, "name");
-            instructors[name] = await Upsert(db.Instructors, name, entity =>
+            instructors[name] = await Upsert(unitOfWork.Repository<Instructor>(), name, entity =>
             {
                 entity.FirstName = Optional(row, "first_name");
                 entity.LastName = Optional(row, "last_name");
@@ -116,7 +121,7 @@ public sealed class FrappeStudentSyncService(
             }, cancellationToken);
             processed++;
         }
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         foreach (var row in Rows(snapshot, "courses"))
         {
@@ -124,12 +129,12 @@ public sealed class FrappeStudentSyncService(
             var programName = Optional(row, "program");
             if (programName is null || !programs.TryGetValue(programName, out var program)) continue;
             var course = courses[courseName];
-            if (!await db.ProgramCourses.AnyAsync(x => x.ProgramId == program.ProgramId &&
+            if (!await unitOfWork.Repository<ProgramCourse>().AnyAsync(x => x.ProgramId == program.ProgramId &&
                     x.CourseId == course.CourseId, cancellationToken))
-                db.ProgramCourses.Add(new ProgramCourse
+                await unitOfWork.Repository<ProgramCourse>().AddAsync(new ProgramCourse
                 {
                     ProgramId = program.ProgramId, CourseId = course.CourseId, IsRequired = true
-                });
+                }, cancellationToken);
         }
 
         var batchTerms = Rows(snapshot, "enrollments")
@@ -141,7 +146,7 @@ public sealed class FrappeStudentSyncService(
             var name = Required(row, "name");
             var course = courses[Required(row, "course")];
             var period = periods[batchTerms[name]];
-            sections[name] = await Upsert(db.CourseSections, name, entity =>
+            sections[name] = await Upsert(unitOfWork.Repository<CourseSection>(), name, entity =>
             {
                 entity.CourseId = course.CourseId;
                 entity.AcademicPeriodId = period.AcademicPeriodId;
@@ -152,14 +157,14 @@ public sealed class FrappeStudentSyncService(
             }, cancellationToken);
             processed++;
         }
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var seenProgramEnrollments = new HashSet<(Guid ProgramId, Guid PeriodId)>();
         foreach (var row in Rows(snapshot, "enrollments"))
         {
             var name = Required(row, "name");
             var section = sections[Required(row, "student_batch")];
-            await Upsert(db.SectionEnrollments, name, entity =>
+            await Upsert(unitOfWork.Repository<SectionEnrollment>(), name, entity =>
             {
                 entity.StudentId = student.StudentId;
                 entity.SectionId = section.SectionId;
@@ -173,22 +178,22 @@ public sealed class FrappeStudentSyncService(
                 programs.TryGetValue(programName, out var program) && periods.TryGetValue(termName, out var period) &&
                 seenProgramEnrollments.Add((program.ProgramId, period.AcademicPeriodId)))
             {
-                var programEnrollment = await db.ProgramEnrollments.FirstOrDefaultAsync(x =>
+                var programEnrollment = await unitOfWork.Repository<ProgramEnrollment>().FirstOrDefaultAsync(x =>
                     x.StudentId == student.StudentId && x.ProgramId == program.ProgramId &&
                     x.AcademicPeriodId == period.AcademicPeriodId, cancellationToken);
                 if (programEnrollment is null)
                 {
-                    db.ProgramEnrollments.Add(new ProgramEnrollment
+                    await unitOfWork.Repository<ProgramEnrollment>().AddAsync(new ProgramEnrollment
                     {
                         StudentId = student.StudentId, ProgramId = program.ProgramId,
                         AcademicPeriodId = period.AcademicPeriodId,
                         EnrollmentDate = Date(row, "enrollment_date"), Status = "active", SyncedAt = now
-                    });
+                    }, cancellationToken);
                 }
             }
             processed++;
         }
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         foreach (var row in Rows(snapshot, "schedules"))
         {
@@ -196,7 +201,7 @@ public sealed class FrappeStudentSyncService(
             var section = sections[Required(row, "student_batch")];
             var facultyName = Optional(row, "faculty");
             section.InstructorName = Optional(row, "faculty_name");
-            await Upsert(db.CourseSchedules, name, entity =>
+            await Upsert(unitOfWork.Repository<CourseSchedule>(), name, entity =>
             {
                 entity.SectionId = section.SectionId;
                 entity.InstructorId = facultyName is not null && instructors.TryGetValue(facultyName, out var instructor)
@@ -220,7 +225,7 @@ public sealed class FrappeStudentSyncService(
             var title = Optional(row, "assessment_name") ?? Optional(row, "subject") ?? name;
             var scheduledDate = Date(row, "schedule_date");
             var max = Number(row, "maximum_assessment_score");
-            assessmentPlans[name] = await Upsert(db.AssessmentPlans, name, entity =>
+            assessmentPlans[name] = await Upsert(unitOfWork.Repository<AssessmentPlan>(), name, entity =>
             {
                 entity.SectionId = section.SectionId;
                 entity.Title = title;
@@ -230,7 +235,7 @@ public sealed class FrappeStudentSyncService(
                 entity.Status = "scheduled";
                 entity.SyncedAt = now;
             }, cancellationToken);
-            assessments[name] = await Upsert(db.Assessments, name, entity =>
+            assessments[name] = await Upsert(unitOfWork.Repository<Assessment>(), name, entity =>
             {
                 entity.SectionId = section.SectionId;
                 entity.Title = title;
@@ -242,7 +247,7 @@ public sealed class FrappeStudentSyncService(
             }, cancellationToken);
             processed++;
         }
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         foreach (var row in Rows(snapshot, "results"))
         {
@@ -251,7 +256,7 @@ public sealed class FrappeStudentSyncService(
                 throw new InvalidOperationException($"Assessment plan {planName} is missing from the snapshot.");
             assessment.Status = "graded";
             assessmentPlans[planName].Status = "completed";
-            await Upsert(db.AssessmentResults, Required(row, "name"), entity =>
+            await Upsert(unitOfWork.Repository<AssessmentResult>(), Required(row, "name"), entity =>
             {
                 entity.StudentId = student.StudentId;
                 entity.AssessmentId = assessment.AssessmentId;
@@ -264,7 +269,7 @@ public sealed class FrappeStudentSyncService(
         foreach (var row in Rows(snapshot, "attendance"))
         {
             var section = sections[Required(row, "student_batch")];
-            await Upsert(db.AttendanceRecords, Required(row, "name"), entity =>
+            await Upsert(unitOfWork.Repository<AttendanceRecord>(), Required(row, "name"), entity =>
             {
                 entity.StudentId = student.StudentId;
                 entity.SectionId = section.SectionId;
@@ -279,7 +284,7 @@ public sealed class FrappeStudentSyncService(
         foreach (var row in Rows(snapshot, "invoices"))
         {
             var name = Required(row, "name");
-            fees[name] = await Upsert(db.TuitionFees, name, entity =>
+            fees[name] = await Upsert(unitOfWork.Repository<TuitionFee>(), name, entity =>
             {
                 entity.StudentId = student.StudentId;
                 entity.Description = $"Factura {name}";
@@ -293,7 +298,7 @@ public sealed class FrappeStudentSyncService(
             }, cancellationToken);
             processed++;
         }
-        await db.SaveChangesAsync(cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var paymentRows = Rows(snapshot, "payments").ToDictionary(x => Required(x, "name"));
         foreach (var row in Rows(snapshot, "payment_references"))
@@ -302,7 +307,7 @@ public sealed class FrappeStudentSyncService(
             var invoiceName = Required(row, "reference_name");
             if (!paymentRows.TryGetValue(paymentName, out var payment) ||
                 !fees.TryGetValue(invoiceName, out var fee)) continue;
-            await Upsert(db.Payments, $"{paymentName}:{invoiceName}", entity =>
+            await Upsert(unitOfWork.Repository<Payment>(), $"{paymentName}:{invoiceName}", entity =>
             {
                 entity.StudentId = student.StudentId;
                 entity.TuitionFeeId = fee.TuitionFeeId;
@@ -316,40 +321,27 @@ public sealed class FrappeStudentSyncService(
             processed++;
         }
 
-        if (!await db.UserStudents.AnyAsync(x => x.UserId == userId && x.StudentId == student.StudentId,
+        if (!await unitOfWork.UserStudents.PairExistsAsync(userId, student.StudentId,
                 cancellationToken))
-            db.UserStudents.Add(new UserStudent
+            await unitOfWork.UserStudents.AddAsync(new UserStudent
             {
                 UserId = userId, StudentId = student.StudentId,
-                IsPrimary = !await db.UserStudents.AnyAsync(x => x.UserId == userId && x.IsPrimary,
-                    cancellationToken)
-            });
+                IsPrimary = !await unitOfWork.UserStudents.UserHasPrimaryAsync(userId, cancellationToken: cancellationToken)
+            }, cancellationToken);
 
         var run = new SyncRun
         {
             EntityName = "student_snapshot", StartDate = startedAt, EndDate = DateTime.UtcNow,
             Status = SyncRunStatus.Completed, ProcessedRecords = processed
         };
-        db.SyncRuns.Add(run);
-        await db.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
+        await unitOfWork.SyncRuns.AddAsync(run, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return new FrappeSyncSummary(run.SyncRunId, processed);
     }
 
-    private async Task<T> Upsert<T>(DbSet<T> set, string externalId, Action<T> update,
-        CancellationToken cancellationToken) where T : class, new()
-    {
-        var entity = await set.FirstOrDefaultAsync(x => EF.Property<string>(x, "FrappeExternalId") == externalId,
-            cancellationToken);
-        if (entity is null)
-        {
-            entity = new T();
-            set.Add(entity);
-            db.Entry(entity).Property("FrappeExternalId").CurrentValue = externalId;
-        }
-        update(entity);
-        return entity;
-    }
+    private static Task<T> Upsert<T>(IGenericRepository<T> repository, string externalId, Action<T> update,
+        CancellationToken cancellationToken) where T : class =>
+        repository.UpsertByFrappeExternalIdAsync(externalId, update, cancellationToken);
 
     private static IReadOnlyList<JsonElement> Rows(JsonElement root, string property) =>
         root.TryGetProperty(property, out var value) && value.ValueKind == JsonValueKind.Array

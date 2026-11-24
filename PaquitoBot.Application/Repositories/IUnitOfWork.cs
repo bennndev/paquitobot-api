@@ -3,6 +3,8 @@ namespace PaquitoBot.Application.Repositories;
 public interface IUnitOfWork
 {
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
+    Task<TResult> ExecuteInTransactionAsync<TResult>(Func<CancellationToken, Task<TResult>> operation,
+        CancellationToken cancellationToken = default);
     IGenericRepository<TEntity> Repository<TEntity>() where TEntity : class;
     IUserStudentRepository UserStudents { get; }
     IUserRepository Users { get; }
