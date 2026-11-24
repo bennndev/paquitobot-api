@@ -956,6 +956,7 @@ public partial class PaquitoBotDbContext : DbContext
                 .HasColumnName("start_date");
             entity.Property(e => e.Status)
                 .HasMaxLength(40)
+                .IsConcurrencyToken()
                 .HasColumnName("status");
         });
 

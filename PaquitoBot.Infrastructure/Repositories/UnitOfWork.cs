@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Models;
 using PaquitoBot.Infrastructure.Data;
 
 namespace PaquitoBot.Infrastructure.Repositories;
@@ -51,6 +52,10 @@ public class UnitOfWork : IUnitOfWork
         try
         {
             return await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex) when (ex.Entries.Any(entry => entry.Entity is SyncRun))
+        {
+            throw new ConflictException("The synchronization run has already changed.");
         }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException postgresException)
         {
