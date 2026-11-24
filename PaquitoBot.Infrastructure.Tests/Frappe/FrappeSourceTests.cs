@@ -22,7 +22,21 @@ public class FrappeSourceTests
         }
     }
 
-    private static FrappeApiClient CreateClient(StubHandler handler)
+    private sealed class RoutingHandler(Dictionary<string, string> bodiesByDocType) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var path = Uri.UnescapeDataString(request.RequestUri!.AbsolutePath);
+            var body = bodiesByDocType.First(pair => path.EndsWith("/" + pair.Key)).Value;
+
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(body, Encoding.UTF8, "application/json")
+            });
+        }
+    }
+
+    private static FrappeApiClient CreateClient(HttpMessageHandler handler)
     {
         var configuration = new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>
@@ -143,6 +157,39 @@ public class FrappeSourceTests
         Assert.Equal(new TimeOnly(9, 0), slot.StartTime);
         Assert.Equal(new TimeOnly(11, 30), slot.EndTime);
         Assert.Equal("Room 1", slot.Location);
+    }
+
+    [Fact]
+    public async Task ProgramEnrollmentSource_ResolvesProgramFromRegisterThenCourseAndSkipsApplicantsWithoutStudent()
+    {
+        var handler = new RoutingHandler(new Dictionary<string, string>
+        {
+            ["Student Applicant"] = """
+                {"data":[
+                 {"name":"APP-1","student":"STU-1","admission_register":"REG-1","course":null,"academic_term":"2026-I","application_date":"2026-03-01","application_status":"Approved","modified":"2026-01-01 00:00:00"},
+                 {"name":"APP-2","student":"STU-2","admission_register":"REG-2","course":"CRS-1","academic_term":null,"application_date":null,"application_status":"Applied","modified":null},
+                 {"name":"APP-3","student":"STU-3","admission_register":"REG-3","course":null,"academic_term":null,"application_date":null,"application_status":"Applied","modified":null},
+                 {"name":"APP-4","student":"STU-4","admission_register":"REG-404","course":null,"academic_term":null,"application_date":null,"application_status":"Applied","modified":null},
+                 {"name":"APP-5","student":null,"admission_register":"REG-1","course":null,"academic_term":null,"application_date":null,"application_status":"Applied","modified":null}
+                ]}
+                """,
+            ["Admission Register"] = """
+                {"data":[{"name":"REG-1","program":"PRG-1","course":null},{"name":"REG-2","program":null,"course":null},{"name":"REG-3","program":null,"course":"CRS-2"}]}
+                """,
+            ["Course"] = """
+                {"data":[{"name":"CRS-1","program":"PRG-2"},{"name":"CRS-2","program":"PRG-3"}]}
+                """
+        });
+
+        var enrollments = await new FrappeProgramEnrollmentSource(CreateClient(handler)).GetAllAsync();
+
+        Assert.Equal(4, enrollments.Count);
+        Assert.DoesNotContain(enrollments, e => e.ExternalId == "APP-5");
+        Assert.Equal("PRG-1", enrollments.Single(e => e.ExternalId == "APP-1").ProgramExternalId);
+        Assert.Equal("2026-I", enrollments.Single(e => e.ExternalId == "APP-1").AcademicPeriodExternalId);
+        Assert.Equal("PRG-2", enrollments.Single(e => e.ExternalId == "APP-2").ProgramExternalId);
+        Assert.Equal("PRG-3", enrollments.Single(e => e.ExternalId == "APP-3").ProgramExternalId);
+        Assert.Null(enrollments.Single(e => e.ExternalId == "APP-4").ProgramExternalId);
     }
 
     [Fact]
