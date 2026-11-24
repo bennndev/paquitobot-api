@@ -34,8 +34,9 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
         var items = await FetchAsync(cancellationToken);
 
         var externalIds = items
-            .Select(GetExternalId)
-            .Where(id => !string.IsNullOrWhiteSpace(id));
+            .Select(NormalizedExternalId)
+            .Where(id => !string.IsNullOrEmpty(id))
+            .Select(id => id!);
 
         var known = (await repository.GetByFrappeExternalIdsAsync(externalIds, cancellationToken))
             .ToDictionary(pair => pair.Key, pair => pair.Value);
@@ -45,11 +46,11 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
 
         foreach (var item in items)
         {
-            var externalId = GetExternalId(item);
+            var externalId = NormalizedExternalId(item);
 
             try
             {
-                if (string.IsNullOrWhiteSpace(externalId))
+                if (string.IsNullOrEmpty(externalId))
                 {
                     throw new InvalidOperationException("The record has no external id.");
                 }
@@ -85,6 +86,8 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
 
         return new SyncResult(EntityName, created, updated, unchanged, errors);
     }
+
+    private string? NormalizedExternalId(TExternal external) => GetExternalId(external)?.Trim();
 
     private static bool HasChanged(TEntity entity, DateTime? externalModifiedAt)
         => externalModifiedAt is null || externalModifiedAt != entity.FrappeModifiedAt;

@@ -50,6 +50,19 @@ public class FrappeSynchronizerBaseTests
     }
 
     [Fact]
+    public async Task SyncAsync_ExternalIdWithSpaces_DoesNotCreateDuplicates()
+    {
+        _source.Add(Dto(" STU-1 ", "Ana", new DateTime(2026, 1, 1)));
+        var sut = CreateSut();
+
+        await sut.SyncAsync();
+        var second = await sut.SyncAsync();
+
+        Assert.Single(_repository.Items);
+        Assert.Equal(1, second.Unchanged);
+    }
+
+    [Fact]
     public async Task SyncAsync_UpdatesOnlyModifiedRecords()
     {
         _source.Add(Dto("STU-1", "Ana", new DateTime(2026, 1, 1)));
@@ -115,7 +128,7 @@ internal sealed class TestStudentSynchronizer(
     protected override DateTime? GetModifiedAt(FrappeStudentDto external) => external.ModifiedAt;
 
     protected override Student Create(FrappeStudentDto external)
-        => new() { FrappeExternalId = external.ExternalId, FullName = external.FullName };
+        => new() { FrappeExternalId = external.ExternalId.Trim(), FullName = external.FullName };
 
     protected override void Apply(FrappeStudentDto external, Student entity) => entity.FullName = external.FullName;
 }
