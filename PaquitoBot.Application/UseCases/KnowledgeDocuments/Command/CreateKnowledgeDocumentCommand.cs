@@ -3,6 +3,7 @@ using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Command;
@@ -62,7 +63,7 @@ public class CreateKnowledgeDocumentCommandHandler(IUnitOfWork _unitOfWork)
             SourceUrl = TextNormalizer.Optional(request.SourceUrl),
             Content = content,
             ContentHash = content is null ? null : ContentHasher.Sha256(content),
-            Status = "active"
+            Status = KnowledgeDocumentStatus.Pending
         };
 
         await _unitOfWork.Repository<KnowledgeDocument>().AddAsync(document, cancellationToken);
