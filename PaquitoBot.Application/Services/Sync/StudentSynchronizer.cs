@@ -1,0 +1,56 @@
+using PaquitoBot.Application.Common.Text;
+using PaquitoBot.Application.DTOs.Frappe;
+using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Models;
+
+namespace PaquitoBot.Application.Services.Sync;
+
+public class StudentSynchronizer(
+    IFrappeClient client,
+    IFrappeSyncedRepository<Student> repository,
+    IUnitOfWork unitOfWork,
+    TimeProvider timeProvider)
+    : FrappeSynchronizerBase<FrappeStudentDto, Student>(repository, unitOfWork, timeProvider)
+{
+    public override string EntityName => nameof(Student);
+
+    public override int Order => SyncOrder.MasterData;
+
+    protected override Task<IReadOnlyList<FrappeStudentDto>> FetchAsync(CancellationToken cancellationToken)
+        => client.GetStudentsAsync(cancellationToken);
+
+    protected override string GetExternalId(FrappeStudentDto external) => external.ExternalId;
+
+    protected override DateTime? GetModifiedAt(FrappeStudentDto external) => external.ModifiedAt;
+
+    protected override Student Create(FrappeStudentDto external)
+    {
+        var student = new Student { FrappeExternalId = TextNormalizer.Required(external.ExternalId) };
+        Apply(external, student);
+
+        return student;
+    }
+
+    protected override void Apply(FrappeStudentDto external, Student student)
+    {
+        var firstNames = TextNormalizer.Optional(external.FirstNames);
+        var lastNames = TextNormalizer.Optional(external.LastNames);
+
+        student.StudentCode = TextNormalizer.Optional(external.StudentCode);
+        student.FirstNames = firstNames;
+        student.LastNames = lastNames;
+        student.FullName = TextNormalizer.Optional(external.FullName) ?? BuildFullName(firstNames, lastNames);
+        student.Email = TextNormalizer.OptionalEmail(external.Email);
+        student.Phone = TextNormalizer.Optional(external.Phone);
+        student.BirthDate = external.BirthDate;
+        student.Gender = TextNormalizer.Optional(external.Gender);
+        student.Status = TextNormalizer.Optional(external.Status);
+    }
+
+    private static string? BuildFullName(string? firstNames, string? lastNames)
+    {
+        var fullName = $"{firstNames} {lastNames}".Trim();
+
+        return fullName.Length == 0 ? null : fullName;
+    }
+}
