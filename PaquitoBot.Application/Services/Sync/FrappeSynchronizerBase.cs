@@ -29,9 +29,18 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
     /// <summary>Copies the mutable fields from the external record onto an existing entity.</summary>
     protected abstract void Apply(TExternal external, TEntity entity);
 
+    /// <summary>
+    /// Runs once after fetching and before mapping. Synchronizers with parents load them here
+    /// in batch and throw from <see cref="Create"/> or <see cref="Apply"/> when a parent is missing,
+    /// so only that record is reported as failed.
+    /// </summary>
+    protected virtual Task PrepareAsync(IReadOnlyList<TExternal> items, CancellationToken cancellationToken)
+        => Task.CompletedTask;
+
     public async Task<SyncResult> SyncAsync(CancellationToken cancellationToken = default)
     {
         var items = await FetchAsync(cancellationToken);
+        await PrepareAsync(items, cancellationToken);
 
         var externalIds = items
             .Select(NormalizedExternalId)

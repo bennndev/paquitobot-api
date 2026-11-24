@@ -98,6 +98,23 @@ public class FrappeSynchronizerBaseTests
     }
 
     [Fact]
+    public async Task SyncAsync_PrepareHook_RunsOnceBeforeMapping_AndMissingParentFailsOnlyThatRecord()
+    {
+        _source.Add(Dto("STU-1", "Ana", null));
+        _source.Add(Dto("STU-2", "Missing parent", null));
+        var sut = CreateSut();
+        sut.KnownNames.Add("Ana");
+
+        var result = await sut.SyncAsync();
+
+        Assert.Equal(1, sut.PrepareCalls);
+        Assert.Equal(1, result.Created);
+        var error = Assert.Single(result.Errors);
+        Assert.Equal("STU-2", error.ExternalId);
+        Assert.Contains("not found", error.Message);
+    }
+
+    [Fact]
     public async Task SyncAsync_SavesOnce()
     {
         _source.Add(Dto("STU-1", "Ana", null));
@@ -120,6 +137,16 @@ internal sealed class TestStudentSynchronizer(
 
     public override int Order => 1;
 
+    public HashSet<string> KnownNames { get; } = [];
+
+    public int PrepareCalls { get; private set; }
+
+    protected override Task PrepareAsync(IReadOnlyList<FrappeStudentDto> items, CancellationToken cancellationToken)
+    {
+        PrepareCalls++;
+        return Task.CompletedTask;
+    }
+
     protected override Task<IReadOnlyList<FrappeStudentDto>> FetchAsync(CancellationToken cancellationToken)
         => Task.FromResult<IReadOnlyList<FrappeStudentDto>>(source.ToList());
 
@@ -128,7 +155,14 @@ internal sealed class TestStudentSynchronizer(
     protected override DateTime? GetModifiedAt(FrappeStudentDto external) => external.ModifiedAt;
 
     protected override Student Create(FrappeStudentDto external)
-        => new() { FrappeExternalId = external.ExternalId.Trim(), FullName = external.FullName };
+    {
+        if (KnownNames.Count > 0 && !KnownNames.Contains(external.FullName!))
+        {
+            throw new InvalidOperationException("The parent record was not found.");
+        }
+
+        return new Student { FrappeExternalId = external.ExternalId.Trim(), FullName = external.FullName };
+    }
 
     protected override void Apply(FrappeStudentDto external, Student entity) => entity.FullName = external.FullName;
 }
