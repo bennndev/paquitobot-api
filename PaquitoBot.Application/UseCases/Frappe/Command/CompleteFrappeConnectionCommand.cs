@@ -1,12 +1,11 @@
 using MediatR;
+using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Application.UseCases.Frappe.Command;
 
 public record CompleteFrappeConnectionCommand(string Code, string State) : IRequest<FrappeConnectionResponse>;
-
-public record FrappeConnectionResponse(Guid UserId, string Email, FrappeSyncSummary Sync);
 
 internal sealed class CompleteFrappeConnectionCommandHandler(
     IUnitOfWork unitOfWork, IFrappeOAuthService oauth, IFrappeStudentSyncService sync)
