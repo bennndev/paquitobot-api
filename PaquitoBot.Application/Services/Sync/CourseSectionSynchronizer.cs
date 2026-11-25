@@ -6,8 +6,9 @@ using PaquitoBot.Domain.Models;
 namespace PaquitoBot.Application.Services.Sync;
 
 /// <summary>
-/// Maps Frappe batches to course sections. The course is a parent resolved by external id;
-/// the academic period is deduced as the single period that contains the batch start date.
+/// Maps Frappe batches to course sections. The course is a parent resolved by external id. The academic period
+/// is the term reported by the batch enrollments; without one it is deduced as the single period that
+/// contains the batch start date.
 /// </summary>
 public class CourseSectionSynchronizer(
     IFrappeSource<FrappeCourseSectionDto> source,
@@ -20,6 +21,7 @@ public class CourseSectionSynchronizer(
 {
     private IReadOnlyDictionary<string, Course> _knownCourses = new Dictionary<string, Course>();
     private IReadOnlyList<AcademicPeriod> _knownPeriods = [];
+    private IReadOnlyDictionary<string, AcademicPeriod> _periodsByExternalId = new Dictionary<string, AcademicPeriod>();
 
     public override string EntityName => nameof(CourseSection);
 
@@ -35,6 +37,9 @@ public class CourseSectionSynchronizer(
         _knownCourses = await courses.GetByFrappeExternalIdsAsync(
             items.Select(i => i.CourseExternalId.Trim()), cancellationToken);
         _knownPeriods = await periods.GetAllAsync(cancellationToken);
+        _periodsByExternalId = await periods.GetByFrappeExternalIdsAsync(
+            items.Where(i => !string.IsNullOrWhiteSpace(i.AcademicPeriodExternalId)).Select(i => i.AcademicPeriodExternalId!.Trim()),
+            cancellationToken);
     }
 
     protected override string GetExternalId(FrappeCourseSectionDto external) => external.ExternalId;
@@ -69,6 +74,15 @@ public class CourseSectionSynchronizer(
 
     private AcademicPeriod ResolvePeriod(FrappeCourseSectionDto external)
     {
+        var explicitPeriodId = TextNormalizer.Optional(external.AcademicPeriodExternalId);
+
+        if (explicitPeriodId is not null)
+        {
+            return _periodsByExternalId.TryGetValue(explicitPeriodId, out var explicitPeriod)
+                ? explicitPeriod
+                : throw new InvalidOperationException($"Academic period '{explicitPeriodId}' was not found.");
+        }
+
         if (external.StartDate is not { } start)
         {
             throw new InvalidOperationException(

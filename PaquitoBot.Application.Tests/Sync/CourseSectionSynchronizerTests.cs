@@ -76,6 +76,43 @@ public class CourseSectionSynchronizerTests
     }
 
     [Fact]
+    public async Task SyncAsync_BatchWithExplicitTerm_UsesItEvenWhenSeveralPeriodsContainTheStart()
+    {
+        _periods.Items.Add(new AcademicPeriod
+        {
+            AcademicPeriodId = Guid.NewGuid(), FrappeExternalId = "2026-2027", Name = "Overlap",
+            StartDate = new DateOnly(2026, 1, 1), EndDate = new DateOnly(2026, 12, 31)
+        });
+        _source.Items.Add(Batch("BATCH-1", "CRS-1", new DateOnly(2026, 4, 10)) with { AcademicPeriodExternalId = " 2026-I " });
+
+        var result = await CreateSut().SyncAsync();
+
+        Assert.Equal(1, result.Created);
+        Assert.Equal(_spring.AcademicPeriodId, Assert.Single(_sections.Items).AcademicPeriodId);
+    }
+
+    [Fact]
+    public async Task SyncAsync_ExplicitTermThatIsNotSynced_FailsInsteadOfGuessingByDate()
+    {
+        _source.Items.Add(Batch("BATCH-1", "CRS-1", new DateOnly(2026, 4, 10)) with { AcademicPeriodExternalId = "2099-X" });
+
+        var result = await CreateSut().SyncAsync();
+
+        Assert.Empty(_sections.Items);
+        Assert.Contains("Academic period '2099-X' was not found", Assert.Single(result.Errors).Message);
+    }
+
+    [Fact]
+    public async Task SyncAsync_ExplicitTermDoesNotNeedAStartDate()
+    {
+        _source.Items.Add(Batch("BATCH-1", "CRS-1", null) with { AcademicPeriodExternalId = "2026-I" });
+
+        var result = await CreateSut().SyncAsync();
+
+        Assert.Equal(1, result.Created);
+    }
+
+    [Fact]
     public async Task SyncAsync_NoPeriodContainsTheBatchStart_FailsWithAClearMessage()
     {
         _source.Items.Add(Batch("BATCH-1", "CRS-1", new DateOnly(2027, 1, 10)));

@@ -1,8 +1,9 @@
 namespace PaquitoBot.Application.DTOs.Frappe;
 
 /// <summary>
-/// A Frappe batch has no academic term, so it carries its own dates and
-/// the synchronizer deduces the period that contains them.
+/// A Frappe batch has no academic term of its own. When its enrollments agree on a single term the source
+/// provides it in <see cref="AcademicPeriodExternalId"/>; otherwise the synchronizer deduces the period
+/// that contains the batch dates.
 /// </summary>
 public record FrappeCourseSectionDto(
     string ExternalId,
@@ -14,4 +15,5 @@ public record FrappeCourseSectionDto(
     string? DeliveryMode,
     int? Capacity,
     string? Status,
-    DateTime? ModifiedAt);
+    DateTime? ModifiedAt,
+    string? AcademicPeriodExternalId = null);
