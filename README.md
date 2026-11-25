@@ -31,6 +31,53 @@ Backend API for **PaquitoBot**, built with .NET following a hexagonal (ports and
 2. Store the database connection string with .NET User Secrets. Never put credentials in `appsettings.json`.
 3. Build the solution before running the API.
 
+## Frappe Integration
+
+Two integrations with Frappe Education coexist. They use different credentials and serve different purposes.
+
+| | Master-data sync | Per-student OAuth snapshot |
+|---|---|---|
+| Endpoints | `POST api/academic-sync`, `GET api/sync-runs/latest` | `GET api/frappe/connect`, `GET api/frappe/callback` |
+| Who triggers it | An administrator (policy `Administrator`, role `Admin`) | A signed-in student (`connect` requires a JWT; `callback` is anonymous and validates the OAuth state) |
+| Credentials | Frappe API key and secret, configuration section `Frappe` | OAuth client, configuration section `FrappeOAuth` |
+| Scope | Academic master data for everybody | Only the data of the student who authorized |
+| Entry point | `RunAcademicSyncCommand` | `CompleteFrappeConnectionCommand` and `FrappeOAuthService` |
+
+### Master-data sync
+
+`POST api/academic-sync` runs `RunAcademicSyncCommand`, which executes one synchronizer per entity (`PaquitoBot.Application/Services/Sync/`) fed by a Frappe source (`PaquitoBot.Infrastructure/Services/Frappe/`).
+
+- **Dependency order.** Synchronizers run by `SyncOrder` tier, so every tier only references lower ones: `MasterData` (10: academic periods, programs, courses, instructors, students), `ProgramStructure` (20: program courses), `Sections` (30: course sections), `SectionDetails` (40: course schedules, program enrollments, section enrollments).
+- **Idempotent.** Records are matched by `FrappeExternalId`; a record is created, updated or left unchanged, so running it again is safe.
+- **Per-record failures.** A bad record (for example a parent that was not found locally) is reported in the response as a failed record with its external id and message, and does not stop the rest.
+- **One `SyncRun` per entity.** A failure in one entity does not stop the others. Only one sync can run at a time; a second request gets a conflict.
+- **Never deletes.** Local data is never removed, even if it no longer exists in Frappe.
+- **Results.** The response lists processed, created, updated, unchanged and failed counts per entity. `GET api/sync-runs/latest` returns the latest run for each entity.
+
+Configuration keys: `Frappe:BaseUrl`, `Frappe:ApiKey`, `Frappe:ApiSecret`. Do not set them by hand: `infra/frappe/run-api.ps1` loads them as environment variables (`Frappe__BaseUrl`, and so on) from the local Frappe environment described in [`infra/frappe/README.md`](infra/frappe/README.md).
+
+### Per-student OAuth snapshot
+
+A signed-in user calls `GET api/frappe/connect`, which returns the Frappe authorization URL. After the student authorizes, Frappe redirects to `GET api/frappe/callback`, which exchanges the code, checks that the Frappe account matches the PaquitoBot user, and imports that student's snapshot through the server script `paquitobot_student_snapshot`.
+
+The script and how to install it are in [`integrations/frappe/README.md`](integrations/frappe/README.md). Set `FrappeOAuth:BaseUrl`, `FrappeOAuth:ClientId`, `FrappeOAuth:ClientSecret` and `FrappeOAuth:RedirectUri` in User Secrets; the redirect URI must match the Frappe OAuth Client exactly.
+
+### Local configuration
+
+The API will not start without these User Secrets (use placeholders below, never commit real values):
+
+```powershell
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<postgres-connection-string>" --project PaquitoBot.Api
+dotnet user-secrets set "JWTVariable:Secret" "<random-string-of-at-least-32-bytes>" --project PaquitoBot.Api
+dotnet user-secrets set "JWTVariable:Issuer" "<issuer>" --project PaquitoBot.Api
+dotnet user-secrets set "JWTVariable:Audience" "<audience>" --project PaquitoBot.Api
+```
+
+### Gotchas
+
+1. .NET on Windows cannot resolve `*.localhost` names. The API reaches Frappe through `http://localhost:8000`, while the browser uses `http://education.localhost:8000`. Use the `localhost` form for `Frappe:BaseUrl`.
+2. Start the API with `infra/frappe/run-api.ps1`, not from an IDE run configuration. Otherwise the Frappe API key is not injected and Frappe answers 403.
+
 ## Contributing
 
 Work follows **Issue → Branch → Commits → Pull Request → Review → Merge**.
