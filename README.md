@@ -19,8 +19,6 @@ powershell -ExecutionPolicy Bypass -File .\infra\frappe\setup.ps1
 | `PaquitoBot.Application` | DTOs, use cases (commands and queries) and repository contracts |
 | `PaquitoBot.Domain` | Domain entities and business rules |
 | `PaquitoBot.Infrastructure` | Persistence, repository implementations and the Frappe HTTP client |
-| `PaquitoBot.Application.Tests` | Unit tests for the synchronizers and the sync command |
-| `PaquitoBot.Infrastructure.Tests` | Tests for the Frappe client and sources, financial reads and the chat flow |
 
 ## Tech Stack
 
@@ -51,7 +49,7 @@ Application modules can inject `IFrappeClient` and call `GetPageAsync<T>` with a
 
 Use `IFrappeSyncRunService` to start a run and then record its success or failure with the number of processed rows. Each operation uses its own unit of work. When recording a cancellation after the caller's token has expired, pass a separate, bounded token for the final audit write.
 
-Run the unit tests with `dotnet test PaquitoBot.sln`. The client tests use a simulated HTTP handler and require no Frappe or PostgreSQL server. [Frappe REST API](https://docs.frappe.io/framework/user/en/api/rest)
+[Frappe REST API](https://docs.frappe.io/framework/user/en/api/rest)
 
 ## Frappe Synchronization
 
