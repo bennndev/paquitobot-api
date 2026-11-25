@@ -73,6 +73,17 @@ public class UnitOfWork : IUnitOfWork
         }
     }
 
+    public void DiscardPendingChanges() => _context.ChangeTracker.Clear();
+
+    public async Task<TResult> ExecuteInTransactionAsync<TResult>(
+        Func<CancellationToken, Task<TResult>> operation, CancellationToken cancellationToken = default)
+    {
+        await using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+        var result = await operation(cancellationToken);
+        await transaction.CommitAsync(cancellationToken);
+        return result;
+    }
+
     public IGenericRepository<TEntity> Repository<TEntity>() where TEntity : class
     {
         var type = typeof(TEntity).Name;

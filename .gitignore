@@ -34,6 +34,11 @@ coverage/
 .env.*
 appsettings.*.local.json
 secrets.json
+cookies.txt
+
+# Local Frappe container environment
+infra/frappe/.env
+infra/frappe/.frappe-docker/
 
 # OS
 .DS_Store

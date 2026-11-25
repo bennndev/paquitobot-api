@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Infrastructure.Data;
@@ -30,6 +31,30 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     public virtual Task<bool> ExistsAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return DbSet.AnyAsync(e => EF.Property<Guid>(e, KeyName) == id, cancellationToken);
+    }
+
+    public virtual Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate,
+        CancellationToken cancellationToken = default) =>
+        DbSet.FirstOrDefaultAsync(predicate, cancellationToken);
+
+    public virtual Task<bool> AnyAsync(Expression<Func<T, bool>> predicate,
+        CancellationToken cancellationToken = default) =>
+        DbSet.AnyAsync(predicate, cancellationToken);
+
+    public virtual async Task<T> UpsertByFrappeExternalIdAsync(string externalId, Action<T> update,
+        CancellationToken cancellationToken = default)
+    {
+        var entity = await DbSet.FirstOrDefaultAsync(
+            row => EF.Property<string>(row, "FrappeExternalId") == externalId, cancellationToken);
+        if (entity is null)
+        {
+            entity = Activator.CreateInstance<T>();
+            await DbSet.AddAsync(entity, cancellationToken);
+            Context.Entry(entity).Property("FrappeExternalId").CurrentValue = externalId;
+        }
+
+        update(entity);
+        return entity;
     }
 
     public virtual async Task AddAsync(T entity, CancellationToken cancellationToken = default)

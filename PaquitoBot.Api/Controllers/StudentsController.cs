@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.DTOs.Students;
+using PaquitoBot.Application.Services;
 using PaquitoBot.Application.UseCases.Students.Command;
 using PaquitoBot.Application.UseCases.Students.Query;
 
@@ -11,10 +13,12 @@ namespace PaquitoBot.Api.Controllers;
 public class StudentsController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly IFrappeSource<FrappeStudentDto> _frappeStudents;
 
-    public StudentsController(ISender sender)
+    public StudentsController(ISender sender, IFrappeSource<FrappeStudentDto> frappeStudents)
     {
         _sender = sender;
+        _frappeStudents = frappeStudents;
     }
 
     [HttpGet]
@@ -54,5 +58,11 @@ public class StudentsController : ControllerBase
         await _sender.Send(new DeleteStudentCommand(id), cancellationToken);
 
         return NoContent();
+    }
+
+    [HttpGet("frappe")]
+    public async Task<ActionResult<IReadOnlyList<FrappeStudentDto>>> GetFrappeStudents(CancellationToken cancellationToken)
+    {
+        return Ok(await _frappeStudents.GetAllAsync(cancellationToken));
     }
 }
