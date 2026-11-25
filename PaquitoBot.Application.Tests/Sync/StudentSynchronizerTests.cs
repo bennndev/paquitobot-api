@@ -31,6 +31,20 @@ public class StudentSynchronizerTests
         Assert.Equal(new DateOnly(2000, 5, 1), student.BirthDate);
     }
 
+    [Theory]
+    [InlineData("Active", "active")]
+    [InlineData("ACTIVE", "active")]
+    [InlineData("  ", null)]
+    [InlineData(null, null)]
+    public async Task SyncAsync_NormalizesStatusToLowercase(string? status, string? expected)
+    {
+        _source.Items.Add(new FrappeStudentDto("STU-1", null, "Ana", null, null, null, null, null, null, status, new DateTime(2026, 1, 1)));
+
+        await CreateSut().SyncAsync();
+
+        Assert.Equal(expected, Assert.Single(_repository.Items).Status);
+    }
+
     [Fact]
     public async Task SyncAsync_RunTwice_KeepsASingleStudent()
     {
@@ -57,7 +71,7 @@ public class StudentSynchronizerTests
 
         Assert.Equal(1, result.Updated);
         Assert.Same(original, _repository.Items.Single());
-        Assert.Equal("Inactive", original.Status);
+        Assert.Equal("inactive", original.Status);
     }
 
     [Fact]

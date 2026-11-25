@@ -38,6 +38,6 @@ public class InstructorSynchronizer(
         entity.FullName = TextNormalizer.Optional(external.FullName);
         entity.Email = TextNormalizer.OptionalEmail(external.Email);
         entity.Phone = TextNormalizer.Optional(external.Phone);
-        entity.Status = TextNormalizer.Optional(external.Status);
+        entity.Status = TextNormalizer.OptionalLower(external.Status);
     }
 }

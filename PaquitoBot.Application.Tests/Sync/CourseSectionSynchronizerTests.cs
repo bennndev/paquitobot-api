@@ -166,7 +166,7 @@ public class CourseSectionSynchronizerTests
 
         Assert.Equal(1, result.Updated);
         Assert.Same(original, _sections.Items.Single());
-        Assert.Equal("Inactive", original.Status);
+        Assert.Equal("inactive", original.Status);
     }
 
     [Fact]

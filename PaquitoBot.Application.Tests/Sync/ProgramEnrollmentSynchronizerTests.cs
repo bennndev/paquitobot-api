@@ -46,7 +46,7 @@ public class ProgramEnrollmentSynchronizerTests
         Assert.Equal(_program.ProgramId, enrollment.ProgramId);
         Assert.Equal(_period.AcademicPeriodId, enrollment.AcademicPeriodId);
         Assert.Equal(new DateOnly(2026, 3, 1), enrollment.EnrollmentDate);
-        Assert.Equal("Approved", enrollment.Status);
+        Assert.Equal("approved", enrollment.Status);
     }
 
     [Fact]
@@ -130,7 +130,7 @@ public class ProgramEnrollmentSynchronizerTests
 
         Assert.Equal(1, result.Updated);
         Assert.Same(original, _enrollments.Items.Single());
-        Assert.Equal("Admitted", original.Status);
+        Assert.Equal("admitted", original.Status);
     }
 
     [Fact]

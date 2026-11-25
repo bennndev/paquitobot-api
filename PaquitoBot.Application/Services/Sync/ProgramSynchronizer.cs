@@ -36,6 +36,6 @@ public class ProgramSynchronizer(
         entity.Code = TextNormalizer.Optional(external.Code);
         entity.Name = TextNormalizer.Required(external.Name);
         entity.Description = TextNormalizer.Optional(external.Description);
-        entity.Status = TextNormalizer.Optional(external.Status);
+        entity.Status = TextNormalizer.OptionalLower(external.Status);
     }
 }

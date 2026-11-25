@@ -73,7 +73,7 @@ public class CourseScheduleSynchronizer(
         schedule.EndTime = external.EndTime;
         schedule.Location = TextNormalizer.Optional(external.Location);
         schedule.DeliveryMode = TextNormalizer.Optional(external.DeliveryMode);
-        schedule.Status = TextNormalizer.Optional(external.Status);
+        schedule.Status = TextNormalizer.OptionalLower(external.Status);
     }
 
     private Guid? ResolveInstructor(string? instructorExternalId)

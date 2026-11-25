@@ -27,6 +27,20 @@ public class InstructorSynchronizerTests
         Assert.Equal("ana@mail.com", entity.Email);
     }
 
+    [Theory]
+    [InlineData("Active", "active")]
+    [InlineData("ACTIVE", "active")]
+    [InlineData("  ", null)]
+    [InlineData(null, null)]
+    public async Task SyncAsync_NormalizesStatusToLowercase(string? status, string? expected)
+    {
+        _source.Items.Add(new FrappeInstructorDto("EXT-1", "Ana", "Lopez", "Ana Lopez", null, null, status, new DateTime(2026, 1, 1)));
+
+        await CreateSut().SyncAsync();
+
+        Assert.Equal(expected, Assert.Single(_repository.Items).Status);
+    }
+
     [Fact]
     public async Task SyncAsync_RunTwice_KeepsASingleRecord()
     {

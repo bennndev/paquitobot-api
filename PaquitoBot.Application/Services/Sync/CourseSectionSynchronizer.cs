@@ -69,7 +69,7 @@ public class CourseSectionSynchronizer(
         section.InstructorName = TextNormalizer.Optional(external.InstructorName);
         section.DeliveryMode = TextNormalizer.Optional(external.DeliveryMode);
         section.Capacity = external.Capacity;
-        section.Status = TextNormalizer.Optional(external.Status);
+        section.Status = TextNormalizer.OptionalLower(external.Status);
     }
 
     private AcademicPeriod ResolvePeriod(FrappeCourseSectionDto external)

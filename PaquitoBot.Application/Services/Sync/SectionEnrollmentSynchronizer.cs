@@ -68,6 +68,6 @@ public class SectionEnrollmentSynchronizer(
         enrollment.StudentId = student.StudentId;
         enrollment.SectionId = section.SectionId;
         enrollment.EnrollmentDate = external.EnrollmentDate;
-        enrollment.Status = TextNormalizer.Optional(external.Status);
+        enrollment.Status = TextNormalizer.OptionalLower(external.Status);
     }
 }

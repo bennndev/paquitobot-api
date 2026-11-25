@@ -37,6 +37,6 @@ public class AcademicPeriodSynchronizer(
         entity.Name = TextNormalizer.Required(external.Name);
         entity.StartDate = external.StartDate;
         entity.EndDate = external.EndDate;
-        entity.Status = TextNormalizer.Optional(external.Status);
+        entity.Status = TextNormalizer.OptionalLower(external.Status);
     }
 }

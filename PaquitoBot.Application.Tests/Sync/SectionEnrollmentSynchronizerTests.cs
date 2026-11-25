@@ -41,7 +41,21 @@ public class SectionEnrollmentSynchronizerTests
         Assert.Equal(_student.StudentId, enrollment.StudentId);
         Assert.Equal(_section.SectionId, enrollment.SectionId);
         Assert.Equal(new DateOnly(2026, 8, 24), enrollment.EnrollmentDate);
-        Assert.Equal("Enrolled", enrollment.Status);
+        Assert.Equal("enrolled", enrollment.Status);
+    }
+
+    [Theory]
+    [InlineData("Enrolled", "enrolled")]
+    [InlineData("ENROLLED", "enrolled")]
+    [InlineData("  ", null)]
+    [InlineData(null, null)]
+    public async Task SyncAsync_NormalizesStatusToLowercase(string? status, string? expected)
+    {
+        _source.Items.Add(Enrollment("CE-1", status: status));
+
+        await CreateSut().SyncAsync();
+
+        Assert.Equal(expected, Assert.Single(_enrollments.Items).Status);
     }
 
     [Fact]
@@ -95,7 +109,7 @@ public class SectionEnrollmentSynchronizerTests
 
         Assert.Equal(1, result.Updated);
         Assert.Same(original, _enrollments.Items.Single());
-        Assert.Equal("Completed", original.Status);
+        Assert.Equal("completed", original.Status);
     }
 
     [Fact]

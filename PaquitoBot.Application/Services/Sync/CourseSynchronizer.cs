@@ -37,6 +37,6 @@ public class CourseSynchronizer(
         entity.Name = TextNormalizer.Required(external.Name);
         entity.Description = TextNormalizer.Optional(external.Description);
         entity.Credits = external.Credits;
-        entity.Status = TextNormalizer.Optional(external.Status);
+        entity.Status = TextNormalizer.OptionalLower(external.Status);
     }
 }

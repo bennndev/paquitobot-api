@@ -44,7 +44,7 @@ public class StudentSynchronizer(
         student.Phone = TextNormalizer.Optional(external.Phone);
         student.BirthDate = external.BirthDate;
         student.Gender = TextNormalizer.Optional(external.Gender);
-        student.Status = TextNormalizer.Optional(external.Status);
+        student.Status = TextNormalizer.OptionalLower(external.Status);
     }
 
     private static string? BuildFullName(string? firstNames, string? lastNames)

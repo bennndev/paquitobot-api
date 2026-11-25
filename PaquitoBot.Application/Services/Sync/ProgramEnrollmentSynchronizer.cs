@@ -79,7 +79,7 @@ public class ProgramEnrollmentSynchronizer(
         enrollment.ProgramId = program.ProgramId;
         enrollment.AcademicPeriodId = ResolvePeriod(external.AcademicPeriodExternalId);
         enrollment.EnrollmentDate = external.EnrollmentDate;
-        enrollment.Status = TextNormalizer.Optional(external.Status);
+        enrollment.Status = TextNormalizer.OptionalLower(external.Status);
     }
 
     private Guid? ResolvePeriod(string? periodExternalId)
