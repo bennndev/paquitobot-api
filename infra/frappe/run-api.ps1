@@ -15,7 +15,8 @@ foreach ($required in @('FRAPPE_HTTP_PORT', 'FRAPPE_API_KEY', 'FRAPPE_API_SECRET
     }
 }
 
-$env:Frappe__BaseUrl = "http://education.localhost:$($settings.FRAPPE_HTTP_PORT)"
+# .NET on Windows cannot resolve *.localhost names (browsers can), so the API reaches Frappe through localhost.
+$env:Frappe__BaseUrl = "http://localhost:$($settings.FRAPPE_HTTP_PORT)"
 $env:Frappe__ApiKey = $settings.FRAPPE_API_KEY
 $env:Frappe__ApiSecret = $settings.FRAPPE_API_SECRET
 
