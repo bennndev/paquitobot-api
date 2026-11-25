@@ -101,7 +101,12 @@ public class RunAcademicSyncCommandTests
 
         var failed = response.Entities.Single(e => e.EntityName == "Student");
         Assert.Equal(SyncRunStatus.Failed, failed.Status);
+        Assert.Equal(1, failed.Failed);
+        Assert.Equal(failed.Errors.Count, failed.Failed);
+        Assert.Equal(0, failed.Processed + failed.Created + failed.Updated + failed.Unchanged);
+        Assert.Equal(1, response.Failed);
         Assert.Contains("Frappe is unreachable", _sender.Completed[0].Command.ErrorMessage);
+        Assert.Equal(0, _sender.Completed[0].Command.ProcessedRecords);
         Assert.Equal(SyncRunStatus.Completed, response.Entities.Single(e => e.EntityName == "Course").Status);
     }
 
@@ -117,6 +122,18 @@ public class RunAcademicSyncCommandTests
         Assert.Equal(3, response.Unchanged);
         Assert.Equal(1, response.Failed);
         Assert.Equal(8, response.Processed);
+        Assert.All(response.Entities, e => Assert.Equal(e.Errors.Count, e.Failed));
+    }
+
+    [Fact]
+    public async Task Handle_TotalsIncludeAWholeEntityFailure()
+    {
+        var response = await RunAsync(
+            Fake("Student", SyncOrder.MasterData, failure: new InvalidOperationException("403")),
+            Fake("Course", SyncOrder.MasterData, new SyncResult("Course", 1, 0, 3, [new SyncError("C-1", "x")])));
+
+        Assert.Equal(2, response.Failed);
+        Assert.All(response.Entities, e => Assert.Equal(e.Errors.Count, e.Failed));
     }
 
     [Fact]

@@ -124,7 +124,7 @@ public class RunAcademicSyncCommandHandler(
             await CompleteAsFailedAsync(syncRunId, message, cancellationToken);
 
             return new EntitySyncResponse(
-                synchronizer.EntityName, syncRunId, SyncRunStatus.Failed, 0, 0, 0, 0, 0, [new SyncError(string.Empty, message)]);
+                synchronizer.EntityName, syncRunId, SyncRunStatus.Failed, 0, 0, 0, 0, 1, [new SyncError(string.Empty, message)]);
         }
     }
 
