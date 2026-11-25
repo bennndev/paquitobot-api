@@ -19,6 +19,11 @@ public static class TextNormalizer
         return string.IsNullOrEmpty(trimmed) ? null : trimmed;
     }
 
+    public static string? OptionalLower(string? value)
+    {
+        return Optional(value)?.ToLowerInvariant();
+    }
+
     public static string? OptionalEmail(string? value)
     {
         return Optional(value)?.ToLowerInvariant();
