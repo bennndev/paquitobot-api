@@ -2,6 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using PaquitoBot.Application;
 using PaquitoBot.Application.Services.Sync;
+using PaquitoBot.Infrastructure.Integrations.Frappe;
 
 namespace PaquitoBot.Infrastructure.Tests.Wiring;
 
@@ -10,13 +11,19 @@ public class SynchronizerWiringTests
     private static ServiceProvider BuildProvider()
     {
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?> { ["Frappe:BaseUrl"] = "http://frappe.test:8000" })
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["Frappe:BaseUrl"] = "http://frappe.test:8000",
+                ["Frappe:ApiKey"] = "test-key",
+                ["Frappe:ApiSecret"] = "test-secret"
+            })
             .Build();
 
         var services = new ServiceCollection();
         services.AddSingleton<IConfiguration>(configuration);
         services.AddApplication();
         services.AddInfrastructure("Host=localhost;Database=unused;Username=unused;Password=unused");
+        services.AddFrappeIntegration(configuration);
 
         return services.BuildServiceProvider(new ServiceProviderOptions { ValidateScopes = true, ValidateOnBuild = false });
     }

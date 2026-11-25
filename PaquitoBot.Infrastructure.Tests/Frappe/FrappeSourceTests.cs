@@ -1,12 +1,19 @@
 using System.Net;
 using System.Text;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using PaquitoBot.Application.Integrations.Frappe;
+using PaquitoBot.Infrastructure.Integrations.Frappe;
 using PaquitoBot.Infrastructure.Services.Frappe;
 
 namespace PaquitoBot.Infrastructure.Tests.Frappe;
 
 public class FrappeSourceTests
 {
+    private const string EmptyPage = """{"data":[]}""";
+
+    private static bool IsFirstPage(HttpRequestMessage request) =>
+        request.RequestUri!.Query.Contains("limit_start=0", StringComparison.Ordinal);
+
     private sealed class StubHandler(HttpStatusCode status, string body) : HttpMessageHandler
     {
         public HttpRequestMessage? LastRequest { get; private set; }
@@ -17,7 +24,22 @@ public class FrappeSourceTests
 
             return Task.FromResult(new HttpResponseMessage(status)
             {
-                Content = new StringContent(body, Encoding.UTF8, "application/json")
+                Content = new StringContent(IsFirstPage(request) ? body : EmptyPage, Encoding.UTF8, "application/json")
+            });
+        }
+    }
+
+    private sealed class SequenceHandler(Queue<string> pages) : HttpMessageHandler
+    {
+        public int Requests { get; private set; }
+
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            Requests++;
+
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = new StringContent(pages.Dequeue(), Encoding.UTF8, "application/json")
             });
         }
     }
@@ -31,23 +53,24 @@ public class FrappeSourceTests
 
             return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
             {
-                Content = new StringContent(body, Encoding.UTF8, "application/json")
+                Content = new StringContent(IsFirstPage(request) ? body : EmptyPage, Encoding.UTF8, "application/json")
             });
         }
     }
 
-    private static FrappeApiClient CreateClient(HttpMessageHandler handler)
+    private static IFrappeClient CreateClient(HttpMessageHandler handler)
     {
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Frappe:BaseUrl"] = "http://frappe.test:8000",
-                ["Frappe:ApiKey"] = "test-key",
-                ["Frappe:ApiSecret"] = "test-secret"
-            })
-            .Build();
+        var options = new FrappeOptions
+        {
+            BaseUrl = "http://frappe.test:8000",
+            ApiKey = "test-key",
+            ApiSecret = "test-secret"
+        };
+        var httpClient = new HttpClient(handler) { BaseAddress = new Uri("http://frappe.test:8000/") };
+        httpClient.DefaultRequestHeaders.Authorization =
+            new System.Net.Http.Headers.AuthenticationHeaderValue("token", "test-key:test-secret");
 
-        return new FrappeApiClient(new HttpClient(handler), configuration);
+        return new FrappeClient(httpClient, Options.Create(options));
     }
 
     [Fact]
@@ -81,7 +104,7 @@ public class FrappeSourceTests
     }
 
     [Fact]
-    public async Task Source_SendsTokenAuthorizationAndRequestsAllRecords()
+    public async Task Source_SendsTokenAuthorizationAndRequestsStablyOrderedPages()
     {
         var handler = new StubHandler(HttpStatusCode.OK, """{"data":[]}""");
 
@@ -91,7 +114,25 @@ public class FrappeSourceTests
         Assert.Equal("token", request.Headers.Authorization!.Scheme);
         Assert.Equal("test-key:test-secret", request.Headers.Authorization.Parameter);
         Assert.Contains("api/resource/Student", request.RequestUri!.AbsoluteUri);
-        Assert.Contains("limit_page_length=0", request.RequestUri.Query);
+        Assert.Contains("limit_start=", request.RequestUri.Query);
+        Assert.Contains("order_by=name%20asc", request.RequestUri.Query);
+    }
+
+    [Fact]
+    public async Task Source_ReadsEveryPageUntilFrappeReturnsAnEmptyOne()
+    {
+        var pages = new Queue<string>(
+        [
+            """{"data":[{"name":"EDU-STU-1","first_name":"Ana"},{"name":"EDU-STU-2","first_name":"Luis"}]}""",
+            """{"data":[{"name":"EDU-STU-3","first_name":"Eva"}]}""",
+            EmptyPage
+        ]);
+        var handler = new SequenceHandler(pages);
+
+        var students = await new FrappeStudentSource(CreateClient(handler)).GetAllAsync();
+
+        Assert.Equal(["EDU-STU-1", "EDU-STU-2", "EDU-STU-3"], students.Select(student => student.ExternalId));
+        Assert.Equal(3, handler.Requests);
     }
 
     [Fact]
@@ -301,30 +342,22 @@ public class FrappeSourceTests
     {
         var handler = new StubHandler(HttpStatusCode.Unauthorized, """{"message":"Invalid token"}""");
 
-        var exception = await Assert.ThrowsAsync<FrappeAuthenticationException>(
+        var exception = await Assert.ThrowsAsync<FrappeException>(
             () => new FrappeStudentSource(CreateClient(handler)).GetAllAsync());
 
-        Assert.Equal(401, exception.StatusCode);
+        Assert.Equal(FrappeFailure.Authentication, exception.Failure);
         Assert.DoesNotContain("test-secret", exception.Message);
         Assert.DoesNotContain("test-key", exception.Message);
     }
 
     [Fact]
-    public async Task Client_ServerError_ThrowsApiException()
+    public async Task Client_ServerError_ThrowsUnavailableFailure()
     {
         var handler = new StubHandler(HttpStatusCode.InternalServerError, "boom");
 
-        var exception = await Assert.ThrowsAsync<FrappeApiException>(
+        var exception = await Assert.ThrowsAsync<FrappeException>(
             () => new FrappeStudentSource(CreateClient(handler)).GetAllAsync());
 
-        Assert.Equal(500, exception.StatusCode);
-    }
-
-    [Fact]
-    public void Client_WithoutBaseUrl_FailsFast()
-    {
-        var configuration = new ConfigurationBuilder().Build();
-
-        Assert.Throws<InvalidOperationException>(() => new FrappeApiClient(new HttpClient(), configuration));
+        Assert.Equal(FrappeFailure.Unavailable, exception.Failure);
     }
 }

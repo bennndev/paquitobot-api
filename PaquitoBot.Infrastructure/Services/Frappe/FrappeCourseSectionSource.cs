@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using PaquitoBot.Application.DTOs.Frappe;
+using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
@@ -9,7 +10,7 @@ namespace PaquitoBot.Infrastructure.Services.Frappe;
 /// The term is taken from the batch's non-cancelled "Course Enrollment" records, and only when
 /// they all agree on a single one; otherwise it is left empty for the synchronizer to deduce.
 /// </summary>
-public sealed class FrappeCourseSectionSource(FrappeApiClient client) : IFrappeSource<FrappeCourseSectionDto>
+public sealed class FrappeCourseSectionSource(IFrappeClient client) : IFrappeSource<FrappeCourseSectionDto>
 {
     private const int CancelledDocStatus = 2;
 

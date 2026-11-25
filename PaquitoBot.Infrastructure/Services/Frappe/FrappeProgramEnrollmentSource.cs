@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using PaquitoBot.Application.DTOs.Frappe;
+using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
@@ -9,7 +10,7 @@ namespace PaquitoBot.Infrastructure.Services.Frappe;
 /// "Student Applicant" records that already point to a student. An applicant carries no program:
 /// it is resolved from its admission register, then from its course, then from the register's course.
 /// </summary>
-public sealed class FrappeProgramEnrollmentSource(FrappeApiClient client) : IFrappeSource<FrappeProgramEnrollmentDto>
+public sealed class FrappeProgramEnrollmentSource(IFrappeClient client) : IFrappeSource<FrappeProgramEnrollmentDto>
 {
     private static readonly string[] ApplicantFields =
         ["name", "student", "admission_register", "course", "academic_term", "application_date", "application_status", "modified"];

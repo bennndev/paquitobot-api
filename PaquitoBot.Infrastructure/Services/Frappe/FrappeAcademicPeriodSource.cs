@@ -1,10 +1,11 @@
 using System.Text.Json.Serialization;
 using PaquitoBot.Application.DTOs.Frappe;
+using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-public sealed class FrappeAcademicPeriodSource(FrappeApiClient client) : IFrappeSource<FrappeAcademicPeriodDto>
+public sealed class FrappeAcademicPeriodSource(IFrappeClient client) : IFrappeSource<FrappeAcademicPeriodDto>
 {
     private const string DocType = "Academic Term";
 

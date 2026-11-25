@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using PaquitoBot.Application.DTOs.Frappe;
+using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
@@ -8,7 +9,7 @@ namespace PaquitoBot.Infrastructure.Services.Frappe;
 /// Frappe has no program-course doctype: each Course links to a single Program,
 /// so the pairs are derived from that link. Cycle and requirement are unknown there.
 /// </summary>
-public sealed class FrappeProgramCourseSource(FrappeApiClient client) : IFrappeSource<FrappeProgramCourseDto>
+public sealed class FrappeProgramCourseSource(IFrappeClient client) : IFrappeSource<FrappeProgramCourseDto>
 {
     private const string DocType = "Course";
 

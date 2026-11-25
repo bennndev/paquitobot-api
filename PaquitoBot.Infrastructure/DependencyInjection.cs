@@ -41,7 +41,6 @@ public static class DependencyInjection
             }
         }
 
-        services.AddHttpClient<FrappeApiClient>();
         services.AddScoped<IFrappeSource<FrappeStudentDto>, FrappeStudentSource>();
         services.AddScoped<IFrappeSource<FrappeAcademicPeriodDto>, FrappeAcademicPeriodSource>();
         services.AddScoped<IFrappeSource<FrappeProgramDto>, FrappeProgramSource>();

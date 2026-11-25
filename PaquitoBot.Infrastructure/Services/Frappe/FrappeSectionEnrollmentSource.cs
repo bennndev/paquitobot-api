@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using PaquitoBot.Application.DTOs.Frappe;
+using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
@@ -8,7 +9,7 @@ namespace PaquitoBot.Infrastructure.Services.Frappe;
 /// Student-section enrollments come from the Frappe "Course Enrollment" doctype. Cancelled enrollments and
 /// those without a batch are skipped, and a student appears once per batch because that pair is unique locally.
 /// </summary>
-public sealed class FrappeSectionEnrollmentSource(FrappeApiClient client) : IFrappeSource<FrappeSectionEnrollmentDto>
+public sealed class FrappeSectionEnrollmentSource(IFrappeClient client) : IFrappeSource<FrappeSectionEnrollmentDto>
 {
     private const int CancelledDocStatus = 2;
 

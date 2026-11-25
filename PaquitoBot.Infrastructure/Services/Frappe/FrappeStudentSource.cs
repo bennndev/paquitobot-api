@@ -1,10 +1,11 @@
 using System.Text.Json.Serialization;
 using PaquitoBot.Application.DTOs.Frappe;
+using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-public sealed class FrappeStudentSource(FrappeApiClient client) : IFrappeSource<FrappeStudentDto>
+public sealed class FrappeStudentSource(IFrappeClient client) : IFrappeSource<FrappeStudentDto>
 {
     private const string DocType = "Student";
 

@@ -1,11 +1,12 @@
 using System.Text.Json.Serialization;
 using PaquitoBot.Application.DTOs.Frappe;
+using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
 /// <summary>Class slots live in the Frappe "Subject Schedule" doctype.</summary>
-public sealed class FrappeCourseScheduleSource(FrappeApiClient client) : IFrappeSource<FrappeCourseScheduleDto>
+public sealed class FrappeCourseScheduleSource(IFrappeClient client) : IFrappeSource<FrappeCourseScheduleDto>
 {
     private const string DocType = "Subject Schedule";
 

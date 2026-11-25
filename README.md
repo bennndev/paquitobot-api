@@ -1,5 +1,7 @@
 # PaquitoBot API
 
+Backend API for **PaquitoBot**, built with .NET following a hexagonal (ports and adapters) architecture.
+
 ## Entorno local de Frappe Education
 
 El entorno reproducible para el equipo está documentado en
@@ -9,8 +11,6 @@ El entorno reproducible para el equipo está documentado en
 powershell -ExecutionPolicy Bypass -File .\infra\frappe\setup.ps1
 ```
 
-Backend API for **PaquitoBot**, built with .NET following a hexagonal (ports and adapters) architecture.
-
 ## Solution Structure
 
 | Project | Responsibility |
@@ -19,7 +19,8 @@ Backend API for **PaquitoBot**, built with .NET following a hexagonal (ports and
 | `PaquitoBot.Application` | DTOs, use cases (commands and queries) and repository contracts |
 | `PaquitoBot.Domain` | Domain entities and business rules |
 | `PaquitoBot.Infrastructure` | Persistence, repository implementations and the Frappe HTTP client |
-| `PaquitoBot.Infrastructure.Tests` | Unit tests for the Frappe integration |
+| `PaquitoBot.Application.Tests` | Unit tests for the synchronizers and the sync command |
+| `PaquitoBot.Infrastructure.Tests` | Tests for the Frappe client and sources, financial reads and the chat flow |
 
 ## Tech Stack
 
@@ -32,7 +33,7 @@ Backend API for **PaquitoBot**, built with .NET following a hexagonal (ports and
 2. Store the database connection string with .NET User Secrets. Never put credentials in `appsettings.json`.
 3. Configure Frappe as described below and build the solution before running the API.
 
-## Frappe Integration
+## Frappe Client
 
 The API validates the Frappe URL and credentials at startup. Set the following .NET User Secrets for local development and replace the placeholders with credentials for your Frappe service account.
 
@@ -52,7 +53,7 @@ Use `IFrappeSyncRunService` to start a run and then record its success or failur
 
 Run the unit tests with `dotnet test PaquitoBot.sln`. The client tests use a simulated HTTP handler and require no Frappe or PostgreSQL server. [Frappe REST API](https://docs.frappe.io/framework/user/en/api/rest)
 
-## Frappe Integration
+## Frappe Synchronization
 
 Two integrations with Frappe Education coexist. They use different credentials and serve different purposes.
 
@@ -66,7 +67,7 @@ Two integrations with Frappe Education coexist. They use different credentials a
 
 ### Master-data sync
 
-`POST api/academic-sync` runs `RunAcademicSyncCommand`, which executes one synchronizer per entity (`PaquitoBot.Application/Services/Sync/`) fed by a Frappe source (`PaquitoBot.Infrastructure/Services/Frappe/`).
+`POST api/academic-sync` runs `RunAcademicSyncCommand`, which executes one synchronizer per entity (`PaquitoBot.Application/Services/Sync/`) fed by a Frappe source (`PaquitoBot.Infrastructure/Services/Frappe/`). Every source reads through the shared `IFrappeClient` (see [Frappe Client](#frappe-client)), which pages in a stable order and reports failures as `FrappeException`.
 
 - **Dependency order.** Synchronizers run by `SyncOrder` tier, so every tier only references lower ones: `MasterData` (10: academic periods, programs, courses, instructors, students), `ProgramStructure` (20: program courses), `Sections` (30: course sections), `SectionDetails` (40: course schedules, program enrollments, section enrollments).
 - **Idempotent.** Records are matched by `FrappeExternalId`; a record is created, updated or left unchanged, so running it again is safe.
