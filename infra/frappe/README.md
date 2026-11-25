@@ -49,6 +49,15 @@ El script carga `Frappe__BaseUrl`, `Frappe__ApiKey` y `Frappe__ApiSecret` en el 
 
 Swagger queda disponible en <http://localhost:5114/swagger>.
 
+### Sincronización de datos maestros
+
+Con la API en marcha, un usuario con rol `Admin` puede llamar a `POST /api/academic-sync` (desde Swagger, tras autenticarse) y consultar el último resultado por entidad en `GET /api/sync-runs/latest`. El detalle del flujo está en la sección "Frappe Integration" del [README principal](../../README.md).
+
+Dos detalles importantes:
+
+- La API debe iniciarse con `run-api.ps1`, no desde la configuración de ejecución de un IDE; de lo contrario no recibe la API key de Frappe y Frappe responde 403.
+- .NET en Windows no resuelve nombres `*.localhost`, por eso la API usa `http://localhost:8000` mientras el navegador usa `http://education.localhost:8000`.
+
 ## Administrar el entorno
 
 ```powershell
