@@ -10,6 +10,11 @@ public class FakeUnitOfWork : IUnitOfWork
 
     public void DiscardPendingChanges() => DiscardCount++;
 
+    public Task<TResult> ExecuteInTransactionAsync<TResult>(
+        Func<CancellationToken, Task<TResult>> operation,
+        CancellationToken cancellationToken = default)
+        => operation(cancellationToken);
+
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
         SaveCount++;

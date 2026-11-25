@@ -20,6 +20,10 @@ public static class DependencyInjection
         services.AddScoped(typeof(IFrappeSyncedRepository<>), typeof(FrappeSyncedRepository<>));
         services.AddScoped<IUserPasswordHasher, UserPasswordHasher>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddMemoryCache();
+        services.AddSingleton(new HttpClient());
+        services.AddScoped<IFrappeOAuthService, FrappeOAuthService>();
+        services.AddScoped<IFrappeStudentSyncService, FrappeStudentSyncService>();
 
         var repositories = typeof(DependencyInjection).Assembly.GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } && type.Name.EndsWith("Repository"));

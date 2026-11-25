@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using PaquitoBot.Application.Repositories;
 
 namespace PaquitoBot.Application.Tests.Fakes;
@@ -22,4 +23,13 @@ public class FakeGenericRepository<T> : IGenericRepository<T> where T : class
     }
 
     public void Remove(T entity) => Items.Remove(entity);
+
+    public Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        => Task.FromResult(Items.AsQueryable().FirstOrDefault(predicate));
+
+    public Task<bool> AnyAsync(Expression<Func<T, bool>> predicate, CancellationToken cancellationToken = default)
+        => Task.FromResult(Items.AsQueryable().Any(predicate));
+
+    public Task<T> UpsertByFrappeExternalIdAsync(string externalId, Action<T> update, CancellationToken cancellationToken = default)
+        => throw new NotSupportedException();
 }
