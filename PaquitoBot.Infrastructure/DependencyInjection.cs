@@ -24,6 +24,8 @@ public static class DependencyInjection
         services.AddSingleton(new HttpClient());
         services.AddScoped<IFrappeOAuthService, FrappeOAuthService>();
         services.AddScoped<IFrappeStudentSyncService, FrappeStudentSyncService>();
+        services.AddScoped<IKnowledgeRetriever, DocumentKnowledgeRetriever>();
+        services.AddScoped<IAnswerProvider, SimulatedAnswerProvider>();
 
         var repositories = typeof(DependencyInjection).Assembly.GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } && type.Name.EndsWith("Repository"));

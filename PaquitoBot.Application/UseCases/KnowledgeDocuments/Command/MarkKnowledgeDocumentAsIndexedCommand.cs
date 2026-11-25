@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Command;
@@ -35,6 +36,7 @@ public class MarkKnowledgeDocumentAsIndexedCommandHandler(IUnitOfWork _unitOfWor
         var now = DateTime.UtcNow;
 
         document.IndexedAt = now;
+        document.Status = KnowledgeDocumentStatus.Indexed;
         document.UpdatedAt = now;
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);

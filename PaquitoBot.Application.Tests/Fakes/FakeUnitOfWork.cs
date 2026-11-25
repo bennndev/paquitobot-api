@@ -27,6 +27,8 @@ public class FakeUnitOfWork : IUnitOfWork
 
     public IUserRepository Users => throw new NotSupportedException();
 
+    public IConversationRepository Conversations => throw new NotSupportedException();
+
     public IMessageRepository Messages => throw new NotSupportedException();
 
     public IAssessmentResultRepository AssessmentResults => throw new NotSupportedException();

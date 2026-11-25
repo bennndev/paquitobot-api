@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using PaquitoBot.Api;
 using PaquitoBot.Api.HealthChecks;
 using PaquitoBot.Api.Middleware;
+using PaquitoBot.Api.Services;
 using PaquitoBot.Application;
+using PaquitoBot.Application.Services;
 using PaquitoBot.Infrastructure;
 using PaquitoBot.Infrastructure.Integrations.Frappe;
 
@@ -15,6 +17,8 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 
 
 builder.Services.AddControllers();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddApplication();

@@ -12,6 +12,7 @@ public interface IUnitOfWork
     IGenericRepository<TEntity> Repository<TEntity>() where TEntity : class;
     IUserStudentRepository UserStudents { get; }
     IUserRepository Users { get; }
+    IConversationRepository Conversations { get; }
     IMessageRepository Messages { get; }
     IAssessmentResultRepository AssessmentResults { get; }
     IAssessmentPlanRepository AssessmentPlans { get; }
