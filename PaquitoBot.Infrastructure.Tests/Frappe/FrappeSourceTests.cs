@@ -126,19 +126,56 @@ public class FrappeSourceTests
     [Fact]
     public async Task CourseSectionSource_ReadsStudentBatchNameAndMapsDisabledToInactive()
     {
-        var handler = new StubHandler(HttpStatusCode.OK, """
-            {"data":[{"name":"BATCH-1","batch_name":"A1","course":"CRS-1","max_strength":30,"disabled":1,
-            "start_date":"2026-04-10","end_date":"2026-07-10","modified":"2026-01-01 00:00:00"}]}
-            """);
+        var handler = new RoutingHandler(new Dictionary<string, string>
+        {
+            ["Student Batch Name"] = """
+                {"data":[{"name":"BATCH-1","batch_name":"A1","course":"CRS-1","max_strength":30,"disabled":1,
+                "start_date":"2026-04-10","end_date":"2026-07-10","modified":"2026-01-01 00:00:00"}]}
+                """,
+            ["Course Enrollment"] = """{"data":[]}"""
+        });
 
         var section = Assert.Single(await new FrappeCourseSectionSource(CreateClient(handler)).GetAllAsync());
 
-        Assert.Contains("api/resource/Student%20Batch%20Name", handler.LastRequest!.RequestUri!.AbsoluteUri);
         Assert.Equal("CRS-1", section.CourseExternalId);
         Assert.Equal("A1", section.SectionCode);
         Assert.Equal(30, section.Capacity);
         Assert.Equal("Inactive", section.Status);
         Assert.Equal(new DateOnly(2026, 4, 10), section.StartDate);
+        Assert.Null(section.AcademicPeriodExternalId);
+    }
+
+    [Fact]
+    public async Task CourseSectionSource_TakesTheTermFromTheBatchEnrollments_OnlyWhenTheyAgreeOnOne()
+    {
+        var handler = new RoutingHandler(new Dictionary<string, string>
+        {
+            ["Student Batch Name"] = """
+                {"data":[
+                 {"name":"A1","batch_name":"A1","course":"CRS-1","max_strength":30,"disabled":0,"start_date":"2026-09-03","end_date":null,"modified":null},
+                 {"name":"B1","batch_name":"B1","course":"CRS-1","max_strength":30,"disabled":0,"start_date":"2026-09-03","end_date":null,"modified":null},
+                 {"name":"C1","batch_name":"C1","course":"CRS-1","max_strength":30,"disabled":0,"start_date":"2026-09-03","end_date":null,"modified":null},
+                 {"name":"D1","batch_name":"D1","course":"CRS-1","max_strength":30,"disabled":0,"start_date":"2026-09-03","end_date":null,"modified":null}
+                ]}
+                """,
+            ["Course Enrollment"] = """
+                {"data":[
+                 {"student_batch":"A1","academic_term":"2026 (2026-II)","docstatus":1},
+                 {"student_batch":"A1","academic_term":"2026 (2026-II)","docstatus":1},
+                 {"student_batch":"B1","academic_term":"2026 (2026-I)","docstatus":1},
+                 {"student_batch":"B1","academic_term":"2026 (2026-II)","docstatus":1},
+                 {"student_batch":"C1","academic_term":"2026 (2026-II)","docstatus":2},
+                 {"student_batch":"D1","academic_term":null,"docstatus":1}
+                ]}
+                """
+        });
+
+        var sections = await new FrappeCourseSectionSource(CreateClient(handler)).GetAllAsync();
+
+        Assert.Equal("2026 (2026-II)", sections.Single(s => s.ExternalId == "A1").AcademicPeriodExternalId);
+        Assert.Null(sections.Single(s => s.ExternalId == "B1").AcademicPeriodExternalId);
+        Assert.Null(sections.Single(s => s.ExternalId == "C1").AcademicPeriodExternalId);
+        Assert.Null(sections.Single(s => s.ExternalId == "D1").AcademicPeriodExternalId);
     }
 
     [Fact]
