@@ -49,6 +49,7 @@ public static class DependencyInjection
         services.AddScoped<IFrappeSource<FrappeCourseSectionDto>, FrappeCourseSectionSource>();
         services.AddScoped<IFrappeSource<FrappeCourseScheduleDto>, FrappeCourseScheduleSource>();
         services.AddScoped<IFrappeSource<FrappeProgramEnrollmentDto>, FrappeProgramEnrollmentSource>();
+        services.AddScoped<IFrappeSource<FrappeSectionEnrollmentDto>, FrappeSectionEnrollmentSource>();
 
         return services;
     }

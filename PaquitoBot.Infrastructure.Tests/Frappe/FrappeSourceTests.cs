@@ -230,6 +230,28 @@ public class FrappeSourceTests
     }
 
     [Fact]
+    public async Task SectionEnrollmentSource_SkipsCancelledAndBatchlessAndKeepsOneEnrollmentPerStudentAndBatch()
+    {
+        var handler = new StubHandler(HttpStatusCode.OK, """
+            {"data":[
+             {"name":"CE-1","student":"STU-1","student_batch":"A1","enrollment_date":"2026-08-24","status":"Enrolled","docstatus":1,"modified":"2026-01-01 00:00:00"},
+             {"name":"CE-2","student":"STU-1","student_batch":"A1","enrollment_date":"2026-08-25","status":"Enrolled","docstatus":1,"modified":null},
+             {"name":"CE-3","student":"STU-2","student_batch":"A1","enrollment_date":null,"status":"Enrolled","docstatus":2,"modified":null},
+             {"name":"CE-4","student":"STU-3","student_batch":null,"enrollment_date":null,"status":"Enrolled","docstatus":1,"modified":null}
+            ]}
+            """);
+
+        var enrollments = await new FrappeSectionEnrollmentSource(CreateClient(handler)).GetAllAsync();
+
+        var enrollment = Assert.Single(enrollments);
+        Assert.Equal("CE-1", enrollment.ExternalId);
+        Assert.Equal("STU-1", enrollment.StudentExternalId);
+        Assert.Equal("A1", enrollment.SectionExternalId);
+        Assert.Equal(new DateOnly(2026, 8, 24), enrollment.EnrollmentDate);
+        Assert.Contains("api/resource/Course%20Enrollment", handler.LastRequest!.RequestUri!.AbsoluteUri);
+    }
+
+    [Fact]
     public async Task AcademicPeriodSource_MapsTermDates()
     {
         var handler = new StubHandler(HttpStatusCode.OK, """

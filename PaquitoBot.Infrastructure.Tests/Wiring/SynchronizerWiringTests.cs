@@ -22,16 +22,16 @@ public class SynchronizerWiringTests
     }
 
     [Fact]
-    public void AllNineEntitySynchronizers_AreRegisteredAndResolvable()
+    public void AllTenEntitySynchronizers_AreRegisteredAndResolvable()
     {
         using var provider = BuildProvider();
         using var scope = provider.CreateScope();
 
         var names = scope.ServiceProvider.GetServices<IEntitySynchronizer>().Select(s => s.EntityName).ToList();
 
-        Assert.Equal(9, names.Count);
+        Assert.Equal(10, names.Count);
         Assert.Equal(
-            ["AcademicPeriod", "Course", "CourseSchedule", "CourseSection", "Instructor", "Program", "ProgramCourse", "ProgramEnrollment", "Student"],
+            ["AcademicPeriod", "Course", "CourseSchedule", "CourseSection", "Instructor", "Program", "ProgramCourse", "ProgramEnrollment", "SectionEnrollment", "Student"],
             names.Order().ToList());
     }
 
@@ -49,6 +49,8 @@ public class SynchronizerWiringTests
         Assert.True(ordered["CourseSection"] < ordered["CourseSchedule"]);
         Assert.True(ordered["Instructor"] < ordered["CourseSchedule"]);
         Assert.True(ordered["Student"] < ordered["ProgramEnrollment"]);
+        Assert.True(ordered["Student"] < ordered["SectionEnrollment"]);
+        Assert.True(ordered["CourseSection"] < ordered["SectionEnrollment"]);
         Assert.True(ordered["AcademicPeriod"] < ordered["CourseSection"]);
     }
 }
