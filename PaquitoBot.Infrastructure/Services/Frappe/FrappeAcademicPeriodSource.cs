@@ -34,8 +34,12 @@ public sealed class FrappeAcademicPeriodSource(FrappeApiClient client) : IFrappe
         [JsonPropertyName("modified")]
         public string? Modified { get; init; }
 
-        // Frappe has no code or status for a term: the code stays empty and the name falls back to the id.
+        // Mirrors the shared database convention: Code is the short term_name ("2026-II") and Name is the full
+        // Frappe identifier ("2026 (2026-II)"). Frappe has no status for a term, so it stays empty.
         public FrappeAcademicPeriodDto ToDto() => new(
-            Name, null, TermName ?? Name, StartDate, EndDate, null, FrappeFormats.ParseTimestamp(Modified));
+            Name,
+            string.IsNullOrWhiteSpace(TermName) ? null : TermName,
+            string.IsNullOrWhiteSpace(Name) ? TermName ?? string.Empty : Name,
+            StartDate, EndDate, null, FrappeFormats.ParseTimestamp(Modified));
     }
 }

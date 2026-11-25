@@ -255,14 +255,30 @@ public class FrappeSourceTests
     public async Task AcademicPeriodSource_MapsTermDates()
     {
         var handler = new StubHandler(HttpStatusCode.OK, """
-            {"data":[{"name":"2026-I","term_name":"2026 Spring","term_start_date":"2026-03-01",
+            {"data":[{"name":"2026 (2026-II)","term_name":"2026-II","term_start_date":"2026-03-01",
             "term_end_date":"2026-07-15","modified":"2026-01-01 00:00:00"}]}
             """);
 
         var term = Assert.Single(await new FrappeAcademicPeriodSource(CreateClient(handler)).GetAllAsync());
 
-        Assert.Equal("2026 Spring", term.Name);
+        Assert.Equal("2026 (2026-II)", term.ExternalId);
+        Assert.Equal("2026-II", term.Code);
+        Assert.Equal("2026 (2026-II)", term.Name);
         Assert.Equal(new DateOnly(2026, 7, 15), term.EndDate);
+    }
+
+    [Fact]
+    public async Task AcademicPeriodSource_EmptyTermName_LeavesCodeNullAndKeepsIdentifierAsName()
+    {
+        var handler = new StubHandler(HttpStatusCode.OK, """
+            {"data":[{"name":"2026 (2026-II)","term_name":"","term_start_date":null,
+            "term_end_date":null,"modified":null}]}
+            """);
+
+        var term = Assert.Single(await new FrappeAcademicPeriodSource(CreateClient(handler)).GetAllAsync());
+
+        Assert.Null(term.Code);
+        Assert.Equal("2026 (2026-II)", term.Name);
     }
 
     [Fact]
