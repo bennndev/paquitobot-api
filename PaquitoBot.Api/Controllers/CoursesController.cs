@@ -25,6 +25,12 @@ public class CoursesController : ControllerBase
         return Ok(await _sender.Send(new GetMyCoursesQuery(), cancellationToken));
     }
 
+    [HttpGet("me/sections")]
+    public async Task<ActionResult<IReadOnlyList<MyCourseSectionDto>>> GetMySections(CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetMyCourseSectionsQuery(), cancellationToken));
+    }
+
     [Authorize(Policy = "Administrator")]
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<CourseDto>>> GetAll(CancellationToken cancellationToken)

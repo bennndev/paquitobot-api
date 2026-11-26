@@ -16,6 +16,7 @@ public static class DependencyInjection
     {
         services.AddDbContext<PaquitoBotDbContext>(options => options.UseNpgsql(connectionString));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IMyCourseSectionReader, MyCourseSectionReader>();
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped(typeof(IFrappeSyncedRepository<>), typeof(FrappeSyncedRepository<>));
         services.AddScoped<IUserPasswordHasher, UserPasswordHasher>();
