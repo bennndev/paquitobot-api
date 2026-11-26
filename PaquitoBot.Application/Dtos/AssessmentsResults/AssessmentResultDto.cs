@@ -1,6 +1,6 @@
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.AssessmentsResults;
+namespace PaquitoBot.Application.Dtos.AssessmentsResults;
 
 public record AssessmentResultDto(
     Guid ResultId,
