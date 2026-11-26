@@ -1,6 +1,6 @@
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.Users;
+namespace PaquitoBot.Application.Dtos.Users;
 
 public record UserDto(
     Guid UserId,
