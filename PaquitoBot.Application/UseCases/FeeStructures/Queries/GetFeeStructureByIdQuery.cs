@@ -1,14 +1,14 @@
-﻿using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.FeeStructures;
-using PaquitoBot.Application.Repositories;
+using MediatR;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.FeeStructures;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.FeeStructures.Query;
+namespace PaquitoBot.Application.UseCases.FeeStructures.Queries;
 
 public record GetFeeStructureByIdQuery(Guid FeeStructureId) : IRequest<FeeStructureDto>;
 
-public class GetFeeStructureByIdQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetFeeStructureByIdQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetFeeStructureByIdQuery, FeeStructureDto>
 {
     public async Task<FeeStructureDto> Handle(

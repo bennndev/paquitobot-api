@@ -1,13 +1,13 @@
-﻿using MediatR;
-using PaquitoBot.Application.DTOs.FeeStructures;
-using PaquitoBot.Application.Repositories;
+using MediatR;
+using PaquitoBot.Application.Dtos.FeeStructures;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.FeeStructures.Query;
+namespace PaquitoBot.Application.UseCases.FeeStructures.Queries;
 
 public record GetAllFeeStructuresQuery : IRequest<IReadOnlyList<FeeStructureDto>>;
 
-public class GetAllFeeStructuresQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetAllFeeStructuresQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetAllFeeStructuresQuery, IReadOnlyList<FeeStructureDto>>
 {
     public async Task<IReadOnlyList<FeeStructureDto>> Handle(
