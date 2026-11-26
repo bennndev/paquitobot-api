@@ -1,8 +1,7 @@
 ﻿using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs;
+using PaquitoBot.Application.DTOs.Auth;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
 
