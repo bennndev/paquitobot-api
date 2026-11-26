@@ -1,13 +1,13 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.CourseSchedules;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.CourseSchedules;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.CourseSchedules.Query;
+namespace PaquitoBot.Application.UseCases.CourseSchedules.Queries;
 
 public record GetAllCourseSchedulesQuery : IRequest<IReadOnlyList<CourseScheduleDto>>;
 
-public class GetAllCourseSchedulesQueryHandler(IUnitOfWork unitOfWork)
+internal sealed class GetAllCourseSchedulesQueryHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<GetAllCourseSchedulesQuery, IReadOnlyList<CourseScheduleDto>>
 {
     public async Task<IReadOnlyList<CourseScheduleDto>> Handle(

@@ -1,14 +1,14 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.CourseSchedules;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.CourseSchedules;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.CourseSchedules.Query;
+namespace PaquitoBot.Application.UseCases.CourseSchedules.Queries;
 
 public record GetCourseScheduleByIdQuery(Guid ScheduleId) : IRequest<CourseScheduleDto>;
 
-public class GetCourseScheduleByIdQueryHandler(IUnitOfWork unitOfWork)
+internal sealed class GetCourseScheduleByIdQueryHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<GetCourseScheduleByIdQuery, CourseScheduleDto>
 {
     public async Task<CourseScheduleDto> Handle(
