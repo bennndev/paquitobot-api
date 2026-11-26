@@ -2,4 +2,4 @@
 
 namespace PaquitoBot.Application.DTOs.Frappe;
 
-public record FrappeConnectionResponse(Guid UserId, string Email, FrappeSyncSummary Sync);
+public record FrappeConnectionResponse(Guid UserId, string Email, FrappeSyncSummary Sync, string Token);

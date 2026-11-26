@@ -39,10 +39,12 @@ internal sealed class AuthenticateCommandHandler(IUnitOfWork _unitOfWork,
         }
 
         //Genera y retorna Token si paso validacion
+        var studentId = await _unitOfWork.UserStudents.GetPrimaryStudentIdAsync(entity.UserId, cancellationToken);
         var token = tokenService.GenerateToken(
             entity.UserId,
             entity.Role,
-            entity.Email);
+            entity.Email,
+            studentId);
 
         return LoginResponse.From(entity.UserId, token, entity.Email, entity.Role);
     }

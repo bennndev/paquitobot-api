@@ -7,6 +7,15 @@ public class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUse
 {
     public bool IsAdministrator => httpContextAccessor.HttpContext?.User.IsInRole("Admin") == true;
 
+    public Guid? StudentId
+    {
+        get
+        {
+            var value = httpContextAccessor.HttpContext?.User.FindFirstValue("student_id");
+            return Guid.TryParse(value, out var studentId) ? studentId : null;
+        }
+    }
+
     public Guid? UserId
     {
         get

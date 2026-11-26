@@ -9,14 +9,18 @@ namespace PaquitoBot.Infrastructure.Services;
 
 public class TokenService(IConfiguration configuration) : ITokenService
 {
-    public string GenerateToken(Guid idUser, string role, string email)
+    public string GenerateToken(Guid idUser, string role, string email, Guid? studentId = null)
     {
-        var claims = new[]
+        var claims = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, idUser.ToString()),
             new Claim(ClaimTypes.Role, role),
             new Claim(ClaimTypes.Email, email),
         };
+        if (studentId.HasValue)
+        {
+            claims.Add(new Claim("student_id", studentId.Value.ToString()));
+        }
         var secret = configuration["JWTVariable:Secret"];
         if (string.IsNullOrWhiteSpace(secret))
             throw new InvalidOperationException("JWTVariable:Secret is not configured.");

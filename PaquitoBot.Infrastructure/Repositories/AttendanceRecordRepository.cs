@@ -15,6 +15,16 @@ public class AttendanceRecordRepository : GenericRepository<AttendanceRecord>, I
         await DbSet.AsNoTracking().Where(a => a.StudentId == studentId && a.SectionId == sectionId)
             .OrderByDescending(a => a.AttendanceDate).ThenBy(a => a.AttendanceId).ToListAsync(cancellationToken);
 
+    public async Task<IReadOnlyList<AttendanceRecord>> GetByStudentIdAsync(Guid studentId,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet.AsNoTracking()
+            .Where(record => record.StudentId == studentId)
+            .OrderByDescending(record => record.AttendanceDate)
+            .ThenBy(record => record.AttendanceId)
+            .ToListAsync(cancellationToken);
+    }
+
     // TODO GetAttendancePercentageByStudentAndSection:
     // Replace STATUS_1 and STATUS_2 with the real attendance statuses, decide whether
     // a late arrival counts as present, and define whether the denominator is recorded

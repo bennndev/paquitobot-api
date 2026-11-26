@@ -8,27 +8,37 @@ using PaquitoBot.Application.UseCases.AttendanceRecords.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
-[Authorize(Policy = "Administrator")]
+[Authorize(Policy = "AdministratorOrStudent")]
 [Route("api/attendance-records")]
 public class AttendanceRecordsController(ISender sender) : ControllerBase
 {
+    [HttpGet("me")]
+    public async Task<ActionResult<IReadOnlyList<AttendanceRecordDto>>> GetMine(CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetMyAttendanceQuery(), cancellationToken));
+    }
+
+    [Authorize(Policy = "Administrator")]
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<AttendanceRecordDto>>> GetAll(CancellationToken cancellationToken)
     {
         return Ok(await sender.Send(new GetAllAttendanceRecordsQuery(), cancellationToken));
     }
 
+    [Authorize(Policy = "Administrator")]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<AttendanceRecordDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         return Ok(await sender.Send(new GetAttendanceRecordByIdQuery(id), cancellationToken));
     }
 
+    [Authorize(Policy = "Administrator")]
     [HttpGet("by-student/{studentId:guid}/section/{sectionId:guid}")]
     public async Task<ActionResult<IReadOnlyList<AttendanceRecordDto>>> GetByStudentAndSection(
         Guid studentId, Guid sectionId, CancellationToken cancellationToken)
         => Ok(await sender.Send(new GetAttendanceByStudentAndSectionQuery(studentId, sectionId), cancellationToken));
 
+    [Authorize(Policy = "Administrator")]
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
         [FromBody] CreateAttendanceRecordCommand command,
@@ -38,6 +48,7 @@ public class AttendanceRecordsController(ISender sender) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = attendanceId }, attendanceId);
     }
 
+    [Authorize(Policy = "Administrator")]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<Guid>> Update(
         Guid id,
@@ -47,6 +58,7 @@ public class AttendanceRecordsController(ISender sender) : ControllerBase
         return Ok(await sender.Send(command with { AttendanceId = id }, cancellationToken));
     }
 
+    [Authorize(Policy = "Administrator")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {

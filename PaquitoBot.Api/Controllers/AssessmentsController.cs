@@ -8,34 +8,46 @@ using PaquitoBot.Application.UseCases.Assessments.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
-[Authorize(Policy = "Administrator")]
+[Authorize(Policy = "AdministratorOrStudent")]
 [Route("api/assessments")]
 public class AssessmentsController(ISender _sender) : ControllerBase
 {
+    [HttpGet("me")]
+    public async Task<ActionResult<IReadOnlyList<AssessmentDto>>> GetMine(CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetMyAssessmentsQuery(), cancellationToken));
+    }
+
+    [Authorize(Policy = "Administrator")]
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<AssessmentDto>>> GetAll(CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(new GetAllAssessmentsQuery(), cancellationToken));
     }
 
+    [Authorize(Policy = "Administrator")]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<AssessmentDto>> GetById(Guid id, CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(new GetAssessmentByIdQuery(id), cancellationToken));
     }
 
+    [Authorize(Policy = "Administrator")]
     [HttpGet("by-section/{sectionId:guid}")]
     public async Task<ActionResult<IReadOnlyList<AssessmentDto>>> GetBySection(Guid sectionId, CancellationToken cancellationToken)
         => Ok(await _sender.Send(new GetAssessmentsBySectionIdQuery(sectionId), cancellationToken));
 
+    [Authorize(Policy = "Administrator")]
     [HttpGet("by-student/{studentId:guid}")]
     public async Task<ActionResult<IReadOnlyList<AssessmentDto>>> GetByStudent(Guid studentId, CancellationToken cancellationToken)
         => Ok(await _sender.Send(new GetAssessmentsByStudentIdQuery(studentId), cancellationToken));
 
+    [Authorize(Policy = "Administrator")]
     [HttpGet("by-section/{sectionId:guid}/upcoming")]
     public async Task<ActionResult<IReadOnlyList<AssessmentDto>>> GetUpcomingBySection(Guid sectionId, CancellationToken cancellationToken)
         => Ok(await _sender.Send(new GetUpcomingAssessmentsBySectionIdQuery(sectionId), cancellationToken));
 
+    [Authorize(Policy = "Administrator")]
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
         [FromBody] CreateAssessmentCommand command,
@@ -46,6 +58,7 @@ public class AssessmentsController(ISender _sender) : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = assessmentId }, assessmentId);
     }
 
+    [Authorize(Policy = "Administrator")]
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<Guid>> Update(
         Guid id,
@@ -55,6 +68,7 @@ public class AssessmentsController(ISender _sender) : ControllerBase
         return Ok(await _sender.Send(command with { AssessmentId = id }, cancellationToken));
     }
 
+    [Authorize(Policy = "Administrator")]
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {

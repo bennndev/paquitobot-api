@@ -18,6 +18,14 @@ public class UserStudentRepository : GenericRepository<UserStudent>, IUserStuden
             cancellationToken);
     }
 
+    public Task<Guid?> GetPrimaryStudentIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return DbSet.AsNoTracking()
+            .Where(link => link.UserId == userId && link.IsPrimary)
+            .Select(link => (Guid?)link.StudentId)
+            .SingleOrDefaultAsync(cancellationToken);
+    }
+
     public Task<bool> UserHasPrimaryAsync(
         Guid userId,
         Guid? excludingLinkId = null,

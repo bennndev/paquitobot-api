@@ -12,7 +12,7 @@ namespace PaquitoBot.Application.UseCases.Frappe.Command;
 public record CompleteFrappeConnectionCommand(string Code, string State) : IRequest<FrappeConnectionResponse>;
 
 internal sealed class CompleteFrappeConnectionCommandHandler(
-    IUnitOfWork unitOfWork, IFrappeOAuthService oauth, IFrappeStudentSyncService sync)
+    IUnitOfWork unitOfWork, IFrappeOAuthService oauth, IFrappeStudentSyncService sync, ITokenService tokenService)
     : IRequestHandler<CompleteFrappeConnectionCommand, FrappeConnectionResponse>
 {
     public async Task<FrappeConnectionResponse> Handle(CompleteFrappeConnectionCommand request, CancellationToken cancellationToken)
@@ -31,7 +31,9 @@ internal sealed class CompleteFrappeConnectionCommandHandler(
         }
 
         var summary = await unitOfWork.ExecuteInTransactionAsync(PersistWithinTransaction, cancellationToken);
-        return new FrappeConnectionResponse(user.UserId, result.Email, summary);
+        var studentId = await unitOfWork.UserStudents.GetPrimaryStudentIdAsync(user.UserId, cancellationToken);
+        var token = tokenService.GenerateToken(user.UserId, user.Role, user.Email, studentId);
+        return new FrappeConnectionResponse(user.UserId, result.Email, summary, token);
     }
 }
 
