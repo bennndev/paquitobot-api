@@ -1,12 +1,13 @@
-﻿using FluentValidation;
+using PaquitoBot.Domain.Validations;
+using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.FeeSchedules;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.FeeSchedules;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.FeeSchedules.Command;
+namespace PaquitoBot.Application.UseCases.FeeSchedules.Commands;
 
 public record CreateFeeScheduleCommand(
     Guid FeeStructureId,
@@ -32,20 +33,15 @@ public class CreateFeeScheduleCommandValidator : AbstractValidator<CreateFeeSche
     }
 }
 
-public class CreateFeeScheduleCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class CreateFeeScheduleCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<CreateFeeScheduleCommand, FeeScheduleDto>
 {
     public async Task<FeeScheduleDto> Handle(
         CreateFeeScheduleCommand request,
         CancellationToken cancellationToken)
     {
-        // La estructura de pago es obligatoria y debe existir
-        if (!await _unitOfWork.Repository<FeeStructure>().ExistsAsync(request.FeeStructureId, cancellationToken))
-        {
-            throw new NotFoundException("FeeStructure", request.FeeStructureId);
-        }
+        await _unitOfWork.Repository<FeeStructure>().EnsureExistsAsync("FeeStructure", request.FeeStructureId, cancellationToken);
 
-        // El periodo académico es opcional, pero si lo mandan debe existir
         if (request.AcademicPeriodId.HasValue
             && !await _unitOfWork.Repository<AcademicPeriod>().ExistsAsync(request.AcademicPeriodId.Value, cancellationToken))
         {
