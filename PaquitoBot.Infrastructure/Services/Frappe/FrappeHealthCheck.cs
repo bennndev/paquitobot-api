@@ -1,9 +1,10 @@
+using PaquitoBot.Application.Dtos.Frappe;
+using PaquitoBot.Application.Services;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using PaquitoBot.Application.Integrations.Frappe;
 
-namespace PaquitoBot.Api.HealthChecks;
+namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-internal sealed class FrappeHealthCheck(IFrappeClient client) : IHealthCheck
+public sealed class FrappeHealthCheck(IFrappeClient client) : IHealthCheck
 {
     public const string Name = "frappe";
 

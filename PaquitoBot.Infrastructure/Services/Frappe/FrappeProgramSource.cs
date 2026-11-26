@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Integrations.Frappe;
+using PaquitoBot.Application.Dtos.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;

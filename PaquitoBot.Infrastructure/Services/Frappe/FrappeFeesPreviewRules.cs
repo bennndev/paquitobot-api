@@ -1,7 +1,7 @@
-using PaquitoBot.Application.DTOs.StudentFinances;
+using PaquitoBot.Application.Dtos.StudentFinances;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Integrations.Frappe.Finance;
+namespace PaquitoBot.Infrastructure.Services.Frappe;
 
 public static class FrappeFeesPreviewRules
 {
@@ -50,7 +50,6 @@ public static class FrappeFeesPreviewRules
         if (!row.DueDate.HasValue)
             issues.Add("MISSING_DUE_DATE");
 
-        // Only submitted documents represent confirmed financial obligations.
         var state = row.Docstatus switch
         {
             0 => "Draft",

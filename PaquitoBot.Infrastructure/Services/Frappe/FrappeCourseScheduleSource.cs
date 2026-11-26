@@ -1,11 +1,9 @@
 using System.Text.Json.Serialization;
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Integrations.Frappe;
+using PaquitoBot.Application.Dtos.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-/// <summary>Class slots live in the Frappe "Subject Schedule" doctype.</summary>
 public sealed class FrappeCourseScheduleSource(IFrappeClient client) : IFrappeSource<FrappeCourseScheduleDto>
 {
     private const string DocType = "Subject Schedule";
@@ -46,7 +44,6 @@ public sealed class FrappeCourseScheduleSource(IFrappeClient client) : IFrappeSo
         [JsonPropertyName("modified")]
         public string? Modified { get; init; }
 
-        // Delivery mode and status are not part of a slot in Frappe.
         public FrappeCourseScheduleDto ToDto() => new(
             Name, StudentBatch ?? string.Empty, Faculty, ScheduleDate,
             FrappeFormats.ParseTime(FromTime), FrappeFormats.ParseTime(ToTime), Room, null, null,

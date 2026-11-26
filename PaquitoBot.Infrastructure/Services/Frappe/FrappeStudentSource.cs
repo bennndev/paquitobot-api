@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Integrations.Frappe;
+using PaquitoBot.Application.Dtos.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
@@ -54,7 +53,6 @@ public sealed class FrappeStudentSource(IFrappeClient client) : IFrappeSource<Fr
         [JsonPropertyName("modified")]
         public string? Modified { get; init; }
 
-        // Frappe Education has no student code field; the external id (name) is the identifier.
         public FrappeStudentDto ToDto() => new(
             Name, null, FirstName, LastName, StudentName, Email, Phone, BirthDate, Gender,
             Enabled == 1 ? "Active" : "Inactive", FrappeFormats.ParseTimestamp(Modified));

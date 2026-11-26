@@ -1,10 +1,7 @@
 using System.Text.Json.Serialization;
 
-namespace PaquitoBot.Application.Integrations.Frappe.Finance;
+namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-// Exactly the fields requested from the Frappe Education "Fees" DocType.
-// Do NOT use the total of a Payment Entry as a student payment: it may
-// contain allocations to several invoices.
 public sealed record FrappeFeesRow
 {
     [JsonPropertyName("name")]

@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.Integrations.Frappe;
+namespace PaquitoBot.Application.Services;
 
 public interface IFrappeSyncRunService
 {

@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.Integrations.Frappe;
+namespace PaquitoBot.Infrastructure.Services.Frappe;
 
 public enum FrappeFailure
 {

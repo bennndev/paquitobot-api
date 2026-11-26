@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.Integrations.Frappe;
+namespace PaquitoBot.Infrastructure.Services.Frappe;
 
 public sealed class FrappeException(FrappeFailure failure) : Exception(GetMessage(failure))
 {

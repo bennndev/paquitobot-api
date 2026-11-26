@@ -1,13 +1,11 @@
-namespace PaquitoBot.Application.Integrations.Frappe;
+using PaquitoBot.Application.Dtos.Frappe;
+using PaquitoBot.Application.Services;
+namespace PaquitoBot.Infrastructure.Services.Frappe;
 
 public static class FrappeClientExtensions
 {
     private const int ListPageSize = 500;
 
-    /// <summary>
-    /// Reads every record of a Frappe document type by walking <see cref="IFrappeClient.GetPageAsync{T}"/> until
-    /// Frappe reports that the scan is complete, so callers never depend on how Frappe caps a page.
-    /// </summary>
     public static async Task<IReadOnlyList<T>> GetListAsync<T>(
         this IFrappeClient client,
         string doctype,

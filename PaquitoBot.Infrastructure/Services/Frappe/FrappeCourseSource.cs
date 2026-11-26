@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Integrations.Frappe;
+using PaquitoBot.Application.Dtos.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
@@ -39,7 +38,6 @@ public sealed class FrappeCourseSource(IFrappeClient client) : IFrappeSource<Fra
         [JsonPropertyName("modified")]
         public string? Modified { get; init; }
 
-        // Frappe stores credits as a float; PaquitoBot keeps whole credits.
         public FrappeCourseDto ToDto() => new(
             Name, Abbreviation, CourseName ?? Name, ShortDescription,
             Credit is null ? null : (int)Math.Round(Credit.Value), null, FrappeFormats.ParseTimestamp(Modified));

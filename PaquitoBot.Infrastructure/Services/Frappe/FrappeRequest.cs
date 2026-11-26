@@ -1,8 +1,10 @@
+using PaquitoBot.Infrastructure.Configuration;
+using PaquitoBot.Application.Dtos.Frappe;
+using PaquitoBot.Application.Services;
 using System.Globalization;
 using System.Text.Json;
-using PaquitoBot.Application.Integrations.Frappe;
 
-namespace PaquitoBot.Infrastructure.Integrations.Frappe;
+namespace PaquitoBot.Infrastructure.Services.Frappe;
 
 internal static class FrappeRequest
 {

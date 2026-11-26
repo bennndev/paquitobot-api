@@ -1,15 +1,9 @@
 using System.Text.Json.Serialization;
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Integrations.Frappe;
+using PaquitoBot.Application.Dtos.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-/// <summary>
-/// This Frappe Education version has no program enrollment doctype, so enrollments come from
-/// "Student Applicant" records that already point to a student. An applicant carries no program:
-/// it is resolved from its admission register, then from its course, then from the register's course.
-/// </summary>
 public sealed class FrappeProgramEnrollmentSource(IFrappeClient client) : IFrappeSource<FrappeProgramEnrollmentDto>
 {
     private static readonly string[] ApplicantFields =

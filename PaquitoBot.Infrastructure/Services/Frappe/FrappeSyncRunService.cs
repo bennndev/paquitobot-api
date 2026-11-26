@@ -1,8 +1,10 @@
+using PaquitoBot.Application.Dtos.Frappe;
+using PaquitoBot.Application.Services;
 using MediatR;
 using Microsoft.Extensions.DependencyInjection;
-using PaquitoBot.Application.UseCases.SyncRuns.Command;
+using PaquitoBot.Application.UseCases.SyncRuns.Commands;
 
-namespace PaquitoBot.Application.Integrations.Frappe;
+namespace PaquitoBot.Infrastructure.Services.Frappe;
 
 internal sealed class FrappeSyncRunService(IServiceScopeFactory scopeFactory) : IFrappeSyncRunService
 {
@@ -35,7 +37,6 @@ internal sealed class FrappeSyncRunService(IServiceScopeFactory scopeFactory) : 
 
     private async Task FinishAsync(CompleteSyncRunCommand command, CancellationToken cancellationToken)
     {
-        // Keep audit writes in a separate unit of work from the data being synchronized.
         await using var scope = scopeFactory.CreateAsyncScope();
         var sender = scope.ServiceProvider.GetRequiredService<ISender>();
         await sender.Send(command, cancellationToken);

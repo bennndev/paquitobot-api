@@ -1,6 +1,5 @@
 using System.Text.Json.Serialization;
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Integrations.Frappe;
+using PaquitoBot.Application.Dtos.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
@@ -35,8 +34,6 @@ public sealed class FrappeAcademicPeriodSource(IFrappeClient client) : IFrappeSo
         [JsonPropertyName("modified")]
         public string? Modified { get; init; }
 
-        // Mirrors the shared database convention: Code is the short term_name ("2026-II") and Name is the full
-        // Frappe identifier ("2026 (2026-II)"). Frappe has no status for a term, so it stays empty.
         public FrappeAcademicPeriodDto ToDto() => new(
             Name,
             string.IsNullOrWhiteSpace(TermName) ? null : TermName,

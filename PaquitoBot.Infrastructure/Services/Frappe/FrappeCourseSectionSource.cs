@@ -1,15 +1,9 @@
 using System.Text.Json.Serialization;
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Integrations.Frappe;
+using PaquitoBot.Application.Dtos.Frappe;
 using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-/// <summary>
-/// Course sections live in the Frappe "Student Batch Name" doctype, which has no academic term.
-/// The term is taken from the batch's non-cancelled "Course Enrollment" records, and only when
-/// they all agree on a single one; otherwise it is left empty for the synchronizer to deduce.
-/// </summary>
 public sealed class FrappeCourseSectionSource(IFrappeClient client) : IFrappeSource<FrappeCourseSectionDto>
 {
     private const int CancelledDocStatus = 2;
@@ -64,7 +58,6 @@ public sealed class FrappeCourseSectionSource(IFrappeClient client) : IFrappeSou
         [JsonPropertyName("modified")]
         public string? Modified { get; init; }
 
-        // Instructor and delivery mode are not part of a batch in Frappe.
         public FrappeCourseSectionDto ToDto(string? academicTerm) => new(
             Name, Course ?? string.Empty, StartDate, EndDate, BatchName ?? Name, null, null, MaxStrength,
             Disabled == 1 ? "Inactive" : "Active", FrappeFormats.ParseTimestamp(Modified), academicTerm);

@@ -1,4 +1,5 @@
-namespace PaquitoBot.Application.Integrations.Frappe;
+using PaquitoBot.Application.Dtos.Frappe;
+namespace PaquitoBot.Application.Services;
 
 public interface IFrappeClient
 {

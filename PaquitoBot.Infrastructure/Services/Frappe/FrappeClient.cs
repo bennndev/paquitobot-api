@@ -1,10 +1,12 @@
+using PaquitoBot.Infrastructure.Configuration;
+using PaquitoBot.Application.Dtos.Frappe;
+using PaquitoBot.Application.Services;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Options;
-using PaquitoBot.Application.Integrations.Frappe;
 
-namespace PaquitoBot.Infrastructure.Integrations.Frappe;
+namespace PaquitoBot.Infrastructure.Services.Frappe;
 
 public sealed class FrappeClient(HttpClient httpClient, IOptions<FrappeOptions> options) : IFrappeClient
 {
@@ -23,7 +25,6 @@ public sealed class FrappeClient(HttpClient httpClient, IOptions<FrappeOptions> 
             throw new FrappeException(FrappeFailure.InvalidResponse);
         }
 
-        // Frappe can cap the requested page length. Only an empty page proves the scan is complete.
         int? nextOffset = items.Count == 0 ? null : query.Offset + items.Count;
         return new FrappePage<T>(items.AsReadOnly(), nextOffset);
     }
