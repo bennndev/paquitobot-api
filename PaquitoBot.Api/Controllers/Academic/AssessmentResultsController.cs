@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.AssessmentsResults;
-using PaquitoBot.Application.UseCases.AssessmentsResults.Command;
-using PaquitoBot.Application.UseCases.AssessmentsResults.Query;
+using PaquitoBot.Application.Dtos.AssessmentsResults;
+using PaquitoBot.Application.UseCases.AssessmentsResults.Commands;
+using PaquitoBot.Application.UseCases.AssessmentsResults.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Academic;
 
 [ApiController]
 [Authorize(Policy = "AdministratorOrStudent")]
@@ -50,22 +50,23 @@ public class AssessmentResultsController(ISender sender) : ControllerBase
 
     [Authorize(Policy = "Administrator")]
     [HttpPost]
-    public async Task<ActionResult<Guid>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateAssessmentResultCommand command,
         CancellationToken cancellationToken)
     {
-        var resultId = await sender.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = resultId }, resultId);
+        await sender.Send(command, cancellationToken);
+        return Ok(new { message = "Resultado de evaluación creado" });
     }
 
     [Authorize(Policy = "Administrator")]
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Guid>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateAssessmentResultCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await sender.Send(command with { ResultId = id }, cancellationToken));
+        await sender.Send(command with { ResultId = id }, cancellationToken);
+        return Ok(new { message = "Resultado de evaluación actualizado" });
     }
 
     [Authorize(Policy = "Administrator")]
@@ -73,6 +74,6 @@ public class AssessmentResultsController(ISender sender) : ControllerBase
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await sender.Send(new DeleteAssessmentResultCommand(id), cancellationToken);
-        return NoContent();
+        return Ok(new { message = "Resultado de evaluación eliminado" });
     }
 }

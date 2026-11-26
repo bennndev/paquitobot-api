@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.CourseSections;
-using PaquitoBot.Application.UseCases.CourseSections.Command;
-using PaquitoBot.Application.UseCases.CourseSections.Query;
+using PaquitoBot.Application.Dtos.CourseSections;
+using PaquitoBot.Application.UseCases.CourseSections.Commands;
+using PaquitoBot.Application.UseCases.CourseSections.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Academic;
 
 [ApiController]
 [Authorize(Policy = "Administrator")]
@@ -32,22 +32,23 @@ public class CourseSectionsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<CourseSectionDto>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateCourseSectionCommand command,
         CancellationToken cancellationToken)
     {
-        var section = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = section.SectionId }, section);
+        return Ok(new { message = "Sección creada" });
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<CourseSectionDto>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateCourseSectionCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(command with { SectionId = id }, cancellationToken));
+        await _sender.Send(command with { SectionId = id }, cancellationToken);
+        return Ok(new { message = "Sección actualizada" });
     }
 
     [HttpDelete("{id:guid}")]
@@ -55,6 +56,6 @@ public class CourseSectionsController : ControllerBase
     {
         await _sender.Send(new DeleteCourseSectionCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Sección eliminada" });
     }
 }

@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.CourseSchedules;
-using PaquitoBot.Application.UseCases.CourseSchedules.Command;
-using PaquitoBot.Application.UseCases.CourseSchedules.Query;
+using PaquitoBot.Application.Dtos.CourseSchedules;
+using PaquitoBot.Application.UseCases.CourseSchedules.Commands;
+using PaquitoBot.Application.UseCases.CourseSchedules.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Academic;
 
 [ApiController]
 [Authorize(Policy = "Administrator")]
@@ -32,22 +32,23 @@ public class CourseSchedulesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<CourseScheduleDto>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateCourseScheduleCommand command,
         CancellationToken cancellationToken)
     {
-        var schedule = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = schedule.ScheduleId }, schedule);
+        return Ok(new { message = "Horario creado" });
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<CourseScheduleDto>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateCourseScheduleCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(command with { ScheduleId = id }, cancellationToken));
+        await _sender.Send(command with { ScheduleId = id }, cancellationToken);
+        return Ok(new { message = "Horario actualizado" });
     }
 
     [HttpDelete("{id:guid}")]
@@ -55,6 +56,6 @@ public class CourseSchedulesController : ControllerBase
     {
         await _sender.Send(new DeleteCourseScheduleCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Horario eliminado" });
     }
 }

@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.Instructors;
-using PaquitoBot.Application.UseCases.Instructors.Command;
-using PaquitoBot.Application.UseCases.Instructors.Query;
+using PaquitoBot.Application.Dtos.Instructors;
+using PaquitoBot.Application.UseCases.Instructors.Commands;
+using PaquitoBot.Application.UseCases.Instructors.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Academic;
 
 [ApiController]
 [Authorize(Policy = "AdministratorOrStudent")]
@@ -34,24 +34,25 @@ public class InstructorsController : ControllerBase
     [Authorize(Policy = "Administrator")]
 
     [HttpPost]
-    public async Task<ActionResult<InstructorDto>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateInstructorCommand command,
         CancellationToken cancellationToken)
     {
-        var instructor = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = instructor.InstructorId }, instructor);
+        return Ok(new { message = "Instructor creado" });
     }
 
     [Authorize(Policy = "Administrator")]
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<InstructorDto>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateInstructorCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(command with { InstructorId = id }, cancellationToken));
+        await _sender.Send(command with { InstructorId = id }, cancellationToken);
+        return Ok(new { message = "Instructor actualizado" });
     }
 
     [Authorize(Policy = "Administrator")]
@@ -61,6 +62,6 @@ public class InstructorsController : ControllerBase
     {
         await _sender.Send(new DeleteInstructorCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Instructor eliminado" });
     }
 }

@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.Courses;
-using PaquitoBot.Application.UseCases.Courses.Command;
-using PaquitoBot.Application.UseCases.Courses.Query;
+using PaquitoBot.Application.Dtos.Courses;
+using PaquitoBot.Application.UseCases.Courses.Commands;
+using PaquitoBot.Application.UseCases.Courses.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Academic;
 
 [ApiController]
 [Authorize(Policy = "AdministratorOrStudent")]
@@ -42,24 +42,25 @@ public class CoursesController : ControllerBase
     [Authorize(Policy = "Administrator")]
 
     [HttpPost]
-    public async Task<ActionResult<CourseDto>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateCourseCommand command,
         CancellationToken cancellationToken)
     {
-        var course = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = course.CourseId }, course);
+        return Ok(new { message = "Curso creado" });
     }
 
     [Authorize(Policy = "Administrator")]
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<CourseDto>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateCourseCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(command with { CourseId = id }, cancellationToken));
+        await _sender.Send(command with { CourseId = id }, cancellationToken);
+        return Ok(new { message = "Curso actualizado" });
     }
 
     [Authorize(Policy = "Administrator")]
@@ -69,6 +70,6 @@ public class CoursesController : ControllerBase
     {
         await _sender.Send(new DeleteCourseCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Curso eliminado" });
     }
 }

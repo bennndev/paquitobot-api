@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.AttendanceRecords;
-using PaquitoBot.Application.UseCases.AttendanceRecords.Command;
-using PaquitoBot.Application.UseCases.AttendanceRecords.Query;
+using PaquitoBot.Application.Dtos.AttendanceRecords;
+using PaquitoBot.Application.UseCases.AttendanceRecords.Commands;
+using PaquitoBot.Application.UseCases.AttendanceRecords.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Academic;
 
 [ApiController]
 [Authorize(Policy = "AdministratorOrStudent")]
@@ -40,22 +40,23 @@ public class AttendanceRecordsController(ISender sender) : ControllerBase
 
     [Authorize(Policy = "Administrator")]
     [HttpPost]
-    public async Task<ActionResult<Guid>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateAttendanceRecordCommand command,
         CancellationToken cancellationToken)
     {
-        var attendanceId = await sender.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = attendanceId }, attendanceId);
+        await sender.Send(command, cancellationToken);
+        return Ok(new { message = "Registro de asistencia creado" });
     }
 
     [Authorize(Policy = "Administrator")]
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Guid>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateAttendanceRecordCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await sender.Send(command with { AttendanceId = id }, cancellationToken));
+        await sender.Send(command with { AttendanceId = id }, cancellationToken);
+        return Ok(new { message = "Registro de asistencia actualizado" });
     }
 
     [Authorize(Policy = "Administrator")]
@@ -63,6 +64,6 @@ public class AttendanceRecordsController(ISender sender) : ControllerBase
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await sender.Send(new DeleteAttendanceRecordCommand(id), cancellationToken);
-        return NoContent();
+        return Ok(new { message = "Registro de asistencia eliminado" });
     }
 }

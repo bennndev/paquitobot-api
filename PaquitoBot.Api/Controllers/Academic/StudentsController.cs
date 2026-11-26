@@ -1,13 +1,12 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.DTOs.Students;
-using PaquitoBot.Application.Services;
-using PaquitoBot.Application.UseCases.Students.Command;
-using PaquitoBot.Application.UseCases.Students.Query;
+using PaquitoBot.Application.Dtos.Frappe;
+using PaquitoBot.Application.Dtos.Students;
+using PaquitoBot.Application.UseCases.Students.Commands;
+using PaquitoBot.Application.UseCases.Students.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Academic;
 
 [ApiController]
 [Authorize(Policy = "Administrator")]
@@ -15,12 +14,10 @@ namespace PaquitoBot.Api.Controllers;
 public class StudentsController : ControllerBase
 {
     private readonly ISender _sender;
-    private readonly IFrappeSource<FrappeStudentDto> _frappeStudents;
 
-    public StudentsController(ISender sender, IFrappeSource<FrappeStudentDto> frappeStudents)
+    public StudentsController(ISender sender)
     {
         _sender = sender;
-        _frappeStudents = frappeStudents;
     }
 
     [HttpGet]
@@ -36,22 +33,23 @@ public class StudentsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<StudentDto>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateStudentCommand command,
         CancellationToken cancellationToken)
     {
-        var student = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = student.StudentId }, student);
+        return Ok(new { message = "Estudiante creado" });
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<StudentDto>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateStudentCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(command with { StudentId = id }, cancellationToken));
+        await _sender.Send(command with { StudentId = id }, cancellationToken);
+        return Ok(new { message = "Estudiante actualizado" });
     }
 
     [HttpDelete("{id:guid}")]
@@ -59,12 +57,12 @@ public class StudentsController : ControllerBase
     {
         await _sender.Send(new DeleteStudentCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Estudiante eliminado" });
     }
 
     [HttpGet("frappe")]
     public async Task<ActionResult<IReadOnlyList<FrappeStudentDto>>> GetFrappeStudents(CancellationToken cancellationToken)
     {
-        return Ok(await _frappeStudents.GetAllAsync(cancellationToken));
+        return Ok(await _sender.Send(new GetFrappeStudentsQuery(), cancellationToken));
     }
 }

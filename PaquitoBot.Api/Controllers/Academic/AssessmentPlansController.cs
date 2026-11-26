@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.AssessmentPlans;
-using PaquitoBot.Application.UseCases.AssessmentPlans.Command;
-using PaquitoBot.Application.UseCases.AssessmentPlans.Query;
+using PaquitoBot.Application.Dtos.AssessmentPlans;
+using PaquitoBot.Application.UseCases.AssessmentPlans.Commands;
+using PaquitoBot.Application.UseCases.AssessmentPlans.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Academic;
 
 [ApiController]
 [Authorize(Policy = "Administrator")]
@@ -33,27 +33,28 @@ public class AssessmentPlansController(ISender sender) : ControllerBase
         => Ok(await sender.Send(new GetUpcomingAssessmentPlansQuery(sectionId), cancellationToken));
 
     [HttpPost]
-    public async Task<ActionResult<Guid>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateAssessmentPlanCommand command,
         CancellationToken cancellationToken)
     {
-        var planId = await sender.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = planId }, planId);
+        await sender.Send(command, cancellationToken);
+        return Ok(new { message = "Plan de evaluación creado" });
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Guid>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateAssessmentPlanCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await sender.Send(command with { AssessmentPlanId = id }, cancellationToken));
+        await sender.Send(command with { AssessmentPlanId = id }, cancellationToken);
+        return Ok(new { message = "Plan de evaluación actualizado" });
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await sender.Send(new DeleteAssessmentPlanCommand(id), cancellationToken);
-        return NoContent();
+        return Ok(new { message = "Plan de evaluación eliminado" });
     }
 }

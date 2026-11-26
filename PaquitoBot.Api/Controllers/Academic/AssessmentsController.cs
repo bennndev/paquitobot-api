@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.Assessments;
-using PaquitoBot.Application.UseCases.Assessments.Command;
-using PaquitoBot.Application.UseCases.Assessments.Query;
+using PaquitoBot.Application.Dtos.Assessments;
+using PaquitoBot.Application.UseCases.Assessments.Commands;
+using PaquitoBot.Application.UseCases.Assessments.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Academic;
 
 [ApiController]
 [Authorize(Policy = "AdministratorOrStudent")]
@@ -49,23 +49,24 @@ public class AssessmentsController(ISender _sender) : ControllerBase
 
     [Authorize(Policy = "Administrator")]
     [HttpPost]
-    public async Task<ActionResult<Guid>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateAssessmentCommand command,
         CancellationToken cancellationToken)
     {
-        var assessmentId = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = assessmentId }, assessmentId);
+        return Ok(new { message = "Evaluación creada" });
     }
 
     [Authorize(Policy = "Administrator")]
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<Guid>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateAssessmentCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(command with { AssessmentId = id }, cancellationToken));
+        await _sender.Send(command with { AssessmentId = id }, cancellationToken);
+        return Ok(new { message = "Evaluación actualizada" });
     }
 
     [Authorize(Policy = "Administrator")]
@@ -74,6 +75,6 @@ public class AssessmentsController(ISender _sender) : ControllerBase
     {
         await _sender.Send(new DeleteAssessmentCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Evaluación eliminada" });
     }
 }
