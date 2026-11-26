@@ -1,11 +1,11 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Auth;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Auth;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 
-namespace PaquitoBot.Application.UseCases.Auth.Command;
+namespace PaquitoBot.Application.UseCases.Auth.Commands;
 
 public record AuthenticateCommand(
     string Email,
@@ -29,7 +29,6 @@ internal sealed class AuthenticateCommandHandler(IUnitOfWork _unitOfWork,
     public async Task<LoginResponse> Handle(AuthenticateCommand request, CancellationToken cancellationToken)
     {
         var entity = await _unitOfWork.Users.GetByEmailAsync(TextNormalizer.RequiredEmail(request.Email), cancellationToken);
-        //Validar contraseña
         if (entity is null || !entity.IsActive || string.IsNullOrEmpty(entity.PasswordHash) || !userPasswordHasher.ValidatePassword(
                 entity,
                 entity.PasswordHash,
@@ -38,7 +37,6 @@ internal sealed class AuthenticateCommandHandler(IUnitOfWork _unitOfWork,
             throw new UnauthorizedAccessException("Invalid credentials");
         }
 
-        //Genera y retorna Token si paso validacion
         var studentId = await _unitOfWork.UserStudents.GetPrimaryStudentIdAsync(entity.UserId, cancellationToken);
         var token = tokenService.GenerateToken(
             entity.UserId,
