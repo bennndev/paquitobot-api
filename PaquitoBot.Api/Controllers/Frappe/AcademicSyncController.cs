@@ -1,9 +1,10 @@
+using PaquitoBot.Application.Dtos.Sync;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.UseCases.Sync.Command;
+using PaquitoBot.Application.UseCases.Sync.Commands;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Frappe;
 
 [ApiController]
 [Route("api/academic-sync")]

@@ -1,13 +1,11 @@
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.UseCases.Frappe;
-using PaquitoBot.Application.UseCases.Frappe.Command;
-using PaquitoBot.Application.UseCases.Frappe.Query;
+using PaquitoBot.Application.UseCases.Frappe.Commands;
+using PaquitoBot.Application.UseCases.Frappe.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Frappe;
 
 [ApiController]
 [Route("api/frappe")]
@@ -17,11 +15,7 @@ public class FrappeController(ISender sender) : ControllerBase
     [HttpGet("connect")]
     public async Task<ActionResult> Connect(CancellationToken cancellationToken)
     {
-        var subject = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-        if (!Guid.TryParse(subject, out var userId)) return Unauthorized();
-
-        var authorization = await sender.Send(new ConnectToFrappeQuery(userId), cancellationToken);
+        var authorization = await sender.Send(new ConnectToFrappeQuery(), cancellationToken);
         return Ok(authorization);
     }
 

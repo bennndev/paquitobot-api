@@ -1,12 +1,12 @@
+using PaquitoBot.Application.Dtos.SyncRuns;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.UseCases.SyncRuns.Command;
-using PaquitoBot.Application.UseCases.SyncRuns.Query;
+using PaquitoBot.Application.UseCases.SyncRuns.Commands;
+using PaquitoBot.Application.UseCases.SyncRuns.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Frappe;
 
-// Sync execution metadata may contain operational failures: restrict the whole API.
 [ApiController]
 [Authorize(Policy = "Administrator")]
 [Route("api/sync-runs")]
@@ -42,12 +42,12 @@ public class SyncRunsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Guid>> Start(
+    public async Task<ActionResult> Start(
         [FromBody] StartSyncRunCommand command,
         CancellationToken cancellationToken)
     {
-        var syncRunId = await _sender.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = syncRunId }, syncRunId);
+        await _sender.Send(command, cancellationToken);
+        return Ok(new { message = "Registro de sincronización creado" });
     }
 
     [HttpPut("{id:guid}/complete")]
@@ -57,13 +57,13 @@ public class SyncRunsController : ControllerBase
         CancellationToken cancellationToken)
     {
         await _sender.Send(command with { SyncRunId = id }, cancellationToken);
-        return NoContent();
+        return Ok(new { message = "Registro de sincronización actualizado" });
     }
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await _sender.Send(new DeleteSyncRunCommand(id), cancellationToken);
-        return NoContent();
+        return Ok(new { message = "Registro de sincronización eliminado" });
     }
 }
