@@ -1,25 +1,18 @@
+using PaquitoBot.Application.Dtos.Chat;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Chat.Command;
+namespace PaquitoBot.Application.UseCases.Chat.Commands;
 
 public record AskPaquitoCommand(Guid? ConversationId, string Question) : IRequest<AskPaquitoResponse>;
 
-public record AskPaquitoSourceResponse(Guid DocumentId, string Title);
 
-public record AskPaquitoResponse(
-    Guid ConversationId,
-    Guid QuestionMessageId,
-    Guid AnswerMessageId,
-    string Answer,
-    bool Succeeded,
-    IReadOnlyList<AskPaquitoSourceResponse> Sources);
 
 public class AskPaquitoCommandValidator : AbstractValidator<AskPaquitoCommand>
 {
@@ -32,7 +25,7 @@ public class AskPaquitoCommandValidator : AbstractValidator<AskPaquitoCommand>
     }
 }
 
-public class AskPaquitoCommandHandler(
+internal sealed class AskPaquitoCommandHandler(
     IUnitOfWork _unitOfWork,
     ICurrentUser _currentUser,
     IKnowledgeRetriever _knowledgeRetriever,
