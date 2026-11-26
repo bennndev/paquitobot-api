@@ -13,6 +13,7 @@ public interface IUnitOfWork
     IUserStudentRepository UserStudents { get; }
     IUserRepository Users { get; }
     ICourseRepository Courses { get; }
+    ICourseScheduleRepository CourseSchedules { get; }
     IConversationRepository Conversations { get; }
     IMessageRepository Messages { get; }
     IAssessmentResultRepository AssessmentResults { get; }

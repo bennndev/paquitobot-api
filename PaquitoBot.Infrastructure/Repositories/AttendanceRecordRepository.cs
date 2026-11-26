@@ -19,6 +19,8 @@ public class AttendanceRecordRepository : GenericRepository<AttendanceRecord>, I
         CancellationToken cancellationToken = default)
     {
         return await DbSet.AsNoTracking()
+            .Include(record => record.Section)
+            .ThenInclude(section => section.Course)
             .Where(record => record.StudentId == studentId)
             .OrderByDescending(record => record.AttendanceDate)
             .ThenBy(record => record.AttendanceId)

@@ -22,6 +22,22 @@ public class MessageRepository : GenericRepository<Message>, IMessageRepository
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<Message>> GetRecentByConversationAsync(
+        Guid conversationId,
+        int count,
+        CancellationToken cancellationToken = default)
+    {
+        var messages = await DbSet.AsNoTracking()
+            .Where(message => message.ConversationId == conversationId)
+            .OrderByDescending(message => message.CreatedAt)
+            .ThenByDescending(message => message.MessageId)
+            .Take(count)
+            .ToListAsync(cancellationToken);
+
+        messages.Reverse();
+        return messages;
+    }
+
     protected override IOrderedQueryable<Message> DefaultOrder(IQueryable<Message> query)
     {
         return query.OrderBy(m => m.CreatedAt);

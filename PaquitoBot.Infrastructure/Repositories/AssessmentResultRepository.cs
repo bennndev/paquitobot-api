@@ -16,7 +16,7 @@ public class AssessmentResultRepository : GenericRepository<AssessmentResult>, I
             .OrderBy(r => r.StudentId).ThenBy(r => r.ResultId).ToListAsync(cancellationToken);
 
     public async Task<IReadOnlyList<AssessmentResult>> GetByStudentIdAsync(Guid studentId, CancellationToken cancellationToken = default) =>
-        await DbSet.AsNoTracking().Where(r => r.StudentId == studentId)
+        await DbSet.AsNoTracking().Include(r => r.Assessment).Where(r => r.StudentId == studentId)
             .OrderByDescending(r => r.CreatedAt).ThenBy(r => r.ResultId).ToListAsync(cancellationToken);
 
     public Task<AssessmentResult?> GetLatestByStudentAndAssessmentAsync(Guid studentId, Guid assessmentId, CancellationToken cancellationToken = default) =>
