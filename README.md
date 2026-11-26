@@ -93,6 +93,13 @@ dotnet user-secrets set "JWTVariable:Issuer" "<issuer>" --project PaquitoBot.Api
 dotnet user-secrets set "JWTVariable:Audience" "<audience>" --project PaquitoBot.Api
 ```
 
+### Allowed frontend origins (CORS)
+
+Browsers only let a web page read the API's responses when its origin is listed in `Cors:AllowedOrigins`. With no entries, no other origin is allowed. CORS is a browser rule and does not replace authentication: requests that do not come from a browser are still protected only by the JWT and `[Authorize]`.
+
+- Development: `appsettings.Development.json` allows `http://localhost:5173`.
+- Deployment: set one environment variable per origin, for example `Cors__AllowedOrigins__0=https://<frontend-host>`. Each entry must be a plain `http(s)` origin without a path; a wildcard or a path makes the API fail at startup.
+
 ### Gotchas
 
 1. .NET on Windows cannot resolve `*.localhost` names. The API reaches Frappe through `http://localhost:8000`, while the browser uses `http://education.localhost:8000`. Use the `localhost` form for `Frappe:BaseUrl`.

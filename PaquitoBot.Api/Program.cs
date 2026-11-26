@@ -20,6 +20,7 @@ builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
 builder.Services.AddJwtAuthentication(builder.Configuration);
+builder.Services.AddFrontendCors(builder.Configuration);
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddApplication();
 builder.Services.AddFrappeIntegration(builder.Configuration);
@@ -37,6 +38,7 @@ app.UseExceptionHandler();
 app.UseSwaggerDocs();
 
 app.UseHttpsRedirection();
+app.UseCors(DependencyInjectionCors.PolicyName);
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
