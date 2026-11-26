@@ -1,11 +1,12 @@
+using PaquitoBot.Domain.Validations;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.ProgramCourses;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.ProgramCourses;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.ProgramCourses.Command;
+namespace PaquitoBot.Application.UseCases.ProgramCourses.Commands;
 
 public record UpdateProgramCourseCommand(
     Guid ProgramCourseId,
@@ -28,7 +29,7 @@ public class UpdateProgramCourseCommandValidator
     }
 }
 
-public class UpdateProgramCourseCommandHandler(
+internal sealed class UpdateProgramCourseCommandHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<UpdateProgramCourseCommand, ProgramCourseDto>
 {
@@ -40,17 +41,9 @@ public class UpdateProgramCourseCommandHandler(
             .GetByIdAsync(request.ProgramCourseId, cancellationToken)
             ?? throw new NotFoundException("ProgramCourse", request.ProgramCourseId);
 
-        if (!await unitOfWork.Repository<Program>()
-            .ExistsAsync(request.ProgramId, cancellationToken))
-        {
-            throw new NotFoundException("Program", request.ProgramId);
-        }
+        await unitOfWork.Repository<Program>().EnsureExistsAsync("Program", request.ProgramId, cancellationToken);
 
-        if (!await unitOfWork.Repository<Course>()
-            .ExistsAsync(request.CourseId, cancellationToken))
-        {
-            throw new NotFoundException("Course", request.CourseId);
-        }
+        await unitOfWork.Repository<Course>().EnsureExistsAsync("Course", request.CourseId, cancellationToken);
 
         link.ProgramId = request.ProgramId;
         link.CourseId = request.CourseId;

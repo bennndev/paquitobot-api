@@ -1,10 +1,10 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.ProgramCourses.Command;
+namespace PaquitoBot.Application.UseCases.ProgramCourses.Commands;
 
 public record DeleteProgramCourseCommand(Guid ProgramCourseId) : IRequest;
 
@@ -17,7 +17,7 @@ public class DeleteProgramCourseCommandValidator
     }
 }
 
-public class DeleteProgramCourseCommandHandler(
+internal sealed class DeleteProgramCourseCommandHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<DeleteProgramCourseCommand>
 {
