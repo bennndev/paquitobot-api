@@ -35,4 +35,15 @@ public static class DependencyInjectionSwagger
 
         return services;
     }
+
+    public static WebApplication UseSwaggerDocs(this WebApplication app)
+    {
+        if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger:Enabled"))
+        {
+            app.UseSwagger();
+            app.UseSwaggerUI(options => options.RoutePrefix = string.Empty);
+        }
+
+        return app;
+    }
 }
