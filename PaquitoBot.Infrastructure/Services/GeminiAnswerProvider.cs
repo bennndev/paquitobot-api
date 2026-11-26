@@ -56,7 +56,15 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
         var continuation = JsonSerializer.Deserialize<GeminiContinuation>(toolRequest.Continuation)
             ?? throw new InvalidOperationException("Gemini continuation is invalid.");
         var input = new List<object> { new { type = "user_input", content = continuation.Prompt } };
-        input.AddRange(continuation.Steps);
+        foreach (var step in continuation.Steps)
+        {
+            if (step.ValueKind != JsonValueKind.Object)
+            {
+                throw new InvalidOperationException("Gemini continuation contains an invalid step.");
+            }
+
+            input.Add(step.Clone());
+        }
         input.Add(new
         {
             type = "function_result",
@@ -87,7 +95,8 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
         using var response = await httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            throw new HttpRequestException($"Gemini returned HTTP {(int)response.StatusCode}.");
+            var errorBody = await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new HttpRequestException($"Gemini returned HTTP {(int)response.StatusCode}: {errorBody}");
         }
 
         await using var body = await response.Content.ReadAsStreamAsync(cancellationToken);

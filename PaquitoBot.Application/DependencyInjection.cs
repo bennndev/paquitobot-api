@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using PaquitoBot.Application.Common.Behaviors;
 using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.Services.Sync;
-using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Application;
 
@@ -24,7 +23,6 @@ public static class DependencyInjection
 
         services.AddValidatorsFromAssembly(assembly);
         services.AddScoped<IFrappeSyncRunService, FrappeSyncRunService>();
-        services.AddScoped<IChatToolExecutor, ChatToolExecutor>();
 
         services.AddSingleton(TimeProvider.System);
 

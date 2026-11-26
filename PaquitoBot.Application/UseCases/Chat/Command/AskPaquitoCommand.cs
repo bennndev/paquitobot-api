@@ -102,7 +102,7 @@ public class AskPaquitoCommandHandler(
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            answer = FailureAnswer;
+            answer = $"{FailureAnswer} Error: {exception.GetType().Name}: {exception.Message}";
             succeeded = false;
         }
 
