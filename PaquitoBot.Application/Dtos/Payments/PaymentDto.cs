@@ -1,6 +1,6 @@
-﻿using PaquitoBot.Domain.Models;
+using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.Payments;
+namespace PaquitoBot.Application.Dtos.Payments;
 
 public record PaymentDto(
     Guid PaymentId,
