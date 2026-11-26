@@ -1,9 +1,9 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.Assessments;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.Assessments;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 
-namespace PaquitoBot.Application.UseCases.Assessments.Query;
+namespace PaquitoBot.Application.UseCases.Assessments.Queries;
 
 public record GetMyAssessmentsQuery : IRequest<IReadOnlyList<AssessmentDto>>;
 
