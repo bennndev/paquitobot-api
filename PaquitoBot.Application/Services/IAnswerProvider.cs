@@ -1,3 +1,5 @@
+using PaquitoBot.Application.DTOs.Chat;
+
 namespace PaquitoBot.Application.Services;
 
 public interface IAnswerProvider
@@ -9,7 +11,3 @@ public interface IAnswerProvider
     Task<string> CompleteToolAsync(ChatToolRequest toolRequest, string result,
         CancellationToken cancellationToken = default);
 }
-
-public record ChatToolRequest(string Name, string CallId, string Continuation);
-
-public record ChatModelResponse(string? Answer, ChatToolRequest? ToolRequest);

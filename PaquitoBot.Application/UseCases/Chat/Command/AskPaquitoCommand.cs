@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Common.Text;
+using PaquitoBot.Application.DTOs.Chat;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Constants;

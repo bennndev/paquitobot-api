@@ -1,3 +1,3 @@
-namespace PaquitoBot.Application.Services;
+namespace PaquitoBot.Application.DTOs.Chat;
 
 public record ChatTurn(string Role, string Content);
