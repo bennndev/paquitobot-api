@@ -13,6 +13,7 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
     private const string ResultToolName = "get_my_grades";
     private const string AttendanceToolName = "get_my_attendance";
     private const string FinancesToolName = "get_my_finances";
+    private const string ScheduleToolName = "get_my_schedule";
 
     public async Task<ChatModelResponse> BeginAnswerAsync(IReadOnlyList<ChatTurn> turns,
         CancellationToken cancellationToken = default)
@@ -30,6 +31,7 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
                      "Para consultar asistencia, usa get_my_attendance; informa los estados tal como están registrados, " +
                      "sin calcular porcentajes ni interpretar códigos de estado. " +
                      "Para consultar saldos y vencimientos, usa get_my_finances; separa los importes por moneda. " +
+                     "Para consultar fechas, horas y lugares de clases, usa get_my_schedule. " +
                      $"Historial: {JsonSerializer.Serialize(turns)}";
 
         var input = new object[] { new { type = "user_input", content = prompt } };
@@ -42,7 +44,7 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
     {
         if (toolRequest.Name != CourseToolName && toolRequest.Name != AssessmentToolName &&
             toolRequest.Name != ResultToolName && toolRequest.Name != AttendanceToolName &&
-            toolRequest.Name != FinancesToolName)
+            toolRequest.Name != FinancesToolName && toolRequest.Name != ScheduleToolName)
         {
             throw new InvalidOperationException("Gemini requested an unsupported tool.");
         }
@@ -179,6 +181,13 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
                 type = "function",
                 name = FinancesToolName,
                 description = "Returns the authenticated student's calculated tuition balances, due dates and currency summaries. Keep currencies separate. No arguments are required.",
+                parameters = new { type = "object", properties = new { } }
+            },
+            new
+            {
+                type = "function",
+                name = ScheduleToolName,
+                description = "Returns the authenticated student's scheduled classes with course names, dates, times, locations and statuses. No arguments are required.",
                 parameters = new { type = "object", properties = new { } }
             }
         ];

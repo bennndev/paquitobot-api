@@ -100,7 +100,8 @@ public class AskPaquitoCommandHandler(
                     modelResponse.ToolRequest.Name != "get_my_assessments" &&
                     modelResponse.ToolRequest.Name != "get_my_grades" &&
                     modelResponse.ToolRequest.Name != "get_my_attendance" &&
-                    modelResponse.ToolRequest.Name != "get_my_finances")
+                    modelResponse.ToolRequest.Name != "get_my_finances" &&
+                    modelResponse.ToolRequest.Name != "get_my_schedule")
                 {
                     throw new InvalidOperationException("Gemini requested an unsupported tool.");
                 }
@@ -164,7 +165,7 @@ public class AskPaquitoCommandHandler(
                             record.Notes
                         }));
                     }
-                    else
+                    else if (modelResponse.ToolRequest.Name == "get_my_finances")
                     {
                         var statement = await _sender.Send(
                             new GetStudentFinancialStatementQuery(studentId, userId), cancellationToken);
@@ -185,6 +186,21 @@ public class AskPaquitoCommandHandler(
                             }),
                             statement.PaymentsNotCounted
                         });
+                    }
+                    else
+                    {
+                        var schedules = await _unitOfWork.CourseSchedules.GetByStudentIdAsync(studentId, cancellationToken);
+                        toolResult = JsonSerializer.Serialize(schedules.Select(schedule => new
+                        {
+                            Course = schedule.Section.Course.Name,
+                            schedule.Section.SectionCode,
+                            schedule.ClassDate,
+                            schedule.StartTime,
+                            schedule.EndTime,
+                            schedule.Location,
+                            schedule.DeliveryMode,
+                            schedule.Status
+                        }));
                     }
                 }
 

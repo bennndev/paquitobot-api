@@ -16,6 +16,7 @@ public class UnitOfWork : IUnitOfWork
     public IUserStudentRepository UserStudents { get; }
     public IUserRepository Users { get; }
     public ICourseRepository Courses { get; }
+    public ICourseScheduleRepository CourseSchedules { get; }
     public IConversationRepository Conversations { get; }
     public IMessageRepository Messages { get; }
     public IAssessmentResultRepository AssessmentResults { get; }
@@ -30,6 +31,7 @@ public class UnitOfWork : IUnitOfWork
         IUserStudentRepository userStudents,
         IUserRepository users,
         ICourseRepository courses,
+        ICourseScheduleRepository courseSchedules,
         IConversationRepository conversations,
         IMessageRepository messages,
         IAssessmentResultRepository assessmentResults,
@@ -43,6 +45,7 @@ public class UnitOfWork : IUnitOfWork
         UserStudents = userStudents;
         Users = users;
         Courses = courses;
+        CourseSchedules = courseSchedules;
         Conversations = conversations;
         Messages = messages;
         AssessmentResults = assessmentResults;
