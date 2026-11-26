@@ -94,7 +94,8 @@ public class AskPaquitoCommandHandler(
             }
             else
             {
-                if (modelResponse.ToolRequest.Name != "get_my_courses")
+                if (modelResponse.ToolRequest.Name != "get_my_courses" &&
+                    modelResponse.ToolRequest.Name != "get_my_assessments")
                 {
                     throw new InvalidOperationException("Gemini requested an unsupported tool.");
                 }
@@ -107,13 +108,28 @@ public class AskPaquitoCommandHandler(
                 }
                 else
                 {
-                    var courses = await _unitOfWork.Courses.GetByStudentIdAsync(studentId, cancellationToken);
-                    toolResult = JsonSerializer.Serialize(courses.Select(course => new
+                    if (modelResponse.ToolRequest.Name == "get_my_courses")
                     {
-                        course.Code,
-                        course.Name,
-                        course.Status
-                    }));
+                        var courses = await _unitOfWork.Courses.GetByStudentIdAsync(studentId, cancellationToken);
+                        toolResult = JsonSerializer.Serialize(courses.Select(course => new
+                        {
+                            course.Code,
+                            course.Name,
+                            course.Status
+                        }));
+                    }
+                    else
+                    {
+                        var assessments = await _unitOfWork.Assessments.GetByStudentIdAsync(studentId, cancellationToken);
+                        toolResult = JsonSerializer.Serialize(assessments.Select(assessment => new
+                        {
+                            assessment.Title,
+                            assessment.AssessmentType,
+                            assessment.AssessmentDate,
+                            assessment.MaximumScore,
+                            assessment.Status
+                        }));
+                    }
                 }
 
                 answer = await _answerProvider.CompleteToolAsync(
