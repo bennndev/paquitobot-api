@@ -1,15 +1,15 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.ProgramCourses;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.ProgramCourses;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.ProgramCourses.Query;
+namespace PaquitoBot.Application.UseCases.ProgramCourses.Queries;
 
 public record GetProgramCourseByIdQuery(Guid ProgramCourseId)
     : IRequest<ProgramCourseDto>;
 
-public class GetProgramCourseByIdQueryHandler(
+internal sealed class GetProgramCourseByIdQueryHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<GetProgramCourseByIdQuery, ProgramCourseDto>
 {

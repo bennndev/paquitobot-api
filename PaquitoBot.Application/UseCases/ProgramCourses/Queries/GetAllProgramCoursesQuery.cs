@@ -1,14 +1,14 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.ProgramCourses;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.ProgramCourses;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.ProgramCourses.Query;
+namespace PaquitoBot.Application.UseCases.ProgramCourses.Queries;
 
 public record GetAllProgramCoursesQuery
     : IRequest<IReadOnlyList<ProgramCourseDto>>;
 
-public class GetAllProgramCoursesQueryHandler(
+internal sealed class GetAllProgramCoursesQueryHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<GetAllProgramCoursesQuery, IReadOnlyList<ProgramCourseDto>>
 {
