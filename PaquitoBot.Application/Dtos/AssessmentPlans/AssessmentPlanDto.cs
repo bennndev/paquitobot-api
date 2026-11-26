@@ -1,6 +1,6 @@
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.AssessmentPlans;
+namespace PaquitoBot.Application.Dtos.AssessmentPlans;
 
 public record AssessmentPlanDto(
     Guid AssessmentPlanId,
