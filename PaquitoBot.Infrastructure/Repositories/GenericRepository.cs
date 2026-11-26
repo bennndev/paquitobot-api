@@ -1,7 +1,6 @@
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using PaquitoBot.Application.Repositories;
-using PaquitoBot.Infrastructure.Data;
+using PaquitoBot.Domain.Repositories;
+using PaquitoBot.Infrastructure.DbContext;
 
 namespace PaquitoBot.Infrastructure.Repositories;
 
@@ -32,14 +31,6 @@ public class GenericRepository<T> : IGenericRepository<T> where T : class
     {
         return DbSet.AnyAsync(e => EF.Property<Guid>(e, KeyName) == id, cancellationToken);
     }
-
-    public virtual Task<T?> FirstOrDefaultAsync(Expression<Func<T, bool>> predicate,
-        CancellationToken cancellationToken = default) =>
-        DbSet.FirstOrDefaultAsync(predicate, cancellationToken);
-
-    public virtual Task<bool> AnyAsync(Expression<Func<T, bool>> predicate,
-        CancellationToken cancellationToken = default) =>
-        DbSet.AnyAsync(predicate, cancellationToken);
 
     public virtual async Task<T> UpsertByFrappeExternalIdAsync(string externalId, Action<T> update,
         CancellationToken cancellationToken = default)

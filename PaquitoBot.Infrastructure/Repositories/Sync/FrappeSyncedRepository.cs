@@ -1,9 +1,9 @@
 using Microsoft.EntityFrameworkCore;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
-using PaquitoBot.Infrastructure.Data;
+using PaquitoBot.Infrastructure.DbContext;
 
-namespace PaquitoBot.Infrastructure.Repositories;
+namespace PaquitoBot.Infrastructure.Repositories.Sync;
 
 public class FrappeSyncedRepository<T> : GenericRepository<T>, IFrappeSyncedRepository<T>
     where T : class, IFrappeSynced

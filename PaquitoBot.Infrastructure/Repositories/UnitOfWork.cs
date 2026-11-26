@@ -1,10 +1,10 @@
 using System.Collections;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
-using PaquitoBot.Infrastructure.Data;
+using PaquitoBot.Infrastructure.DbContext;
 
 namespace PaquitoBot.Infrastructure.Repositories;
 
