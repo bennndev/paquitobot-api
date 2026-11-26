@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.Common.Text;
+namespace PaquitoBot.Application.Helpers;
 
 public static class TextNormalizer
 {
