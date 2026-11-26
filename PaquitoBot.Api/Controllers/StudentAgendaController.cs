@@ -10,6 +10,12 @@ namespace PaquitoBot.Api.Controllers;
 [Route("api/student-agenda")]
 public sealed class StudentAgendaController(ISender sender) : ControllerBase
 {
+    [HttpGet("me/assignments")]
+    public async Task<ActionResult<MyLearningAssignments>> GetMyAssignments(CancellationToken cancellationToken)
+    {
+        return Ok(await sender.Send(new GetMyLearningAssignmentsQuery(), cancellationToken));
+    }
+
     [HttpGet("me")]
     public async Task<ActionResult<MyAcademicAgenda>> GetMine(
         [FromQuery] DateOnly from, [FromQuery] DateOnly to, CancellationToken cancellationToken)

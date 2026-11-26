@@ -19,6 +19,7 @@ public static class DependencyInjection
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IMyCourseSectionReader, MyCourseSectionReader>();
         services.AddScoped<IMyAcademicAgendaReader, MyAcademicAgendaReader>();
+        services.AddScoped<IMyLearningAssignmentsReader, FrappeLearningAssignmentsReader>();
         services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
         services.AddScoped(typeof(IFrappeSyncedRepository<>), typeof(FrappeSyncedRepository<>));
         services.AddScoped<IUserPasswordHasher, UserPasswordHasher>();
