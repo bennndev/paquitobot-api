@@ -1,12 +1,12 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Conversations.Command;
+namespace PaquitoBot.Application.UseCases.Conversations.Commands;
 
 public record UpdateConversationCommand(
     Guid ConversationId,
@@ -25,7 +25,7 @@ public class UpdateConversationCommandValidator : AbstractValidator<UpdateConver
     }
 }
 
-public class UpdateConversationCommandHandler(IUnitOfWork _unitOfWork, ICurrentUser currentUser)
+internal sealed class UpdateConversationCommandHandler(IUnitOfWork _unitOfWork, ICurrentUser currentUser)
     : IRequestHandler<UpdateConversationCommand>
 {
     public async Task Handle(UpdateConversationCommand request, CancellationToken cancellationToken)

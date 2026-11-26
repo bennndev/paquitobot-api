@@ -1,11 +1,12 @@
+using PaquitoBot.Application.Helpers;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Conversations.Command;
+namespace PaquitoBot.Application.UseCases.Conversations.Commands;
 
 public record DeleteConversationCommand(Guid ConversationId) : IRequest;
 
@@ -17,7 +18,7 @@ public class DeleteConversationCommandValidator : AbstractValidator<DeleteConver
     }
 }
 
-public class DeleteConversationCommandHandler(IUnitOfWork _unitOfWork, ICurrentUser currentUser)
+internal sealed class DeleteConversationCommandHandler(IUnitOfWork _unitOfWork, ICurrentUser currentUser)
     : IRequestHandler<DeleteConversationCommand>
 {
     public async Task Handle(DeleteConversationCommand request, CancellationToken cancellationToken)

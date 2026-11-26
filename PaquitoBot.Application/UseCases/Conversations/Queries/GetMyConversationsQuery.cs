@@ -1,19 +1,14 @@
+using PaquitoBot.Application.Dtos.Conversations;
 using MediatR;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 
-namespace PaquitoBot.Application.UseCases.Conversations.Query;
+namespace PaquitoBot.Application.UseCases.Conversations.Queries;
 
-public record GetMyConversationsResponse(
-    Guid ConversationId,
-    string? Title,
-    string Status,
-    DateTime CreatedAt,
-    DateTime UpdatedAt);
 
 public record GetMyConversationsQuery : IRequest<IReadOnlyList<GetMyConversationsResponse>>;
 
-public class GetMyConversationsQueryHandler(IUnitOfWork _unitOfWork, ICurrentUser _currentUser)
+internal sealed class GetMyConversationsQueryHandler(IUnitOfWork _unitOfWork, ICurrentUser _currentUser)
     : IRequestHandler<GetMyConversationsQuery, IReadOnlyList<GetMyConversationsResponse>>
 {
     public async Task<IReadOnlyList<GetMyConversationsResponse>> Handle(

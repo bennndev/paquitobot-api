@@ -1,12 +1,13 @@
+using PaquitoBot.Domain.Validations;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Conversations.Command;
+namespace PaquitoBot.Application.UseCases.Conversations.Commands;
 
 public record CreateConversationCommand(
     Guid? UserId = null,
@@ -23,7 +24,7 @@ public class CreateConversationCommandValidator : AbstractValidator<CreateConver
     }
 }
 
-public class CreateConversationCommandHandler(IUnitOfWork _unitOfWork, ICurrentUser currentUser)
+internal sealed class CreateConversationCommandHandler(IUnitOfWork _unitOfWork, ICurrentUser currentUser)
     : IRequestHandler<CreateConversationCommand, Guid>
 {
     public async Task<Guid> Handle(CreateConversationCommand request, CancellationToken cancellationToken)
@@ -37,10 +38,7 @@ public class CreateConversationCommandHandler(IUnitOfWork _unitOfWork, ICurrentU
 
         var ownerId = currentUser.IsAdministrator ? request.UserId ?? currentUserId : currentUserId;
 
-        if (!await _unitOfWork.Repository<User>().ExistsAsync(ownerId, cancellationToken))
-        {
-            throw new NotFoundException("User", ownerId);
-        }
+        await _unitOfWork.Repository<User>().EnsureExistsAsync("User", ownerId, cancellationToken);
 
         var conversation = new Conversation
         {
