@@ -1,12 +1,13 @@
+using PaquitoBot.Domain.Validations;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.CourseSections;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.CourseSections;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.CourseSections.Command;
+namespace PaquitoBot.Application.UseCases.CourseSections.Commands;
 
 public record CreateCourseSectionCommand(
     Guid CourseId,
@@ -36,7 +37,7 @@ public class CreateCourseSectionCommandValidator
     }
 }
 
-public class CreateCourseSectionCommandHandler(
+internal sealed class CreateCourseSectionCommandHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<CreateCourseSectionCommand, CourseSectionDto>
 {
@@ -44,17 +45,9 @@ public class CreateCourseSectionCommandHandler(
         CreateCourseSectionCommand request,
         CancellationToken cancellationToken)
     {
-        if (!await unitOfWork.Repository<Course>()
-            .ExistsAsync(request.CourseId, cancellationToken))
-        {
-            throw new NotFoundException("Course", request.CourseId);
-        }
+        await unitOfWork.Repository<Course>().EnsureExistsAsync("Course", request.CourseId, cancellationToken);
 
-        if (!await unitOfWork.Repository<AcademicPeriod>()
-            .ExistsAsync(request.AcademicPeriodId, cancellationToken))
-        {
-            throw new NotFoundException("AcademicPeriod", request.AcademicPeriodId);
-        }
+        await unitOfWork.Repository<AcademicPeriod>().EnsureExistsAsync("AcademicPeriod", request.AcademicPeriodId, cancellationToken);
 
         var section = new CourseSection
         {

@@ -1,10 +1,10 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.CourseSections.Command;
+namespace PaquitoBot.Application.UseCases.CourseSections.Commands;
 
 public record DeleteCourseSectionCommand(Guid SectionId) : IRequest;
 
@@ -17,7 +17,7 @@ public class DeleteCourseSectionCommandValidator
     }
 }
 
-public class DeleteCourseSectionCommandHandler(
+internal sealed class DeleteCourseSectionCommandHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<DeleteCourseSectionCommand>
 {
