@@ -1,10 +1,10 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.AssessmentPlans;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.AssessmentPlans;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.AssessmentPlans.Query;
+namespace PaquitoBot.Application.UseCases.AssessmentPlans.Queries;
 
 public record GetAssessmentPlanByIdQuery(Guid AssessmentPlanId) : IRequest<AssessmentPlanDto>;
 

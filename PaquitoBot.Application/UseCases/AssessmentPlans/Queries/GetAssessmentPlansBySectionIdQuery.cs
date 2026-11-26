@@ -1,8 +1,8 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.AssessmentPlans;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.AssessmentPlans;
+using PaquitoBot.Domain.Repositories;
 
-namespace PaquitoBot.Application.UseCases.AssessmentPlans.Query;
+namespace PaquitoBot.Application.UseCases.AssessmentPlans.Queries;
 
 public record GetAssessmentPlansBySectionIdQuery(Guid SectionId) : IRequest<IReadOnlyList<AssessmentPlanDto>>;
 
