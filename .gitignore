@@ -47,3 +47,7 @@ Thumbs.db
 # Tooling
 .codegraph/
 .atl/
+/infra/frappe/
+/docs/
+/integrations/frappe/
+/pruebas-financieras/
