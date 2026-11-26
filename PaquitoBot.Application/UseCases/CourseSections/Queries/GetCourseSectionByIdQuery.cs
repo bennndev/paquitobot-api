@@ -1,14 +1,14 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.CourseSections;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.CourseSections;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.CourseSections.Query;
+namespace PaquitoBot.Application.UseCases.CourseSections.Queries;
 
 public record GetCourseSectionByIdQuery(Guid SectionId) : IRequest<CourseSectionDto>;
 
-public class GetCourseSectionByIdQueryHandler(IUnitOfWork unitOfWork)
+internal sealed class GetCourseSectionByIdQueryHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<GetCourseSectionByIdQuery, CourseSectionDto>
 {
     public async Task<CourseSectionDto> Handle(
