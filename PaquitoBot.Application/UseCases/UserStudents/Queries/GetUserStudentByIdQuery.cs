@@ -1,13 +1,13 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.UserStudents;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.UserStudents;
+using PaquitoBot.Domain.Repositories;
 
-namespace PaquitoBot.Application.UseCases.UserStudents.Query;
+namespace PaquitoBot.Application.UseCases.UserStudents.Queries;
 
 public record GetUserStudentByIdQuery(Guid LinkId) : IRequest<UserStudentDto>;
 
-public class GetUserStudentByIdQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetUserStudentByIdQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetUserStudentByIdQuery, UserStudentDto>
 {
     public async Task<UserStudentDto> Handle(

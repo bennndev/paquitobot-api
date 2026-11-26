@@ -1,11 +1,12 @@
+using PaquitoBot.Domain.Validations;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.UserStudents;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.UserStudents;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.UserStudents.Command;
+namespace PaquitoBot.Application.UseCases.UserStudents.Commands;
 
 public record CreateUserStudentCommand(
     Guid UserId,
@@ -21,7 +22,7 @@ public class CreateUserStudentCommandValidator : AbstractValidator<CreateUserStu
     }
 }
 
-public class CreateUserStudentCommandHandler (IUnitOfWork _unitOfWork)
+internal sealed class CreateUserStudentCommandHandler (IUnitOfWork _unitOfWork)
     : IRequestHandler<CreateUserStudentCommand, UserStudentDto>
 {
 
@@ -29,15 +30,9 @@ public class CreateUserStudentCommandHandler (IUnitOfWork _unitOfWork)
         CreateUserStudentCommand request,
         CancellationToken cancellationToken)
     {
-        if (!await _unitOfWork.Repository<User>().ExistsAsync(request.UserId, cancellationToken))
-        {
-            throw new NotFoundException("User", request.UserId);
-        }
+        await _unitOfWork.Repository<User>().EnsureExistsAsync("User", request.UserId, cancellationToken);
 
-        if (!await _unitOfWork.Repository<Student>().ExistsAsync(request.StudentId, cancellationToken))
-        {
-            throw new NotFoundException("Student", request.StudentId);
-        }
+        await _unitOfWork.Repository<Student>().EnsureExistsAsync("Student", request.StudentId, cancellationToken);
 
         if (await _unitOfWork.UserStudents.PairExistsAsync(request.UserId, request.StudentId, cancellationToken))
         {

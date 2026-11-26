@@ -1,12 +1,12 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.UserStudents;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.UserStudents;
+using PaquitoBot.Domain.Repositories;
 
-namespace PaquitoBot.Application.UseCases.UserStudents.Query;
+namespace PaquitoBot.Application.UseCases.UserStudents.Queries;
 
 public record GetAllUserStudentsQuery : IRequest<IReadOnlyList<UserStudentDto>>;
 
-public class GetAllUserStudentsQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetAllUserStudentsQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetAllUserStudentsQuery, IReadOnlyList<UserStudentDto>>
 {
 

@@ -1,13 +1,13 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.UserStudents;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.UserStudents;
+using PaquitoBot.Domain.Repositories;
 
-namespace PaquitoBot.Application.UseCases.UserStudents.Command;
+namespace PaquitoBot.Application.UseCases.UserStudents.Commands;
 
 public record UpdateUserStudentCommand(Guid LinkId, bool IsPrimary) : IRequest<UserStudentDto>;
 
-public class UpdateUserStudentCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class UpdateUserStudentCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<UpdateUserStudentCommand, UserStudentDto>
 {
     public async Task<UserStudentDto> Handle(UpdateUserStudentCommand request, CancellationToken cancellationToken)
