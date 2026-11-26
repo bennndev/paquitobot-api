@@ -1,6 +1,6 @@
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.Students;
+namespace PaquitoBot.Application.Dtos.Students;
 
 public record StudentDto(
     Guid StudentId,
