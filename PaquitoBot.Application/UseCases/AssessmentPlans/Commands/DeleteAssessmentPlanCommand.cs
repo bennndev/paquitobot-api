@@ -1,9 +1,9 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.AssessmentPlans.Command;
+namespace PaquitoBot.Application.UseCases.AssessmentPlans.Commands;
 
 public record DeleteAssessmentPlanCommand(Guid AssessmentPlanId) : IRequest;
 
