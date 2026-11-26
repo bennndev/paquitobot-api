@@ -1,7 +1,8 @@
+using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 using PaquitoBot.Application.Services;
 
-namespace PaquitoBot.Api.Services;
+namespace PaquitoBot.Infrastructure.Services.Auth;
 
 public class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUser
 {

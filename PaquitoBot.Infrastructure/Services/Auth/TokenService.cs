@@ -1,13 +1,14 @@
-﻿using System.IdentityModel.Tokens.Jwt;
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
+using PaquitoBot.Infrastructure.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using PaquitoBot.Application.Services;
 
-namespace PaquitoBot.Infrastructure.Services;
+namespace PaquitoBot.Infrastructure.Services.Auth;
 
-public class TokenService(IConfiguration configuration) : ITokenService
+public class TokenService(IOptions<JwtSettings> options) : ITokenService
 {
     public string GenerateToken(Guid idUser, string role, string email, Guid? studentId = null)
     {
@@ -21,19 +22,14 @@ public class TokenService(IConfiguration configuration) : ITokenService
         {
             claims.Add(new Claim("student_id", studentId.Value.ToString()));
         }
-        var secret = configuration["JWTVariable:Secret"];
-        if (string.IsNullOrWhiteSpace(secret))
-            throw new InvalidOperationException("JWTVariable:Secret is not configured.");
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secret));
+        var settings = options.Value;
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(settings.Secret));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-        var issuer = configuration["JWTVariable:Issuer"];
-        var audience = configuration["JWTVariable:Audience"];
 
         var token = new JwtSecurityToken(
-            issuer: issuer,
-            audience: audience,
+            issuer: settings.Issuer,
+            audience: settings.Audience,
             claims: claims,
             expires: DateTime.UtcNow.AddHours(2),
             signingCredentials: creds);
