@@ -96,7 +96,8 @@ public class AskPaquitoCommandHandler(
             {
                 if (modelResponse.ToolRequest.Name != "get_my_courses" &&
                     modelResponse.ToolRequest.Name != "get_my_assessments" &&
-                    modelResponse.ToolRequest.Name != "get_my_grades")
+                    modelResponse.ToolRequest.Name != "get_my_grades" &&
+                    modelResponse.ToolRequest.Name != "get_my_attendance")
                 {
                     throw new InvalidOperationException("Gemini requested an unsupported tool.");
                 }
@@ -131,7 +132,7 @@ public class AskPaquitoCommandHandler(
                             assessment.Status
                         }));
                     }
-                    else
+                    else if (modelResponse.ToolRequest.Name == "get_my_grades")
                     {
                         var results = await _unitOfWork.AssessmentResults.GetByStudentIdAsync(studentId, cancellationToken);
                         var latestResults = results.GroupBy(result => result.AssessmentId)
@@ -146,6 +147,18 @@ public class AskPaquitoCommandHandler(
                             result.Grade,
                             result.Assessment.MaximumScore,
                             result.Notes
+                        }));
+                    }
+                    else
+                    {
+                        var records = await _unitOfWork.AttendanceRecords.GetByStudentIdAsync(studentId, cancellationToken);
+                        toolResult = JsonSerializer.Serialize(records.Select(record => new
+                        {
+                            Course = record.Section.Course.Name,
+                            record.Section.SectionCode,
+                            record.AttendanceDate,
+                            record.Status,
+                            record.Notes
                         }));
                     }
                 }
