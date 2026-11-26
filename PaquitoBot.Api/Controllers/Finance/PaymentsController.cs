@@ -1,15 +1,12 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.Payments;
-using PaquitoBot.Application.UseCases.Payments.Command;
-using PaquitoBot.Application.UseCases.Payments.Query;
+using PaquitoBot.Application.Dtos.Payments;
+using PaquitoBot.Application.UseCases.Payments.Commands;
+using PaquitoBot.Application.UseCases.Payments.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Finance;
 
-// Global financial payment administration is restricted to administrators.
-// PUT/DELETE routes are intentionally absent until audited reversal is implemented.
-// The finance ledger must not allow untracked edits or physical deletion of payments.
 [ApiController]
 [Authorize(Policy = "Administrator")]
 [Route("api/payments")]
@@ -35,11 +32,11 @@ public class PaymentsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<PaymentDto>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreatePaymentCommand command,
         CancellationToken cancellationToken)
     {
-        var payment = await _sender.Send(command, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = payment.PaymentId }, payment);
+        await _sender.Send(command, cancellationToken);
+        return Ok(new { message = "Pago creado" });
     }
 }

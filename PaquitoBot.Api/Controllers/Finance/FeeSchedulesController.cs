@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.FeeSchedules;
-using PaquitoBot.Application.UseCases.FeeSchedules.Command;
-using PaquitoBot.Application.UseCases.FeeSchedules.Query;
+using PaquitoBot.Application.Dtos.FeeSchedules;
+using PaquitoBot.Application.UseCases.FeeSchedules.Commands;
+using PaquitoBot.Application.UseCases.FeeSchedules.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Finance;
 
 [ApiController]
 [Authorize(Policy = "Administrator")]
@@ -32,22 +32,23 @@ public class FeeSchedulesController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<FeeScheduleDto>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateFeeScheduleCommand command,
         CancellationToken cancellationToken)
     {
-        var feeSchedule = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = feeSchedule.FeeScheduleId }, feeSchedule);
+        return Ok(new { message = "Cronograma de pago creado" });
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<FeeScheduleDto>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateFeeScheduleCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(command with { FeeScheduleId = id }, cancellationToken));
+        await _sender.Send(command with { FeeScheduleId = id }, cancellationToken);
+        return Ok(new { message = "Cronograma de pago actualizado" });
     }
 
     [HttpDelete("{id:guid}")]
@@ -55,6 +56,6 @@ public class FeeSchedulesController : ControllerBase
     {
         await _sender.Send(new DeleteFeeScheduleCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Cronograma de pago eliminado" });
     }
 }

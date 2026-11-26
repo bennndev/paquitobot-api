@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.FeeStructures;
-using PaquitoBot.Application.UseCases.FeeStructures.Command;
-using PaquitoBot.Application.UseCases.FeeStructures.Query;
+using PaquitoBot.Application.Dtos.FeeStructures;
+using PaquitoBot.Application.UseCases.FeeStructures.Commands;
+using PaquitoBot.Application.UseCases.FeeStructures.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Finance;
 
 [ApiController]
 [Authorize(Policy = "Administrator")]
@@ -32,22 +32,23 @@ public class FeeStructuresController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<FeeStructureDto>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateFeeStructureCommand command,
         CancellationToken cancellationToken)
     {
-        var feeStructure = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = feeStructure.FeeStructureId }, feeStructure);
+        return Ok(new { message = "Estructura de tarifas creada" });
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<FeeStructureDto>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateFeeStructureCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(command with { FeeStructureId = id }, cancellationToken));
+        await _sender.Send(command with { FeeStructureId = id }, cancellationToken);
+        return Ok(new { message = "Estructura de tarifas actualizada" });
     }
 
     [HttpDelete("{id:guid}")]
@@ -55,6 +56,6 @@ public class FeeStructuresController : ControllerBase
     {
         await _sender.Send(new DeleteFeeStructureCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Estructura de tarifas eliminada" });
     }
 }
