@@ -1,6 +1,6 @@
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.Courses;
+namespace PaquitoBot.Application.Dtos.Courses;
 
 public record CourseDto(
     Guid CourseId,
