@@ -1,6 +1,5 @@
-namespace PaquitoBot.Application.DTOs.StudentFinances;
+namespace PaquitoBot.Application.Dtos.StudentFinances;
 
-// Catalog amounts are templates, not amounts owed by a specific student.
 public sealed record StudentScheduleTuitionFeeDto(
     Guid TuitionFeeId,
     string Description,

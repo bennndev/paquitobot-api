@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.DTOs.StudentFinances;
+namespace PaquitoBot.Application.Dtos.StudentFinances;
 
 public sealed record TuitionFeeBalanceDto(
     Guid TuitionFeeId,
