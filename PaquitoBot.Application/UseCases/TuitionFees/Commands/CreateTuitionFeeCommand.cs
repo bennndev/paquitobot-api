@@ -1,14 +1,14 @@
-﻿using FluentValidation;
+using PaquitoBot.Domain.Validations;
+using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.TuitionFees;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.TuitionFees;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.TuitionFees.Command;
+namespace PaquitoBot.Application.UseCases.TuitionFees.Commands;
 
-// La moneda por defecto es PEN, igual que en la base de datos
 public record CreateTuitionFeeCommand(
     Guid StudentId,
     string Description,
@@ -38,20 +38,15 @@ public class CreateTuitionFeeCommandValidator : AbstractValidator<CreateTuitionF
     }
 }
 
-public class CreateTuitionFeeCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class CreateTuitionFeeCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<CreateTuitionFeeCommand, TuitionFeeDto>
 {
     public async Task<TuitionFeeDto> Handle(
         CreateTuitionFeeCommand request,
         CancellationToken cancellationToken)
     {
-        // El estudiante es obligatorio y debe existir
-        if (!await _unitOfWork.Repository<Student>().ExistsAsync(request.StudentId, cancellationToken))
-        {
-            throw new NotFoundException("Student", request.StudentId);
-        }
+        await _unitOfWork.Repository<Student>().EnsureExistsAsync("Student", request.StudentId, cancellationToken);
 
-        // El cronograma es opcional, pero si lo mandan debe existir
         if (request.FeeScheduleId.HasValue
             && !await _unitOfWork.Repository<FeeSchedule>().ExistsAsync(request.FeeScheduleId.Value, cancellationToken))
         {

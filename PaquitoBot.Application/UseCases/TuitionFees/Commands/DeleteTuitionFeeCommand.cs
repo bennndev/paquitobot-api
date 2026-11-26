@@ -1,13 +1,13 @@
-﻿using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using MediatR;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.TuitionFees.Command;
+namespace PaquitoBot.Application.UseCases.TuitionFees.Commands;
 
 public record DeleteTuitionFeeCommand(Guid TuitionFeeId) : IRequest;
 
-public class DeleteTuitionFeeCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class DeleteTuitionFeeCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<DeleteTuitionFeeCommand>
 {
     public async Task Handle(DeleteTuitionFeeCommand request, CancellationToken cancellationToken)

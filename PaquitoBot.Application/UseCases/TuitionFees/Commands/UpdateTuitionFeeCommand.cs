@@ -1,12 +1,12 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.TuitionFees;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.TuitionFees;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.TuitionFees.Command;
+namespace PaquitoBot.Application.UseCases.TuitionFees.Commands;
 
 public record UpdateTuitionFeeCommand(
     Guid TuitionFeeId,
@@ -34,7 +34,7 @@ public class UpdateTuitionFeeCommandValidator : AbstractValidator<UpdateTuitionF
     }
 }
 
-public class UpdateTuitionFeeCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class UpdateTuitionFeeCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<UpdateTuitionFeeCommand, TuitionFeeDto>
 {
     public async Task<TuitionFeeDto> Handle(
@@ -51,7 +51,6 @@ public class UpdateTuitionFeeCommandHandler(IUnitOfWork _unitOfWork)
             throw new NotFoundException("FeeSchedule", request.FeeScheduleId.Value);
         }
 
-        // El estudiante (StudentId) no se cambia aquí
         tuitionFee.Description = TextNormalizer.Required(request.Description);
         tuitionFee.CurrencyCode = TextNormalizer.Required(request.CurrencyCode).ToUpperInvariant();
         tuitionFee.OriginalAmount = request.OriginalAmount;
