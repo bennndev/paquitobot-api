@@ -1,6 +1,6 @@
-﻿using PaquitoBot.Domain.Models;
+using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.TuitionFees;
+namespace PaquitoBot.Application.Dtos.TuitionFees;
 
 public record TuitionFeeDto(
     Guid TuitionFeeId,
