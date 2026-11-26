@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.Common.Exceptions;
+namespace PaquitoBot.Domain.Exceptions;
 
 public class NotFoundException : Exception
 {

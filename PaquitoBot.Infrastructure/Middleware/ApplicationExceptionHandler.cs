@@ -2,9 +2,9 @@ using FluentValidation;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.Common.Exceptions;
+using PaquitoBot.Domain.Exceptions;
 
-namespace PaquitoBot.Api.Middleware;
+namespace PaquitoBot.Infrastructure.Middleware;
 
 public class ApplicationExceptionHandler : IExceptionHandler
 {
