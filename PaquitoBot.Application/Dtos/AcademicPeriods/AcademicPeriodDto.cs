@@ -1,7 +1,7 @@
 
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.AcademicPeriods;
+namespace PaquitoBot.Application.Dtos.AcademicPeriods;
 
 public record AcademicPeriodDto(
     Guid AcademicPeriodId,
