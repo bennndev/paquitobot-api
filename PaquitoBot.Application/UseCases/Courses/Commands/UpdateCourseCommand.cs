@@ -1,12 +1,12 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Courses;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Courses;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Courses.Command;
+namespace PaquitoBot.Application.UseCases.Courses.Commands;
 
 public record UpdateCourseCommand(
     Guid CourseId,
@@ -36,7 +36,7 @@ public class UpdateCourseCommandValidator
     }
 }
 
-public class UpdateCourseCommandHandler(
+internal sealed class UpdateCourseCommandHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<UpdateCourseCommand, CourseDto>
 {
