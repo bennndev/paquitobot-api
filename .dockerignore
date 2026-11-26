@@ -1,0 +1,14 @@
+**/bin/
+**/obj/
+.git/
+.github/
+.idea/
+.claude/
+.atl/
+docs/
+infra/
+integrations/
+pruebas-financieras/
+*.env
+.env.*
+secrets.json
