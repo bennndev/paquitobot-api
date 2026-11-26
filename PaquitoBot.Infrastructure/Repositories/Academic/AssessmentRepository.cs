@@ -1,9 +1,9 @@
-﻿using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 using Microsoft.EntityFrameworkCore;
-using PaquitoBot.Infrastructure.Data;
+using PaquitoBot.Infrastructure.DbContext;
 
-namespace PaquitoBot.Infrastructure.Repositories;
+namespace PaquitoBot.Infrastructure.Repositories.Academic;
 
 public class AssessmentRepository : GenericRepository<Assessment>, IAssessmentRepository
 {
