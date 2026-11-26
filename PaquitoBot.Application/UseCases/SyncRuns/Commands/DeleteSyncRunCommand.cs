@@ -1,10 +1,10 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.SyncRuns.Command;
+namespace PaquitoBot.Application.UseCases.SyncRuns.Commands;
 
 public record DeleteSyncRunCommand(Guid SyncRunId) : IRequest;
 
@@ -16,7 +16,7 @@ public class DeleteSyncRunCommandValidator : AbstractValidator<DeleteSyncRunComm
     }
 }
 
-public class DeleteSyncRunCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class DeleteSyncRunCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<DeleteSyncRunCommand>
 {
     public async Task Handle(DeleteSyncRunCommand request, CancellationToken cancellationToken)

@@ -1,20 +1,12 @@
+using PaquitoBot.Application.Dtos.SyncRuns;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.SyncRuns.Query;
+namespace PaquitoBot.Application.UseCases.SyncRuns.Queries;
 
-public record GetSyncRunByIdResponse(
-    Guid SyncRunId,
-    string EntityName,
-    string Status,
-    DateTime StartDate,
-    DateTime? EndDate,
-    int ProcessedRecords,
-    string? ErrorMessage,
-    DateTime CreatedAt);
 
 public record GetSyncRunByIdQuery(Guid SyncRunId) : IRequest<GetSyncRunByIdResponse>;
 
@@ -26,7 +18,7 @@ public class GetSyncRunByIdQueryValidator : AbstractValidator<GetSyncRunByIdQuer
     }
 }
 
-public class GetSyncRunByIdQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetSyncRunByIdQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetSyncRunByIdQuery, GetSyncRunByIdResponse>
 {
     public async Task<GetSyncRunByIdResponse> Handle(

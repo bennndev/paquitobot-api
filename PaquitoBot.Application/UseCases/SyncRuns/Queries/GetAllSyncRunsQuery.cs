@@ -1,19 +1,12 @@
+using PaquitoBot.Application.Dtos.SyncRuns;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Constants;
 
-namespace PaquitoBot.Application.UseCases.SyncRuns.Query;
+namespace PaquitoBot.Application.UseCases.SyncRuns.Queries;
 
-public record GetAllSyncRunsResponse(
-    Guid SyncRunId,
-    string EntityName,
-    string Status,
-    DateTime StartDate,
-    DateTime? EndDate,
-    int ProcessedRecords,
-    string? ErrorMessage);
 
 public record GetAllSyncRunsQuery(
     string? EntityName = null,
@@ -40,7 +33,7 @@ public class GetAllSyncRunsQueryValidator : AbstractValidator<GetAllSyncRunsQuer
     }
 }
 
-public class GetAllSyncRunsQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetAllSyncRunsQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetAllSyncRunsQuery, IReadOnlyList<GetAllSyncRunsResponse>>
 {
     public async Task<IReadOnlyList<GetAllSyncRunsResponse>> Handle(

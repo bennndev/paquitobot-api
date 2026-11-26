@@ -1,11 +1,11 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.SyncRuns.Command;
+namespace PaquitoBot.Application.UseCases.SyncRuns.Commands;
 
 public record StartSyncRunCommand(string EntityName) : IRequest<Guid>;
 
@@ -17,7 +17,7 @@ public class StartSyncRunCommandValidator : AbstractValidator<StartSyncRunComman
     }
 }
 
-public class StartSyncRunCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class StartSyncRunCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<StartSyncRunCommand, Guid>
 {
     public async Task<Guid> Handle(StartSyncRunCommand request, CancellationToken cancellationToken)

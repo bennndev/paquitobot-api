@@ -1,20 +1,13 @@
+using PaquitoBot.Application.Dtos.SyncRuns;
 using MediatR;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Repositories;
 
-namespace PaquitoBot.Application.UseCases.SyncRuns.Query;
+namespace PaquitoBot.Application.UseCases.SyncRuns.Queries;
 
-public record GetLatestSyncRunByEntityResponse(
-    Guid SyncRunId,
-    string EntityName,
-    string Status,
-    DateTime StartDate,
-    DateTime? EndDate,
-    int ProcessedRecords,
-    string? ErrorMessage);
 
 public record GetLatestSyncRunByEntityQuery : IRequest<IReadOnlyList<GetLatestSyncRunByEntityResponse>>;
 
-public class GetLatestSyncRunByEntityQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetLatestSyncRunByEntityQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetLatestSyncRunByEntityQuery, IReadOnlyList<GetLatestSyncRunByEntityResponse>>
 {
     public async Task<IReadOnlyList<GetLatestSyncRunByEntityResponse>> Handle(
