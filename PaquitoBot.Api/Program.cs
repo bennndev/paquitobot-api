@@ -19,6 +19,7 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddCorsPolicy(builder.Configuration);
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddInfrastructure(connectionString);
 builder.Services.AddApplication();
@@ -37,6 +38,7 @@ app.UseExceptionHandler();
 app.UseSwaggerDocs();
 
 app.UseHttpsRedirection();
+app.UseCorsPolicy();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
