@@ -1,12 +1,13 @@
+using PaquitoBot.Application.Services;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Command;
+namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Commands;
 
 public record CreateKnowledgeDocumentCommand(
     string Title,
@@ -41,7 +42,7 @@ public class CreateKnowledgeDocumentCommandValidator : AbstractValidator<CreateK
     }
 }
 
-public class CreateKnowledgeDocumentCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class CreateKnowledgeDocumentCommandHandler(IUnitOfWork _unitOfWork, IContentHasher contentHasher)
     : IRequestHandler<CreateKnowledgeDocumentCommand, Guid>
 {
     public async Task<Guid> Handle(CreateKnowledgeDocumentCommand request, CancellationToken cancellationToken)
@@ -62,7 +63,7 @@ public class CreateKnowledgeDocumentCommandHandler(IUnitOfWork _unitOfWork)
             Source = TextNormalizer.Optional(request.Source),
             SourceUrl = TextNormalizer.Optional(request.SourceUrl),
             Content = content,
-            ContentHash = content is null ? null : ContentHasher.Sha256(content),
+            ContentHash = content is null ? null : contentHasher.Sha256(content),
             Status = KnowledgeDocumentStatus.Pending
         };
 

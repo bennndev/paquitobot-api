@@ -1,12 +1,13 @@
+using PaquitoBot.Application.Services;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Command;
+namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Commands;
 
 public record UpdateKnowledgeDocumentCommand(
     Guid DocumentId,
@@ -43,7 +44,7 @@ public class UpdateKnowledgeDocumentCommandValidator : AbstractValidator<UpdateK
     }
 }
 
-public class UpdateKnowledgeDocumentCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class UpdateKnowledgeDocumentCommandHandler(IUnitOfWork _unitOfWork, IContentHasher contentHasher)
     : IRequestHandler<UpdateKnowledgeDocumentCommand>
 {
     public async Task Handle(UpdateKnowledgeDocumentCommand request, CancellationToken cancellationToken)
@@ -58,7 +59,7 @@ public class UpdateKnowledgeDocumentCommandHandler(IUnitOfWork _unitOfWork)
         }
 
         var content = TextNormalizer.Optional(request.Content);
-        var contentHash = content is null ? null : ContentHasher.Sha256(content);
+        var contentHash = content is null ? null : contentHasher.Sha256(content);
 
         if (contentHash != document.ContentHash)
         {

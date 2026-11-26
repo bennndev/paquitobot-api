@@ -1,22 +1,12 @@
+using PaquitoBot.Application.Dtos.KnowledgeDocuments;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Constants;
 
-namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Query;
+namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Queries;
 
-public record GetAllKnowledgeDocumentsResponse(
-    Guid DocumentId,
-    Guid? CourseId,
-    string Title,
-    string? DocumentType,
-    string? Source,
-    string? SourceUrl,
-    string? ContentHash,
-    string Status,
-    DateTime? IndexedAt,
-    DateTime UpdatedAt);
 
 public record GetAllKnowledgeDocumentsQuery(
     Guid? CourseId = null,
@@ -42,7 +32,7 @@ public class GetAllKnowledgeDocumentsQueryValidator : AbstractValidator<GetAllKn
     }
 }
 
-public class GetAllKnowledgeDocumentsQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetAllKnowledgeDocumentsQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetAllKnowledgeDocumentsQuery, IReadOnlyList<GetAllKnowledgeDocumentsResponse>>
 {
     public async Task<IReadOnlyList<GetAllKnowledgeDocumentsResponse>> Handle(

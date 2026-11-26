@@ -1,24 +1,12 @@
+using PaquitoBot.Application.Dtos.KnowledgeDocuments;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Query;
+namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Queries;
 
-public record GetKnowledgeDocumentByIdResponse(
-    Guid DocumentId,
-    Guid? CourseId,
-    string Title,
-    string? DocumentType,
-    string? Source,
-    string? SourceUrl,
-    string? Content,
-    string? ContentHash,
-    string Status,
-    DateTime? IndexedAt,
-    DateTime CreatedAt,
-    DateTime UpdatedAt);
 
 public record GetKnowledgeDocumentByIdQuery(Guid DocumentId) : IRequest<GetKnowledgeDocumentByIdResponse>;
 
@@ -30,7 +18,7 @@ public class GetKnowledgeDocumentByIdQueryValidator : AbstractValidator<GetKnowl
     }
 }
 
-public class GetKnowledgeDocumentByIdQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetKnowledgeDocumentByIdQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetKnowledgeDocumentByIdQuery, GetKnowledgeDocumentByIdResponse>
 {
     public async Task<GetKnowledgeDocumentByIdResponse> Handle(

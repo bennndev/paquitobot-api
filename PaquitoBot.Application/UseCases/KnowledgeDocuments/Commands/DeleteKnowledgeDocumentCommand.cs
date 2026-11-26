@@ -1,10 +1,10 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Command;
+namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Commands;
 
 public record DeleteKnowledgeDocumentCommand(Guid DocumentId) : IRequest;
 
@@ -16,7 +16,7 @@ public class DeleteKnowledgeDocumentCommandValidator : AbstractValidator<DeleteK
     }
 }
 
-public class DeleteKnowledgeDocumentCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class DeleteKnowledgeDocumentCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<DeleteKnowledgeDocumentCommand>
 {
     public async Task Handle(DeleteKnowledgeDocumentCommand request, CancellationToken cancellationToken)

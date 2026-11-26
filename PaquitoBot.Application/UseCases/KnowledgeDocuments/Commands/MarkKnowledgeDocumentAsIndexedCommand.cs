@@ -1,11 +1,11 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Command;
+namespace PaquitoBot.Application.UseCases.KnowledgeDocuments.Commands;
 
 public record MarkKnowledgeDocumentAsIndexedCommand(Guid DocumentId) : IRequest;
 
@@ -18,7 +18,7 @@ public class MarkKnowledgeDocumentAsIndexedCommandValidator
     }
 }
 
-public class MarkKnowledgeDocumentAsIndexedCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class MarkKnowledgeDocumentAsIndexedCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<MarkKnowledgeDocumentAsIndexedCommand>
 {
     public async Task Handle(
