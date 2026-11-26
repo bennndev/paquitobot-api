@@ -1,6 +1,6 @@
-﻿using PaquitoBot.Domain.Models;
+using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Repositories;
+namespace PaquitoBot.Domain.Repositories;
 
 public interface IAssessmentRepository : IGenericRepository<Assessment>
 {
