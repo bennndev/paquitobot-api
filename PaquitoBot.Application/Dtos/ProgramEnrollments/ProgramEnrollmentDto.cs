@@ -1,6 +1,6 @@
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.ProgramEnrollments;
+namespace PaquitoBot.Application.Dtos.ProgramEnrollments;
 
 public record ProgramEnrollmentDto(
     Guid ProgramEnrollmentId,
