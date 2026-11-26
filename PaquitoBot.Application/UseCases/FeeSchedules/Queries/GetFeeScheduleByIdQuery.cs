@@ -1,14 +1,14 @@
-﻿using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.FeeSchedules;
-using PaquitoBot.Application.Repositories;
+using MediatR;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.FeeSchedules;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.FeeSchedules.Query;
+namespace PaquitoBot.Application.UseCases.FeeSchedules.Queries;
 
 public record GetFeeScheduleByIdQuery(Guid FeeScheduleId) : IRequest<FeeScheduleDto>;
 
-public class GetFeeScheduleByIdQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetFeeScheduleByIdQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetFeeScheduleByIdQuery, FeeScheduleDto>
 {
     public async Task<FeeScheduleDto> Handle(
