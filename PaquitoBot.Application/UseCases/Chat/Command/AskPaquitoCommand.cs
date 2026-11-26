@@ -35,7 +35,6 @@ public class AskPaquitoCommandValidator : AbstractValidator<AskPaquitoCommand>
 public class AskPaquitoCommandHandler(
     IUnitOfWork _unitOfWork,
     ICurrentUser _currentUser,
-    IKnowledgeRetriever _knowledgeRetriever,
     IAnswerProvider _answerProvider)
     : IRequestHandler<AskPaquitoCommand, AskPaquitoResponse>
 {
@@ -60,18 +59,15 @@ public class AskPaquitoCommandHandler(
         await _unitOfWork.Messages.AddAsync(questionMessage, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
-        IReadOnlyList<KnowledgeSource> sources = [];
         var succeeded = true;
         string answer;
 
         try
         {
-            sources = await _knowledgeRetriever.RetrieveAsync(question, cancellationToken);
-            answer = await _answerProvider.GenerateAnswerAsync(question, sources, cancellationToken);
+            answer = await _answerProvider.GenerateAnswerAsync(question, cancellationToken);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            sources = [];
             answer = FailureAnswer;
             succeeded = false;
         }
@@ -80,7 +76,7 @@ public class AskPaquitoCommandHandler(
         {
             ConversationId = conversation.ConversationId,
             SenderType = MessageSenderType.Assistant,
-            Content = MessageSources.Append(answer, sources)
+            Content = answer
         };
 
         await _unitOfWork.Messages.AddAsync(answerMessage, cancellationToken);
@@ -93,7 +89,7 @@ public class AskPaquitoCommandHandler(
             answerMessage.MessageId,
             answer,
             succeeded,
-            sources.Select(s => new AskPaquitoSourceResponse(s.DocumentId, s.Title)).ToList());
+            []);
     }
 
     private async Task<Conversation> GetOrCreateConversationAsync(
