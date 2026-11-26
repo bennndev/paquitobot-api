@@ -1,11 +1,9 @@
-using System.Text.Json;
 using FluentValidation;
 using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
-using PaquitoBot.Application.UseCases.StudentFinances.Query;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 
@@ -38,7 +36,7 @@ public class AskPaquitoCommandHandler(
     IUnitOfWork _unitOfWork,
     ICurrentUser _currentUser,
     IAnswerProvider _answerProvider,
-    ISender _sender)
+    IChatToolExecutor _toolExecutor)
     : IRequestHandler<AskPaquitoCommand, AskPaquitoResponse>
 {
     private const int MaxTitleLength = 80;
@@ -96,129 +94,7 @@ public class AskPaquitoCommandHandler(
             }
             else
             {
-                if (modelResponse.ToolRequest.Name != "get_my_courses" &&
-                    modelResponse.ToolRequest.Name != "get_my_assessments" &&
-                    modelResponse.ToolRequest.Name != "get_my_grades" &&
-                    modelResponse.ToolRequest.Name != "get_my_attendance" &&
-                    modelResponse.ToolRequest.Name != "get_my_finances" &&
-                    modelResponse.ToolRequest.Name != "get_my_schedule" &&
-                    modelResponse.ToolRequest.Name != "get_my_assessment_plans")
-                {
-                    throw new InvalidOperationException("Gemini requested an unsupported tool.");
-                }
-
-                string toolResult;
-                if (_currentUser.StudentId is not Guid studentId ||
-                    !await _unitOfWork.UserStudents.PairExistsAsync(userId, studentId, cancellationToken))
-                {
-                    toolResult = JsonSerializer.Serialize(new { error = "student_account_not_connected" });
-                }
-                else
-                {
-                    if (modelResponse.ToolRequest.Name == "get_my_courses")
-                    {
-                        var courses = await _unitOfWork.Courses.GetByStudentIdAsync(studentId, cancellationToken);
-                        toolResult = JsonSerializer.Serialize(courses.Select(course => new
-                        {
-                            course.Code,
-                            course.Name,
-                            course.Status
-                        }));
-                    }
-                    else if (modelResponse.ToolRequest.Name == "get_my_assessments")
-                    {
-                        var assessments = await _unitOfWork.Assessments.GetByStudentIdAsync(studentId, cancellationToken);
-                        toolResult = JsonSerializer.Serialize(assessments.Select(assessment => new
-                        {
-                            assessment.Title,
-                            assessment.AssessmentType,
-                            assessment.AssessmentDate,
-                            assessment.MaximumScore,
-                            assessment.Status
-                        }));
-                    }
-                    else if (modelResponse.ToolRequest.Name == "get_my_grades")
-                    {
-                        var results = await _unitOfWork.AssessmentResults.GetByStudentIdAsync(studentId, cancellationToken);
-                        var latestResults = results.GroupBy(result => result.AssessmentId)
-                            .Select(group => group.OrderByDescending(result => result.UpdatedAt)
-                                .ThenByDescending(result => result.CreatedAt)
-                                .ThenByDescending(result => result.ResultId)
-                                .First());
-                        toolResult = JsonSerializer.Serialize(latestResults.Select(result => new
-                        {
-                            result.Assessment.Title,
-                            result.Assessment.AssessmentDate,
-                            result.Grade,
-                            result.Assessment.MaximumScore,
-                            result.Notes
-                        }));
-                    }
-                    else if (modelResponse.ToolRequest.Name == "get_my_attendance")
-                    {
-                        var records = await _unitOfWork.AttendanceRecords.GetByStudentIdAsync(studentId, cancellationToken);
-                        toolResult = JsonSerializer.Serialize(records.Select(record => new
-                        {
-                            Course = record.Section.Course.Name,
-                            record.Section.SectionCode,
-                            record.AttendanceDate,
-                            record.Status,
-                            record.Notes
-                        }));
-                    }
-                    else if (modelResponse.ToolRequest.Name == "get_my_finances")
-                    {
-                        var statement = await _sender.Send(
-                            new GetStudentFinancialStatementQuery(studentId, userId), cancellationToken);
-                        toolResult = JsonSerializer.Serialize(new
-                        {
-                            statement.AsOf,
-                            statement.Currencies,
-                            Obligations = statement.Obligations.Select(obligation => new
-                            {
-                                obligation.Description,
-                                obligation.CurrencyCode,
-                                obligation.OriginalAmount,
-                                obligation.ConfirmedPaidAmount,
-                                obligation.OutstandingAmount,
-                                obligation.DueDate,
-                                obligation.CalculatedStatus,
-                                obligation.ReconciliationRequired
-                            }),
-                            statement.PaymentsNotCounted
-                        });
-                    }
-                    else if (modelResponse.ToolRequest.Name == "get_my_schedule")
-                    {
-                        var schedules = await _unitOfWork.CourseSchedules.GetByStudentIdAsync(studentId, cancellationToken);
-                        toolResult = JsonSerializer.Serialize(schedules.Select(schedule => new
-                        {
-                            Course = schedule.Section.Course.Name,
-                            schedule.Section.SectionCode,
-                            schedule.ClassDate,
-                            schedule.StartTime,
-                            schedule.EndTime,
-                            schedule.Location,
-                            schedule.DeliveryMode,
-                            schedule.Status
-                        }));
-                    }
-                    else
-                    {
-                        var plans = await _unitOfWork.AssessmentPlans.GetByStudentIdAsync(studentId, cancellationToken);
-                        toolResult = JsonSerializer.Serialize(plans.Select(plan => new
-                        {
-                            Course = plan.Section.Course.Name,
-                            plan.Section.SectionCode,
-                            plan.Title,
-                            plan.Description,
-                            plan.ScheduledDate,
-                            plan.MaximumScore,
-                            plan.Status
-                        }));
-                    }
-                }
-
+                var toolResult = await _toolExecutor.ExecuteAsync(modelResponse.ToolRequest.Name, cancellationToken);
                 answer = await _answerProvider.CompleteToolAsync(
                     modelResponse.ToolRequest, toolResult, cancellationToken);
             }
