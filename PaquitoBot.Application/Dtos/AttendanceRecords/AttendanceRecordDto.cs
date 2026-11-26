@@ -1,6 +1,6 @@
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.AttendanceRecords;
+namespace PaquitoBot.Application.Dtos.AttendanceRecords;
 
 public record AttendanceRecordDto(
     Guid AttendanceId,
