@@ -1,10 +1,11 @@
+using PaquitoBot.Application.Dtos.Conversations;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.UseCases.Conversations.Command;
-using PaquitoBot.Application.UseCases.Conversations.Query;
+using PaquitoBot.Application.UseCases.Conversations.Commands;
+using PaquitoBot.Application.UseCases.Conversations.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Chat;
 
 [ApiController]
 [Authorize(Policy = "AdministratorOrStudent")]
@@ -40,13 +41,13 @@ public class ConversationsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Guid>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateConversationCommand command,
         CancellationToken cancellationToken)
     {
-        var conversationId = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = conversationId }, conversationId);
+        return Ok(new { message = "Conversación creada" });
     }
 
     [HttpPut("{id:guid}")]
@@ -57,7 +58,7 @@ public class ConversationsController : ControllerBase
     {
         await _sender.Send(command with { ConversationId = id }, cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Conversación actualizada" });
     }
 
     [HttpDelete("{id:guid}")]
@@ -65,6 +66,6 @@ public class ConversationsController : ControllerBase
     {
         await _sender.Send(new DeleteConversationCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Conversación eliminada" });
     }
 }

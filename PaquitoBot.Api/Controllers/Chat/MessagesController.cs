@@ -1,10 +1,11 @@
+using PaquitoBot.Application.Dtos.Messages;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.UseCases.Messages.Command;
-using PaquitoBot.Application.UseCases.Messages.Query;
+using PaquitoBot.Application.UseCases.Messages.Commands;
+using PaquitoBot.Application.UseCases.Messages.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Chat;
 
 [ApiController]
 [Authorize(Policy = "AdministratorOrStudent")]
@@ -34,13 +35,13 @@ public class MessagesController : ControllerBase
 
     [Authorize(Policy = "Administrator")]
     [HttpPost]
-    public async Task<ActionResult<Guid>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateMessageCommand command,
         CancellationToken cancellationToken)
     {
-        var messageId = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = messageId }, messageId);
+        return Ok(new { message = "Mensaje creado" });
     }
 
     [HttpGet("conversations/{conversationId:guid}/history")]
@@ -54,6 +55,6 @@ public class MessagesController : ControllerBase
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
         await _sender.Send(new DeleteMessageCommand(id), cancellationToken);
-        return NoContent();
+        return Ok(new { message = "Mensaje eliminado" });
     }
 }

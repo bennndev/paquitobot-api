@@ -1,9 +1,10 @@
+using PaquitoBot.Application.Dtos.Chat;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.UseCases.Chat.Command;
+using PaquitoBot.Application.UseCases.Chat.Commands;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Chat;
 
 [ApiController]
 [Authorize(Policy = "AdministratorOrStudent")]

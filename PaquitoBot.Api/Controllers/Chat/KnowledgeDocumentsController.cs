@@ -1,10 +1,11 @@
+using PaquitoBot.Application.Dtos.KnowledgeDocuments;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.UseCases.KnowledgeDocuments.Command;
-using PaquitoBot.Application.UseCases.KnowledgeDocuments.Query;
+using PaquitoBot.Application.UseCases.KnowledgeDocuments.Commands;
+using PaquitoBot.Application.UseCases.KnowledgeDocuments.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Chat;
 
 [ApiController]
 [Authorize(Policy = "Administrator")]
@@ -41,13 +42,13 @@ public class KnowledgeDocumentsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<Guid>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateKnowledgeDocumentCommand command,
         CancellationToken cancellationToken)
     {
-        var documentId = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = documentId }, documentId);
+        return Ok(new { message = "Documento creado" });
     }
 
     [HttpPut("{id:guid}")]
@@ -58,7 +59,7 @@ public class KnowledgeDocumentsController : ControllerBase
     {
         await _sender.Send(command with { DocumentId = id }, cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Documento actualizado" });
     }
 
     [HttpPut("{id:guid}/indexed")]
@@ -66,7 +67,7 @@ public class KnowledgeDocumentsController : ControllerBase
     {
         await _sender.Send(new MarkKnowledgeDocumentAsIndexedCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Documento actualizado" });
     }
 
     [HttpDelete("{id:guid}")]
@@ -74,6 +75,6 @@ public class KnowledgeDocumentsController : ControllerBase
     {
         await _sender.Send(new DeleteKnowledgeDocumentCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Documento eliminado" });
     }
 }
