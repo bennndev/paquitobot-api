@@ -1,9 +1,9 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.AssessmentsResults;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.AssessmentsResults;
+using PaquitoBot.Domain.Repositories;
 
-namespace PaquitoBot.Application.UseCases.AssessmentsResults.Query;
+namespace PaquitoBot.Application.UseCases.AssessmentsResults.Queries;
 
 public record GetStudentResultByAssessmentIdQuery(Guid StudentId, Guid AssessmentId)
     : IRequest<AssessmentResultDto>;

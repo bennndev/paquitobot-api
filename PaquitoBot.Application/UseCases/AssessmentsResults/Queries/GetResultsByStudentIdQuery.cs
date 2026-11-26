@@ -1,8 +1,8 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.AssessmentsResults;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.AssessmentsResults;
+using PaquitoBot.Domain.Repositories;
 
-namespace PaquitoBot.Application.UseCases.AssessmentsResults.Query;
+namespace PaquitoBot.Application.UseCases.AssessmentsResults.Queries;
 
 public record GetResultsByStudentIdQuery(Guid StudentId) : IRequest<IReadOnlyList<AssessmentResultDto>>;
 
