@@ -26,6 +26,7 @@ public static class DependencyInjection
         services.AddScoped<IFrappeStudentSyncService, FrappeStudentSyncService>();
         services.AddScoped<IKnowledgeRetriever, DocumentKnowledgeRetriever>();
         services.AddScoped<IAnswerProvider, SimulatedAnswerProvider>();
+        services.AddScoped<IReportExcelExporter, ReportExcelExporter>();
 
         var repositories = typeof(DependencyInjection).Assembly.GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } && type.Name.EndsWith("Repository"));
