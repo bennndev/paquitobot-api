@@ -41,7 +41,11 @@ public static class DependencyInjectionSwagger
         if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("Swagger:Enabled"))
         {
             app.UseSwagger();
-            app.UseSwaggerUI(options => options.RoutePrefix = string.Empty);
+            app.UseSwaggerUI(options =>
+            {
+                options.RoutePrefix = string.Empty;
+                options.SwaggerEndpoint("/swagger/v1/swagger.json", "PaquitoBot API v1");
+            });
         }
 
         return app;
