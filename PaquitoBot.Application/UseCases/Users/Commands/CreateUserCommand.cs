@@ -1,11 +1,11 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Users;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Users;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Users.Command;
+namespace PaquitoBot.Application.UseCases.Users.Commands;
 
 public record CreateUserCommand(
     string Username,
@@ -25,7 +25,7 @@ public class CreateUserCommandValidator : AbstractValidator<CreateUserCommand>
     }
 }
 
-public class CreateUserCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<CreateUserCommand, UserDto>
+internal sealed class CreateUserCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<CreateUserCommand, UserDto>
 {
     public async Task<UserDto> Handle(CreateUserCommand request, CancellationToken cancellationToken)
     {
