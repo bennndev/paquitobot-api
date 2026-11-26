@@ -1,15 +1,14 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Instructors;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Instructors;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Instructors.Command;
+namespace PaquitoBot.Application.UseCases.Instructors.Commands;
 
-public record UpdateInstructorCommand(
-    Guid InstructorId,
+public record CreateInstructorCommand(
+    string? FrappeExternalId = null,
     string? FirstName = null,
     string? LastName = null,
     string? FullName = null,
@@ -17,12 +16,13 @@ public record UpdateInstructorCommand(
     string? Phone = null,
     string? Status = null) : IRequest<InstructorDto>;
 
-public class UpdateInstructorCommandValidator : AbstractValidator<UpdateInstructorCommand>
+public class CreateInstructorCommandValidator : AbstractValidator<CreateInstructorCommand>
 {
-    public UpdateInstructorCommandValidator()
+    public CreateInstructorCommandValidator()
     {
         RuleLevelCascadeMode = CascadeMode.Stop;
 
+        RuleFor(c => c.FrappeExternalId).MaximumLength(140);
         RuleFor(c => c.FirstName).MaximumLength(160);
         RuleFor(c => c.LastName).MaximumLength(160);
         RuleFor(c => c.FullName).MaximumLength(320);
@@ -32,25 +32,26 @@ public class UpdateInstructorCommandValidator : AbstractValidator<UpdateInstruct
     }
 }
 
-public class UpdateInstructorCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<UpdateInstructorCommand, InstructorDto>
+internal sealed class CreateInstructorCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<CreateInstructorCommand, InstructorDto>
 {
-    public async Task<InstructorDto> Handle(UpdateInstructorCommand request, CancellationToken cancellationToken)
+    public async Task<InstructorDto> Handle(CreateInstructorCommand request, CancellationToken cancellationToken)
     {
-        var instructor = await _unitOfWork.Repository<Instructor>().GetByIdAsync(request.InstructorId, cancellationToken)
-            ?? throw new NotFoundException("Instructor", request.InstructorId);
-
         var firstName = TextNormalizer.Optional(request.FirstName);
         var lastName = TextNormalizer.Optional(request.LastName);
         var fullName = TextNormalizer.Optional(request.FullName);
 
-        instructor.FirstName = firstName;
-        instructor.LastName = lastName;
-        instructor.FullName = ResolveFullName(fullName, firstName, lastName);
-        instructor.Email = TextNormalizer.OptionalEmail(request.Email);
-        instructor.Phone = TextNormalizer.Optional(request.Phone);
-        instructor.Status = TextNormalizer.Optional(request.Status);
-        instructor.UpdatedAt = DateTime.UtcNow;
+        var instructor = new Instructor
+        {
+            FrappeExternalId = TextNormalizer.Optional(request.FrappeExternalId),
+            FirstName = firstName,
+            LastName = lastName,
+            FullName = ResolveFullName(fullName, firstName, lastName),
+            Email = TextNormalizer.OptionalEmail(request.Email),
+            Phone = TextNormalizer.Optional(request.Phone),
+            Status = TextNormalizer.Optional(request.Status)
+        };
 
+        await _unitOfWork.Repository<Instructor>().AddAsync(instructor, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return InstructorDto.From(instructor);

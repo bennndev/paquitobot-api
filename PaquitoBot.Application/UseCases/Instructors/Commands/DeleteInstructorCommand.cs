@@ -1,13 +1,13 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Instructors.Command;
+namespace PaquitoBot.Application.UseCases.Instructors.Commands;
 
 public record DeleteInstructorCommand(Guid InstructorId) : IRequest;
 
-public class DeleteInstructorCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<DeleteInstructorCommand>
+internal sealed class DeleteInstructorCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<DeleteInstructorCommand>
 {
     public async Task Handle(DeleteInstructorCommand request, CancellationToken cancellationToken)
     {
