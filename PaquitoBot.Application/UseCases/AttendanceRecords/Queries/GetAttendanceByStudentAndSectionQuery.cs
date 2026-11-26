@@ -1,8 +1,8 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.AttendanceRecords;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.AttendanceRecords;
+using PaquitoBot.Domain.Repositories;
 
-namespace PaquitoBot.Application.UseCases.AttendanceRecords.Query;
+namespace PaquitoBot.Application.UseCases.AttendanceRecords.Queries;
 
 public record GetAttendanceByStudentAndSectionQuery(Guid StudentId, Guid SectionId) : IRequest<IReadOnlyList<AttendanceRecordDto>>;
 

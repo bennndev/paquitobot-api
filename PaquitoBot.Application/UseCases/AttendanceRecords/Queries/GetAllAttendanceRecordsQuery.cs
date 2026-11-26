@@ -1,9 +1,9 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.AttendanceRecords;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.AttendanceRecords;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.AttendanceRecords.Query;
+namespace PaquitoBot.Application.UseCases.AttendanceRecords.Queries;
 
 public record GetAllAttendanceRecordsQuery : IRequest<IReadOnlyList<AttendanceRecordDto>>;
 
