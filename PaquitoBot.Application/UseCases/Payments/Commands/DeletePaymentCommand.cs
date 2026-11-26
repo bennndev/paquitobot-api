@@ -1,13 +1,13 @@
-﻿using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using MediatR;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Payments.Command;
+namespace PaquitoBot.Application.UseCases.Payments.Commands;
 
 public record DeletePaymentCommand(Guid PaymentId) : IRequest;
 
-public class DeletePaymentCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class DeletePaymentCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<DeletePaymentCommand>
 {
     public async Task Handle(DeletePaymentCommand request, CancellationToken cancellationToken)

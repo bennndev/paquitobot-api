@@ -1,13 +1,12 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Payments;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Payments;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Payments.Command;
+namespace PaquitoBot.Application.UseCases.Payments.Commands;
 
-// FrappeExternalId acts as an idempotency key. Keep it stable across retries.
 public record CreatePaymentCommand(
     Guid StudentId,
     Guid TuitionFeeId,
@@ -41,7 +40,7 @@ public sealed class CreatePaymentCommandValidator : AbstractValidator<CreatePaym
     }
 }
 
-public sealed class CreatePaymentCommandHandler(IPaymentPostingRepository repository)
+internal sealed class CreatePaymentCommandHandler(IPaymentPostingRepository repository)
     : IRequestHandler<CreatePaymentCommand, PaymentDto>
 {
     public async Task<PaymentDto> Handle(CreatePaymentCommand request, CancellationToken cancellationToken)

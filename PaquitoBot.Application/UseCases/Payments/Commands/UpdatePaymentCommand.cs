@@ -1,12 +1,12 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Payments;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Payments;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Payments.Command;
+namespace PaquitoBot.Application.UseCases.Payments.Commands;
 
 public record UpdatePaymentCommand(
     Guid PaymentId,
@@ -31,7 +31,7 @@ public class UpdatePaymentCommandValidator : AbstractValidator<UpdatePaymentComm
     }
 }
 
-public class UpdatePaymentCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class UpdatePaymentCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<UpdatePaymentCommand, PaymentDto>
 {
     public async Task<PaymentDto> Handle(
@@ -42,7 +42,6 @@ public class UpdatePaymentCommandHandler(IUnitOfWork _unitOfWork)
             .GetByIdAsync(request.PaymentId, cancellationToken)
             ?? throw new NotFoundException("Payment", request.PaymentId);
 
-        // El estudiante y la pensión (StudentId, TuitionFeeId) no se cambian aquí
         payment.CurrencyCode = TextNormalizer.Required(request.CurrencyCode).ToUpperInvariant();
         payment.Amount = request.Amount;
         payment.PaidOn = request.PaidOn;
