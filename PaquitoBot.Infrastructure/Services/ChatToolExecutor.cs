@@ -9,10 +9,10 @@ namespace PaquitoBot.Infrastructure.Services;
 public sealed class ChatToolExecutor(IUnitOfWork unitOfWork, ICurrentUser currentUser, ISender sender)
     : IChatToolExecutor
 {
+    // Ejecuta solo herramientas conocidas y usa el estudiante vinculado al usuario autenticado.
     public async Task<string> ExecuteAsync(string toolName, CancellationToken cancellationToken = default)
     {
-        if (toolName is not ("get_my_courses" or "get_my_assessments" or "get_my_grades" or
-            "get_my_attendance" or "get_my_finances" or "get_my_schedule" or "get_my_assessment_plans"))
+        if (!ChatToolNames.Contains(toolName))
         {
             throw new InvalidOperationException("Gemini requested an unsupported tool.");
         }
@@ -25,7 +25,7 @@ public sealed class ChatToolExecutor(IUnitOfWork unitOfWork, ICurrentUser curren
             return JsonSerializer.Serialize(new { error = "student_account_not_connected" });
         }
 
-        if (toolName == "get_my_courses")
+        if (toolName == ChatToolNames.Courses)
         {
             var courses = await unitOfWork.Courses.GetByStudentIdAsync(studentId, cancellationToken);
             return JsonSerializer.Serialize(courses.Select(course => new
@@ -36,7 +36,7 @@ public sealed class ChatToolExecutor(IUnitOfWork unitOfWork, ICurrentUser curren
             }));
         }
 
-        if (toolName == "get_my_assessments")
+        if (toolName == ChatToolNames.Assessments)
         {
             var assessments = await unitOfWork.Assessments.GetByStudentIdAsync(studentId, cancellationToken);
             return JsonSerializer.Serialize(assessments.Select(assessment => new
@@ -49,9 +49,10 @@ public sealed class ChatToolExecutor(IUnitOfWork unitOfWork, ICurrentUser curren
             }));
         }
 
-        if (toolName == "get_my_grades")
+        if (toolName == ChatToolNames.Grades)
         {
             var results = await unitOfWork.AssessmentResults.GetByStudentIdAsync(studentId, cancellationToken);
+            // Si hay varias filas para una evaluación, entrega solo la más reciente.
             var latestResults = results.GroupBy(result => result.AssessmentId)
                 .Select(group => group.OrderByDescending(result => result.UpdatedAt)
                     .ThenByDescending(result => result.CreatedAt)
@@ -67,7 +68,7 @@ public sealed class ChatToolExecutor(IUnitOfWork unitOfWork, ICurrentUser curren
             }));
         }
 
-        if (toolName == "get_my_attendance")
+        if (toolName == ChatToolNames.Attendance)
         {
             var records = await unitOfWork.AttendanceRecords.GetByStudentIdAsync(studentId, cancellationToken);
             return JsonSerializer.Serialize(records.Select(record => new
@@ -80,8 +81,9 @@ public sealed class ChatToolExecutor(IUnitOfWork unitOfWork, ICurrentUser curren
             }));
         }
 
-        if (toolName == "get_my_finances")
+        if (toolName == ChatToolNames.Finances)
         {
+            // Reutiliza los saldos calculados por el caso de uso financiero.
             var statement = await sender.Send(
                 new GetStudentFinancialStatementQuery(studentId, userId), cancellationToken);
             return JsonSerializer.Serialize(new
@@ -103,7 +105,7 @@ public sealed class ChatToolExecutor(IUnitOfWork unitOfWork, ICurrentUser curren
             });
         }
 
-        if (toolName == "get_my_schedule")
+        if (toolName == ChatToolNames.Schedule)
         {
             var schedules = await unitOfWork.CourseSchedules.GetByStudentIdAsync(studentId, cancellationToken);
             return JsonSerializer.Serialize(schedules.Select(schedule => new
@@ -119,16 +121,21 @@ public sealed class ChatToolExecutor(IUnitOfWork unitOfWork, ICurrentUser curren
             }));
         }
 
-        var plans = await unitOfWork.AssessmentPlans.GetByStudentIdAsync(studentId, cancellationToken);
-        return JsonSerializer.Serialize(plans.Select(plan => new
+        if (toolName == ChatToolNames.AssessmentPlans)
         {
-            Course = plan.Section.Course.Name,
-            plan.Section.SectionCode,
-            plan.Title,
-            plan.Description,
-            plan.ScheduledDate,
-            plan.MaximumScore,
-            plan.Status
-        }));
+            var plans = await unitOfWork.AssessmentPlans.GetByStudentIdAsync(studentId, cancellationToken);
+            return JsonSerializer.Serialize(plans.Select(plan => new
+            {
+                Course = plan.Section.Course.Name,
+                plan.Section.SectionCode,
+                plan.Title,
+                plan.Description,
+                plan.ScheduledDate,
+                plan.MaximumScore,
+                plan.Status
+            }));
+        }
+
+        throw new InvalidOperationException("The chat tool has no executor.");
     }
 }

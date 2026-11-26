@@ -60,9 +60,11 @@ public class AskPaquitoCommandHandler(
             Content = question
         };
 
+        // Guarda la pregunta incluso si Gemini falla después.
         await _unitOfWork.Messages.AddAsync(questionMessage, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+        // Limita el historial enviado al modelo para evitar un contexto sin fin.
         var recentMessages = await _unitOfWork.Messages.GetRecentByConversationAsync(
             conversation.ConversationId, MaxContextMessages, cancellationToken);
         var turns = new List<ChatTurn>();
@@ -95,6 +97,7 @@ public class AskPaquitoCommandHandler(
             }
             else
             {
+                // El ejecutor decide qué datos del estudiante autenticado puede consultar la herramienta.
                 var toolResult = await _toolExecutor.ExecuteAsync(modelResponse.ToolRequest.Name, cancellationToken);
                 answer = await _answerProvider.CompleteToolAsync(
                     modelResponse.ToolRequest, toolResult, cancellationToken);
@@ -102,7 +105,7 @@ public class AskPaquitoCommandHandler(
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
-            answer = $"{FailureAnswer} Error: {exception.GetType().Name}: {exception.Message}";
+            answer = FailureAnswer;
             succeeded = false;
         }
 
@@ -126,6 +129,7 @@ public class AskPaquitoCommandHandler(
             []);
     }
 
+    // Reutiliza solo conversaciones del usuario; crea una si no se indicó identificador.
     private async Task<Conversation> GetOrCreateConversationAsync(
         Guid? conversationId,
         Guid userId,
