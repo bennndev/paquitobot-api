@@ -1,14 +1,14 @@
-﻿using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.TuitionFees;
-using PaquitoBot.Application.Repositories;
+using MediatR;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.TuitionFees;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.TuitionFees.Query;
+namespace PaquitoBot.Application.UseCases.TuitionFees.Queries;
 
 public record GetTuitionFeeByIdQuery(Guid TuitionFeeId) : IRequest<TuitionFeeDto>;
 
-public class GetTuitionFeeByIdQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetTuitionFeeByIdQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetTuitionFeeByIdQuery, TuitionFeeDto>
 {
     public async Task<TuitionFeeDto> Handle(
