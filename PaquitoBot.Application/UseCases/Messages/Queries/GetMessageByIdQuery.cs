@@ -1,18 +1,14 @@
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Messages;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Messages.Query;
+namespace PaquitoBot.Application.UseCases.Messages.Queries;
 
-public record GetMessageByIdResponse(
-    Guid MessageId,
-    Guid ConversationId,
-    string SenderType,
-    string Content,
-    DateTime CreatedAt);
 
 public record GetMessageByIdQuery(Guid MessageId) : IRequest<GetMessageByIdResponse>;
 
@@ -24,7 +20,7 @@ public class GetMessageByIdQueryValidator : AbstractValidator<GetMessageByIdQuer
     }
 }
 
-public class GetMessageByIdQueryHandler(IUnitOfWork _unitOfWork, ICurrentUser currentUser)
+internal sealed class GetMessageByIdQueryHandler(IUnitOfWork _unitOfWork, ICurrentUser currentUser)
     : IRequestHandler<GetMessageByIdQuery, GetMessageByIdResponse>
 {
     public async Task<GetMessageByIdResponse> Handle(

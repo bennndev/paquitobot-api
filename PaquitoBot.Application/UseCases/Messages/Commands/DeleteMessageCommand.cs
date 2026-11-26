@@ -1,11 +1,12 @@
+using PaquitoBot.Application.Helpers;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Messages.Command;
+namespace PaquitoBot.Application.UseCases.Messages.Commands;
 
 public record DeleteMessageCommand(Guid MessageId) : IRequest;
 

@@ -1,21 +1,16 @@
+using PaquitoBot.Application.Dtos.Messages;
+using PaquitoBot.Application.UseCases.Chat.Commands;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Messages.Query;
+namespace PaquitoBot.Application.UseCases.Messages.Queries;
 
-public record GetChatHistorySourceResponse(Guid DocumentId, string Title);
 
-public record GetChatHistoryResponse(
-    Guid MessageId,
-    string SenderType,
-    string Content,
-    IReadOnlyList<GetChatHistorySourceResponse> Sources,
-    DateTime CreatedAt);
 
 public record GetChatHistoryQuery(Guid ConversationId) : IRequest<IReadOnlyList<GetChatHistoryResponse>>;
 
@@ -27,7 +22,7 @@ public class GetChatHistoryQueryValidator : AbstractValidator<GetChatHistoryQuer
     }
 }
 
-public class GetChatHistoryQueryHandler(IUnitOfWork _unitOfWork, ICurrentUser _currentUser)
+internal sealed class GetChatHistoryQueryHandler(IUnitOfWork _unitOfWork, ICurrentUser _currentUser)
     : IRequestHandler<GetChatHistoryQuery, IReadOnlyList<GetChatHistoryResponse>>
 {
     public async Task<IReadOnlyList<GetChatHistoryResponse>> Handle(

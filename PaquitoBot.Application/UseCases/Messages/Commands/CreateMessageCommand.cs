@@ -1,11 +1,12 @@
+using PaquitoBot.Domain.Validations;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Messages.Command;
+namespace PaquitoBot.Application.UseCases.Messages.Commands;
 
 public record CreateMessageCommand(
     Guid ConversationId,
@@ -24,15 +25,12 @@ public class CreateMessageCommandValidator : AbstractValidator<CreateMessageComm
     }
 }
 
-public class CreateMessageCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class CreateMessageCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<CreateMessageCommand, Guid>
 {
     public async Task<Guid> Handle(CreateMessageCommand request, CancellationToken cancellationToken)
     {
-        if (!await _unitOfWork.Repository<Conversation>().ExistsAsync(request.ConversationId, cancellationToken))
-        {
-            throw new NotFoundException("Conversation", request.ConversationId);
-        }
+        await _unitOfWork.Repository<Conversation>().EnsureExistsAsync("Conversation", request.ConversationId, cancellationToken);
 
         var message = new Message
         {
