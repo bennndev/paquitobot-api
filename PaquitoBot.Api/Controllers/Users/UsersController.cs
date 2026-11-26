@@ -1,11 +1,11 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.Users;
-using PaquitoBot.Application.UseCases.Users.Command;
-using PaquitoBot.Application.UseCases.Users.Query;
+using PaquitoBot.Application.Dtos.Users;
+using PaquitoBot.Application.UseCases.Users.Commands;
+using PaquitoBot.Application.UseCases.Users.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Users;
 
 [ApiController]
 [Route("api/users")]
@@ -32,22 +32,23 @@ public class UsersController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<UserDto>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateUserCommand command,
         CancellationToken cancellationToken)
     {
-        var user = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = user.UserId }, user);
+        return Ok(new { message = "Usuario creado" });
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<UserDto>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateUserCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(command with { UserId = id }, cancellationToken));
+        await _sender.Send(command with { UserId = id }, cancellationToken);
+        return Ok(new { message = "Usuario actualizado" });
     }
 
     [HttpDelete("{id:guid}")]
@@ -55,6 +56,6 @@ public class UsersController : ControllerBase
     {
         await _sender.Send(new DeleteUserCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Usuario eliminado" });
     }
 }

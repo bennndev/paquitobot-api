@@ -1,9 +1,9 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.UseCases.Auth.Command;
+using PaquitoBot.Application.UseCases.Auth.Commands;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Users;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -26,6 +26,7 @@ public class AuthController(ISender sender) : ControllerBase
     [HttpPost("register-user")]
     public async Task<ActionResult> Register([FromBody] RegisterCommand request, CancellationToken cancellationToken)
     {
-        return Ok(await sender.Send(request,  cancellationToken));
+        var userId = await sender.Send(request, cancellationToken);
+        return Ok(new { message = "Usuario registrado", userId });
     }
 }

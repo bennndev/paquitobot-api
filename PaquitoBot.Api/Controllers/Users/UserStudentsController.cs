@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authorization;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.DTOs.UserStudents;
-using PaquitoBot.Application.UseCases.UserStudents.Command;
-using PaquitoBot.Application.UseCases.UserStudents.Query;
+using PaquitoBot.Application.Dtos.UserStudents;
+using PaquitoBot.Application.UseCases.UserStudents.Commands;
+using PaquitoBot.Application.UseCases.UserStudents.Queries;
 
-namespace PaquitoBot.Api.Controllers;
+namespace PaquitoBot.Api.Controllers.Users;
 
 [ApiController]
 [Authorize(Policy = "Administrator")]
@@ -32,22 +32,23 @@ public class UserStudentsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<ActionResult<UserStudentDto>> Create(
+    public async Task<ActionResult> Create(
         [FromBody] CreateUserStudentCommand command,
         CancellationToken cancellationToken)
     {
-        var link = await _sender.Send(command, cancellationToken);
+        await _sender.Send(command, cancellationToken);
 
-        return CreatedAtAction(nameof(GetById), new { id = link.LinkId }, link);
+        return Ok(new { message = "Vínculo entre usuario y estudiante creado" });
     }
 
     [HttpPut("{id:guid}")]
-    public async Task<ActionResult<UserStudentDto>> Update(
+    public async Task<ActionResult> Update(
         Guid id,
         [FromBody] UpdateUserStudentCommand command,
         CancellationToken cancellationToken)
     {
-        return Ok(await _sender.Send(command with { LinkId = id }, cancellationToken));
+        await _sender.Send(command with { LinkId = id }, cancellationToken);
+        return Ok(new { message = "Vínculo entre usuario y estudiante actualizado" });
     }
 
     [HttpDelete("{id:guid}")]
@@ -55,6 +56,6 @@ public class UserStudentsController : ControllerBase
     {
         await _sender.Send(new DeleteUserStudentCommand(id), cancellationToken);
 
-        return NoContent();
+        return Ok(new { message = "Vínculo entre usuario y estudiante eliminado" });
     }
 }
