@@ -6,8 +6,9 @@ using PaquitoBot.Infrastructure.Data;
 
 namespace PaquitoBot.Infrastructure.Repositories;
 
-// Aggregate in PostgreSQL. Never track or modify entities.
-// Auto-registered as IReportReadRepository by the existing repository scanner.
+// All grouping, counting, averaging, ordering and limiting run in PostgreSQL.
+// Project the grouped results into simple SQL-translatable shapes first;
+// construct application DTOs only after materializing the bounded result set.
 public sealed class ReportReadRepository(PaquitoBotDbContext context) : IReportReadRepository
 {
     private const int MaxGroups = 5000;
@@ -16,26 +17,39 @@ public sealed class ReportReadRepository(PaquitoBotDbContext context) : IReportR
         Guid? programId, Guid? academicPeriodId, CancellationToken cancellationToken = default)
     {
         var query = context.ProgramEnrollments.AsNoTracking();
-        if (programId.HasValue) query = query.Where(x => x.ProgramId == programId.Value);
-        if (academicPeriodId.HasValue) query = query.Where(x => x.AcademicPeriodId == academicPeriodId.Value);
+        if (programId.HasValue)
+            query = query.Where(x => x.ProgramId == programId.Value);
+        if (academicPeriodId.HasValue)
+            query = query.Where(x => x.AcademicPeriodId == academicPeriodId.Value);
 
-        var rows = await query
-            .GroupBy(x => new
+        var aggregates = await query
+            .Select(x => new
             {
                 x.ProgramId,
                 ProgramName = x.Program.Name,
                 x.AcademicPeriodId,
-                PeriodName = x.AcademicPeriod == null ? "Unassigned" : x.AcademicPeriod.Name
+                PeriodName = x.AcademicPeriod == null ? "Unassigned" : x.AcademicPeriod.Name,
+                x.StudentId
             })
-            .Select(group => new EnrollmentReportRowDto(
-                group.Key.ProgramId, group.Key.ProgramName, group.Key.AcademicPeriodId,
-                group.Key.PeriodName, group.Count(), group.Select(x => x.StudentId).Distinct().Count()))
-            .OrderBy(x => x.ProgramName).ThenBy(x => x.AcademicPeriodName)
+            .GroupBy(x => new { x.ProgramId, x.ProgramName, x.AcademicPeriodId, x.PeriodName })
+            .Select(group => new
+            {
+                group.Key.ProgramId,
+                group.Key.ProgramName,
+                group.Key.AcademicPeriodId,
+                group.Key.PeriodName,
+                EnrollmentRecords = group.Count(),
+                DistinctStudents = group.Select(x => x.StudentId).Distinct().Count()
+            })
+            .OrderBy(x => x.ProgramName)
+            .ThenBy(x => x.PeriodName)
             .Take(MaxGroups + 1)
             .ToListAsync(cancellationToken);
 
-        EnsureWithinLimit(rows.Count);
-        return rows;
+        EnsureWithinLimit(aggregates.Count);
+        return aggregates.Select(x => new EnrollmentReportRowDto(
+            x.ProgramId, x.ProgramName, x.AcademicPeriodId, x.PeriodName,
+            x.EnrollmentRecords, x.DistinctStudents)).ToList();
     }
 
     public async Task<IReadOnlyList<AttendanceReportRowDto>> GetAttendanceAsync(
@@ -48,38 +62,47 @@ public sealed class ReportReadRepository(PaquitoBotDbContext context) : IReportR
         if (programId.HasValue)
             query = query.Where(x => context.ProgramCourses.Any(link =>
                 link.ProgramId == programId.Value && link.CourseId == x.Section.CourseId));
-        if (from.HasValue) query = query.Where(x => x.AttendanceDate >= from.Value);
-        if (to.HasValue) query = query.Where(x => x.AttendanceDate <= to.Value);
+        if (from.HasValue)
+            query = query.Where(x => x.AttendanceDate >= from.Value);
+        if (to.HasValue)
+            query = query.Where(x => x.AttendanceDate <= to.Value);
 
-        var rows = await query
-            .GroupBy(x => new
+        var aggregates = await query
+            .Select(x => new
             {
                 x.SectionId,
                 CourseName = x.Section.Course.Name,
-                SectionCode = x.Section.SectionCode
+                SectionCode = x.Section.SectionCode,
+                Status = x.Status.ToLower()
             })
-            .Select(group => new AttendanceReportRowDto(
+            .GroupBy(x => new { x.SectionId, x.CourseName, x.SectionCode })
+            .Select(group => new
+            {
                 group.Key.SectionId,
                 group.Key.CourseName,
-                group.Key.SectionCode ?? "",
-                group.Count(),
-                group.Count(x => x.Status.ToLower() == "present"),
-                group.Count(x => x.Status.ToLower() == "absent"),
-                group.Count(x => x.Status.ToLower() == "late"),
-                group.Count(x => x.Status.ToLower() == "excused" ||
-                                 x.Status.ToLower() == "on leave" || x.Status.ToLower() == "leave"),
-                group.Count(x => x.Status.ToLower() != "present" &&
-                                 x.Status.ToLower() != "absent" &&
-                                 x.Status.ToLower() != "late" &&
-                                 x.Status.ToLower() != "excused" &&
-                                 x.Status.ToLower() != "on leave" &&
-                                 x.Status.ToLower() != "leave")))
-            .OrderBy(x => x.CourseName).ThenBy(x => x.SectionCode)
+                group.Key.SectionCode,
+                Records = group.Count(),
+                Present = group.Count(x => x.Status == "present"),
+                Absent = group.Count(x => x.Status == "absent"),
+                Late = group.Count(x => x.Status == "late"),
+                Excused = group.Count(x => x.Status == "excused" ||
+                                            x.Status == "on leave" || x.Status == "leave"),
+                Other = group.Count(x => x.Status != "present" &&
+                                          x.Status != "absent" &&
+                                          x.Status != "late" &&
+                                          x.Status != "excused" &&
+                                          x.Status != "on leave" &&
+                                          x.Status != "leave")
+            })
+            .OrderBy(x => x.CourseName)
+            .ThenBy(x => x.SectionCode)
             .Take(MaxGroups + 1)
             .ToListAsync(cancellationToken);
 
-        EnsureWithinLimit(rows.Count);
-        return rows;
+        EnsureWithinLimit(aggregates.Count);
+        return aggregates.Select(x => new AttendanceReportRowDto(
+            x.SectionId, x.CourseName, x.SectionCode ?? "", x.Records,
+            x.Present, x.Absent, x.Late, x.Excused, x.Other)).ToList();
     }
 
     public async Task<IReadOnlyList<AssessmentReportRowDto>> GetAssessmentsAsync(
@@ -94,25 +117,32 @@ public sealed class ReportReadRepository(PaquitoBotDbContext context) : IReportR
             query = query.Where(x => context.ProgramCourses.Any(link =>
                 link.ProgramId == programId.Value && link.CourseId == x.Assessment.Section.CourseId));
 
-        var rows = await query
-            .GroupBy(x => new
+        var aggregates = await query
+            .Select(x => new
             {
                 x.Assessment.SectionId,
                 CourseName = x.Assessment.Section.Course.Name,
-                SectionCode = x.Assessment.Section.SectionCode
+                SectionCode = x.Assessment.Section.SectionCode,
+                ScorePercent = 100m * x.Grade!.Value / x.Assessment.MaximumScore!.Value
             })
-            .Select(group => new AssessmentReportRowDto(
+            .GroupBy(x => new { x.SectionId, x.CourseName, x.SectionCode })
+            .Select(group => new
+            {
                 group.Key.SectionId,
                 group.Key.CourseName,
-                group.Key.SectionCode ?? "",
-                group.Count(),
-                group.Average(x => 100m * x.Grade!.Value / x.Assessment.MaximumScore!.Value)))
-            .OrderBy(x => x.CourseName).ThenBy(x => x.SectionCode)
+                group.Key.SectionCode,
+                GradedResults = group.Count(),
+                AverageScorePercent = group.Average(x => x.ScorePercent)
+            })
+            .OrderBy(x => x.CourseName)
+            .ThenBy(x => x.SectionCode)
             .Take(MaxGroups + 1)
             .ToListAsync(cancellationToken);
 
-        EnsureWithinLimit(rows.Count);
-        return rows;
+        EnsureWithinLimit(aggregates.Count);
+        return aggregates.Select(x => new AssessmentReportRowDto(
+            x.SectionId, x.CourseName, x.SectionCode ?? "",
+            x.GradedResults, x.AverageScorePercent)).ToList();
     }
 
     private static void EnsureWithinLimit(int groupCount)
