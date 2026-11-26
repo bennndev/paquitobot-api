@@ -1,4 +1,4 @@
-﻿namespace PaquitoBot.Application.DTOs.Auth;
+namespace PaquitoBot.Application.Dtos.Auth;
 
 public record LoginResponse(
     Guid UserId,
