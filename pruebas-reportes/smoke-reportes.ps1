@@ -1,6 +1,7 @@
 param(
     [string]$BaseUrl = "http://localhost:5114",
-    [switch]$AllowRemoteTest
+    [switch]$AllowRemoteTest,
+    [int]$ExpectedEnrollmentTotal = -1
 )
 
 $ErrorActionPreference = "Stop"
@@ -11,66 +12,95 @@ if ($baseUri.Scheme -notin @("http", "https")) { throw "Only HTTP(S) is supporte
 if (-not $AllowRemoteTest -and $baseUri.Host -notin @("localhost", "127.0.0.1", "::1")) {
     throw "Remote host refused. Use a TEST environment and -AllowRemoteTest explicitly."
 }
+if ($ExpectedEnrollmentTotal -lt -1) { throw "ExpectedEnrollmentTotal must be -1 or greater." }
 $root = $BaseUrl.TrimEnd("/")
-$endpoint = "$root/api/reports/enrollments"
 
 function Get-HttpStatus([string]$Url, [hashtable]$Headers) {
     try {
-        $response = Invoke-WebRequest -Uri $Url -Method Get -Headers $Headers -UseBasicParsing -TimeoutSec 20
+        $response = Invoke-WebRequest -Uri $Url -Method Get -Headers $Headers -UseBasicParsing -TimeoutSec 25
         return [int]$response.StatusCode
     } catch {
-        if ($_.Exception.Response) {
+        if ($null -ne $_.Exception.Response) {
             return [int]$_.Exception.Response.StatusCode
         }
         throw
     }
 }
 
-$anonymous = Get-HttpStatus $endpoint @{}
-if ($anonymous -ne 401) { throw "Expected 401 without JWT, received HTTP $anonymous" }
-Write-Host "PASS: anonymous reports request returned HTTP 401"
+function Assert-HttpStatus([string]$Url, [hashtable]$Headers, [int]$Expected, [string]$Label) {
+    $actual = Get-HttpStatus $Url $Headers
+    if ($actual -ne $Expected) { throw "$Label expected HTTP $Expected, received $actual" }
+    Write-Host "PASS: $Label (HTTP $actual)"
+}
+
+$reports = @("enrollments", "attendance", "assessments")
+foreach ($report in $reports) {
+    Assert-HttpStatus "$root/api/reports/$report" @{} 401 "anonymous $report"
+}
 
 $studentJwt = [Environment]::GetEnvironmentVariable("PAQUITOBOT_QA_STUDENT_JWT")
 if (-not [string]::IsNullOrWhiteSpace($studentJwt)) {
-    $studentCode = Get-HttpStatus $endpoint @{ Authorization = "Bearer $studentJwt" }
-    if ($studentCode -ne 403) { throw "Expected HTTP 403 for student, received $studentCode" }
-    Write-Host "PASS: student JWT cannot access general reports (403)"
+    $studentHeaders = @{ Authorization = "Bearer $studentJwt" }
+    foreach ($report in $reports) {
+        Assert-HttpStatus "$root/api/reports/$report" $studentHeaders 403 "student $report"
+    }
 } else {
-    Write-Host "SKIP: student JWT not configured; student access not tested"
+    Write-Host "SKIP: student JWT not configured"
 }
 
 $adminJwt = [Environment]::GetEnvironmentVariable("PAQUITOBOT_QA_ADMIN_JWT")
 if ([string]::IsNullOrWhiteSpace($adminJwt)) {
-    Write-Host "SKIP: admin JWT not configured; live JSON/XLSX checks not run"
+    Write-Host "SKIP: admin JWT not configured; JSON/XLSX checks not run"
     exit 0
 }
-$headers = @{ Authorization = "Bearer $adminJwt" }
-$jsonCode = Get-HttpStatus $endpoint $headers
-if ($jsonCode -ne 200) { throw "Expected HTTP 200 for admin JSON; received $jsonCode" }
-Write-Host "PASS: admin can access enrollment report JSON (200)"
+$adminHeaders = @{ Authorization = "Bearer $adminJwt" }
 
-$invalidDates = "$root/api/reports/attendance?from=2026-11-30&to=2026-11-01"
-$invalidCode = Get-HttpStatus $invalidDates $headers
-if ($invalidCode -ne 400) { throw "Expected HTTP 400 for invalid date range; received $invalidCode" }
-Write-Host "PASS: invalid attendance date interval rejected (400)"
-
-$file = Join-Path ([IO.Path]::GetTempPath()) ("paquitobot-qa-report-" + [Guid]::NewGuid() + ".xlsx")
-try {
-    Invoke-WebRequest -Uri "$root/api/reports/enrollments.xlsx" -Headers $headers -OutFile $file -UseBasicParsing -TimeoutSec 40 | Out-Null
-    $bytes = [IO.File]::ReadAllBytes($file)
-    if ($bytes.Length -lt 4 -or $bytes[0] -ne 80 -or $bytes[1] -ne 75) {
-        throw "Export does not begin with a valid ZIP/XLSX signature"
-    }
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    $archive = [IO.Compression.ZipFile]::OpenRead($file)
-    try {
-        if ($null -eq $archive.GetEntry("xl/workbook.xml")) { throw "Missing XLSX workbook.xml" }
-        if ($null -eq $archive.GetEntry("[Content_Types].xml")) { throw "Missing XLSX content types" }
-    } finally {
-        $archive.Dispose()
-    }
-    Write-Host "PASS: admin XLSX download is a valid workbook ZIP"
-} finally {
-    Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue
+foreach ($report in $reports) {
+    Assert-HttpStatus "$root/api/reports/$report" $adminHeaders 200 "admin $report JSON"
 }
-Write-Host "Live reporting smoke complete. Read-only checks; database was not modified."
+
+# Verify administrative enrollment aggregations match the TEST environment expectation.
+$enrollmentResponse = Invoke-RestMethod -Uri "$root/api/reports/enrollments" `
+    -Method Get -Headers $adminHeaders -TimeoutSec 25
+$enrollmentRows = @()
+if ($null -ne $enrollmentResponse) { $enrollmentRows = @($enrollmentResponse) }
+$enrollmentTotal = 0
+foreach ($row in $enrollmentRows) {
+    if ([int]$row.enrollmentRecords -lt 0 -or [int]$row.distinctStudents -lt 0 -or
+        [int]$row.distinctStudents -gt [int]$row.enrollmentRecords) {
+        throw "Invalid enrollment counts in the JSON response"
+    }
+    $enrollmentTotal += [int]$row.enrollmentRecords
+}
+if ($ExpectedEnrollmentTotal -ge 0 -and $enrollmentTotal -ne $ExpectedEnrollmentTotal) {
+    throw "Enrollment total mismatch: expected $ExpectedEnrollmentTotal, got $enrollmentTotal"
+}
+Write-Host "PASS: enrollment JSON rows=$($enrollmentRows.Count); records=$enrollmentTotal"
+
+Assert-HttpStatus "$root/api/reports/attendance?from=2026-11-30&to=2026-11-01" `
+    $adminHeaders 400 "invalid attendance dates"
+
+# Ensure all XLSX routes produce usable workbooks, not just a ZIP prefix.
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+foreach ($report in $reports) {
+    $file = Join-Path ([IO.Path]::GetTempPath()) ("paquitobot-qa-" + [Guid]::NewGuid() + ".xlsx")
+    try {
+        Invoke-WebRequest -Uri "$root/api/reports/${report}.xlsx" -Headers $adminHeaders `
+            -OutFile $file -UseBasicParsing -TimeoutSec 40 | Out-Null
+        $bytes = [IO.File]::ReadAllBytes($file)
+        if ($bytes.Length -lt 4 -or $bytes[0] -ne 80 -or $bytes[1] -ne 75) {
+            throw "Invalid XLSX ZIP signature for $report"
+        }
+        $archive = [IO.Compression.ZipFile]::OpenRead($file)
+        try {
+            if ($null -eq $archive.GetEntry("xl/workbook.xml")) { throw "Missing workbook.xml: $report" }
+            if ($null -eq $archive.GetEntry("[Content_Types].xml")) { throw "Missing content types: $report" }
+        } finally {
+            $archive.Dispose()
+        }
+        Write-Host "PASS: admin $report XLSX valid"
+    } finally {
+        Remove-Item -LiteralPath $file -Force -ErrorAction SilentlyContinue
+    }
+}
+Write-Host "PASS: reporting smoke complete; all requests were read-only"
