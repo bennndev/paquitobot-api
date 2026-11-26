@@ -1,11 +1,11 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.AttendanceRecords.Command;
+namespace PaquitoBot.Application.UseCases.AttendanceRecords.Commands;
 
 public record UpdateAttendanceRecordCommand(
     Guid AttendanceId,
