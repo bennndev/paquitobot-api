@@ -5,6 +5,7 @@ using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.UseCases.StudentFinances.Query;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 
@@ -36,7 +37,8 @@ public class AskPaquitoCommandValidator : AbstractValidator<AskPaquitoCommand>
 public class AskPaquitoCommandHandler(
     IUnitOfWork _unitOfWork,
     ICurrentUser _currentUser,
-    IAnswerProvider _answerProvider)
+    IAnswerProvider _answerProvider,
+    ISender _sender)
     : IRequestHandler<AskPaquitoCommand, AskPaquitoResponse>
 {
     private const int MaxTitleLength = 80;
@@ -97,7 +99,8 @@ public class AskPaquitoCommandHandler(
                 if (modelResponse.ToolRequest.Name != "get_my_courses" &&
                     modelResponse.ToolRequest.Name != "get_my_assessments" &&
                     modelResponse.ToolRequest.Name != "get_my_grades" &&
-                    modelResponse.ToolRequest.Name != "get_my_attendance")
+                    modelResponse.ToolRequest.Name != "get_my_attendance" &&
+                    modelResponse.ToolRequest.Name != "get_my_finances")
                 {
                     throw new InvalidOperationException("Gemini requested an unsupported tool.");
                 }
@@ -149,7 +152,7 @@ public class AskPaquitoCommandHandler(
                             result.Notes
                         }));
                     }
-                    else
+                    else if (modelResponse.ToolRequest.Name == "get_my_attendance")
                     {
                         var records = await _unitOfWork.AttendanceRecords.GetByStudentIdAsync(studentId, cancellationToken);
                         toolResult = JsonSerializer.Serialize(records.Select(record => new
@@ -160,6 +163,28 @@ public class AskPaquitoCommandHandler(
                             record.Status,
                             record.Notes
                         }));
+                    }
+                    else
+                    {
+                        var statement = await _sender.Send(
+                            new GetStudentFinancialStatementQuery(studentId, userId), cancellationToken);
+                        toolResult = JsonSerializer.Serialize(new
+                        {
+                            statement.AsOf,
+                            statement.Currencies,
+                            Obligations = statement.Obligations.Select(obligation => new
+                            {
+                                obligation.Description,
+                                obligation.CurrencyCode,
+                                obligation.OriginalAmount,
+                                obligation.ConfirmedPaidAmount,
+                                obligation.OutstandingAmount,
+                                obligation.DueDate,
+                                obligation.CalculatedStatus,
+                                obligation.ReconciliationRequired
+                            }),
+                            statement.PaymentsNotCounted
+                        });
                     }
                 }
 

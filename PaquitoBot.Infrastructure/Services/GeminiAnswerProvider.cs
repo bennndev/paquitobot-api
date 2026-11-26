@@ -12,6 +12,7 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
     private const string AssessmentToolName = "get_my_assessments";
     private const string ResultToolName = "get_my_grades";
     private const string AttendanceToolName = "get_my_attendance";
+    private const string FinancesToolName = "get_my_finances";
 
     public async Task<ChatModelResponse> BeginAnswerAsync(IReadOnlyList<ChatTurn> turns,
         CancellationToken cancellationToken = default)
@@ -28,6 +29,7 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
                      "Para saber sus notas, usa get_my_grades. No inventes cursos ni datos académicos. " +
                      "Para consultar asistencia, usa get_my_attendance; informa los estados tal como están registrados, " +
                      "sin calcular porcentajes ni interpretar códigos de estado. " +
+                     "Para consultar saldos y vencimientos, usa get_my_finances; separa los importes por moneda. " +
                      $"Historial: {JsonSerializer.Serialize(turns)}";
 
         var input = new object[] { new { type = "user_input", content = prompt } };
@@ -39,7 +41,8 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
         CancellationToken cancellationToken = default)
     {
         if (toolRequest.Name != CourseToolName && toolRequest.Name != AssessmentToolName &&
-            toolRequest.Name != ResultToolName && toolRequest.Name != AttendanceToolName)
+            toolRequest.Name != ResultToolName && toolRequest.Name != AttendanceToolName &&
+            toolRequest.Name != FinancesToolName)
         {
             throw new InvalidOperationException("Gemini requested an unsupported tool.");
         }
@@ -169,6 +172,13 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
                 type = "function",
                 name = AttendanceToolName,
                 description = "Returns the authenticated student's attendance records with dates, raw status and course names. Do not infer attendance percentages. No arguments are required.",
+                parameters = new { type = "object", properties = new { } }
+            },
+            new
+            {
+                type = "function",
+                name = FinancesToolName,
+                description = "Returns the authenticated student's calculated tuition balances, due dates and currency summaries. Keep currencies separate. No arguments are required.",
                 parameters = new { type = "object", properties = new { } }
             }
         ];
