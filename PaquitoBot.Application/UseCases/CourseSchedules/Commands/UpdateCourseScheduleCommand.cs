@@ -1,12 +1,13 @@
+using PaquitoBot.Domain.Validations;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.CourseSchedules;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.CourseSchedules;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.CourseSchedules.Command;
+namespace PaquitoBot.Application.UseCases.CourseSchedules.Commands;
 
 public record UpdateCourseScheduleCommand(
     Guid ScheduleId,
@@ -38,7 +39,7 @@ public class UpdateCourseScheduleCommandValidator
     }
 }
 
-public class UpdateCourseScheduleCommandHandler(
+internal sealed class UpdateCourseScheduleCommandHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<UpdateCourseScheduleCommand, CourseScheduleDto>
 {
@@ -50,11 +51,7 @@ public class UpdateCourseScheduleCommandHandler(
             .GetByIdAsync(request.ScheduleId, cancellationToken)
             ?? throw new NotFoundException("CourseSchedule", request.ScheduleId);
 
-        if (!await unitOfWork.Repository<CourseSection>()
-            .ExistsAsync(request.SectionId, cancellationToken))
-        {
-            throw new NotFoundException("CourseSection", request.SectionId);
-        }
+        await unitOfWork.Repository<CourseSection>().EnsureExistsAsync("CourseSection", request.SectionId, cancellationToken);
 
         if (request.InstructorId.HasValue
             && !await unitOfWork.Repository<Instructor>()
