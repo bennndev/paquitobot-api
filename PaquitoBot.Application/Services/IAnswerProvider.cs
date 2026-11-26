@@ -3,6 +3,6 @@ namespace PaquitoBot.Application.Services;
 public interface IAnswerProvider
 {
     Task<string> GenerateAnswerAsync(
-        string question,
+        IReadOnlyList<ChatTurn> turns,
         CancellationToken cancellationToken = default);
 }

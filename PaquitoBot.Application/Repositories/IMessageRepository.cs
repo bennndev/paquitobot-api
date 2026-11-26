@@ -7,4 +7,9 @@ public interface IMessageRepository : IGenericRepository<Message>
     Task<IReadOnlyList<Message>> GetByConversationAsync(
         Guid conversationId,
         CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<Message>> GetRecentByConversationAsync(
+        Guid conversationId,
+        int count,
+        CancellationToken cancellationToken = default);
 }

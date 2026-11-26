@@ -39,6 +39,8 @@ public class AskPaquitoCommandHandler(
     : IRequestHandler<AskPaquitoCommand, AskPaquitoResponse>
 {
     private const int MaxTitleLength = 80;
+    private const int MaxContextMessages = 10;
+    private const int MaxContextMessageLength = 2000;
     private const string FailureAnswer = "Sorry, I could not generate an answer right now. Please try again later.";
 
     public async Task<AskPaquitoResponse> Handle(AskPaquitoCommand request, CancellationToken cancellationToken)
@@ -59,12 +61,31 @@ public class AskPaquitoCommandHandler(
         await _unitOfWork.Messages.AddAsync(questionMessage, cancellationToken);
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 
+        var recentMessages = await _unitOfWork.Messages.GetRecentByConversationAsync(
+            conversation.ConversationId, MaxContextMessages, cancellationToken);
+        var turns = new List<ChatTurn>();
+        foreach (var message in recentMessages)
+        {
+            if (message.SenderType != MessageSenderType.User && message.SenderType != MessageSenderType.Assistant)
+            {
+                continue;
+            }
+
+            var (content, _) = MessageSources.Split(message.Content);
+            if (content.Length > MaxContextMessageLength)
+            {
+                content = content[..MaxContextMessageLength];
+            }
+
+            turns.Add(new ChatTurn(message.SenderType, content));
+        }
+
         var succeeded = true;
         string answer;
 
         try
         {
-            answer = await _answerProvider.GenerateAnswerAsync(question, cancellationToken);
+            answer = await _answerProvider.GenerateAnswerAsync(turns, cancellationToken);
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
