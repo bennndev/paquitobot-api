@@ -1,11 +1,11 @@
 
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.AcademicPeriods.Command;
+namespace PaquitoBot.Application.UseCases.AcademicPeriods.Commands;
 
 public record DeleteAcademicPeriodCommand(
     Guid AcademicPeriodId) : IRequest;
@@ -20,7 +20,7 @@ public class DeleteAcademicPeriodCommandValidator
     }
 }
 
-public class DeleteAcademicPeriodCommandHandler(
+internal sealed class DeleteAcademicPeriodCommandHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<DeleteAcademicPeriodCommand>
 {

@@ -1,13 +1,13 @@
 
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.AcademicPeriods;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.AcademicPeriods;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.AcademicPeriods.Command;
+namespace PaquitoBot.Application.UseCases.AcademicPeriods.Commands;
 
 public record UpdateAcademicPeriodCommand(
     Guid AcademicPeriodId,
@@ -47,7 +47,7 @@ public class UpdateAcademicPeriodCommandValidator
     }
 }
 
-public class UpdateAcademicPeriodCommandHandler(
+internal sealed class UpdateAcademicPeriodCommandHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<UpdateAcademicPeriodCommand, AcademicPeriodDto>
 {
