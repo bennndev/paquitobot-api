@@ -1,15 +1,13 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
-using PaquitoBot.Infrastructure.Data;
+using PaquitoBot.Infrastructure.DbContext;
 
-namespace PaquitoBot.Infrastructure.Repositories;
+namespace PaquitoBot.Infrastructure.Repositories.Finance;
 
-// A serializable DB transaction prevents two concurrent, different-key payments
-// from both using the same outstanding amount. Retryable races surface as 409.
 public sealed class PaymentPostingRepository(PaquitoBotDbContext context) : IPaymentPostingRepository
 {
     private static readonly string[] ConfirmedStatuses =
@@ -39,7 +37,6 @@ public sealed class PaymentPostingRepository(PaquitoBotDbContext context) : IPay
                     !string.Equals(existing.CurrencyCode, candidate.CurrencyCode,
                         StringComparison.OrdinalIgnoreCase) ||
                     !ConfirmedStatuses.Contains(existing.Status?.ToLowerInvariant() ?? string.Empty) ||
-                    // Date, method and reference are part of the retry identity.
                     (candidate.PaidOn.HasValue && existing.PaidOn != candidate.PaidOn) ||
                     !string.Equals(existing.PaymentMethod, candidate.PaymentMethod,
                         StringComparison.Ordinal) ||
