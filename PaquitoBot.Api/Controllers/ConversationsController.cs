@@ -7,7 +7,7 @@ using PaquitoBot.Application.UseCases.Conversations.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
-[Authorize(Policy = "Administrator")]
+[Authorize(Policy = "AdministratorOrStudent")]
 [Route("api/conversations")]
 public class ConversationsController : ControllerBase
 {
@@ -18,6 +18,14 @@ public class ConversationsController : ControllerBase
         _sender = sender;
     }
 
+    [HttpGet("me")]
+    public async Task<ActionResult<IReadOnlyList<GetMyConversationsResponse>>> GetMine(
+        CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetMyConversationsQuery(), cancellationToken));
+    }
+
+    [Authorize(Policy = "Administrator")]
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<GetAllConversationsResponse>>> GetAll(
         CancellationToken cancellationToken)

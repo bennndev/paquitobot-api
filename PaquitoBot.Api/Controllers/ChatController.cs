@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.UseCases.Chat.Command;
-using PaquitoBot.Application.UseCases.Chat.Query;
 
 namespace PaquitoBot.Api.Controllers;
 
@@ -26,18 +25,4 @@ public class ChatController : ControllerBase
         return Ok(await _sender.Send(command, cancellationToken));
     }
 
-    [HttpGet("conversations")]
-    public async Task<ActionResult<IReadOnlyList<GetMyConversationsResponse>>> GetMyConversations(
-        CancellationToken cancellationToken)
-    {
-        return Ok(await _sender.Send(new GetMyConversationsQuery(), cancellationToken));
-    }
-
-    [HttpGet("conversations/{conversationId:guid}/messages")]
-    public async Task<ActionResult<IReadOnlyList<GetChatHistoryResponse>>> GetHistory(
-        Guid conversationId,
-        CancellationToken cancellationToken)
-    {
-        return Ok(await _sender.Send(new GetChatHistoryQuery(conversationId), cancellationToken));
-    }
 }

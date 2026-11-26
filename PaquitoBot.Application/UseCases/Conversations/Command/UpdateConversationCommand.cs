@@ -3,6 +3,7 @@ using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Conversations.Command;
@@ -24,13 +25,15 @@ public class UpdateConversationCommandValidator : AbstractValidator<UpdateConver
     }
 }
 
-public class UpdateConversationCommandHandler(IUnitOfWork _unitOfWork)
+public class UpdateConversationCommandHandler(IUnitOfWork _unitOfWork, ICurrentUser currentUser)
     : IRequestHandler<UpdateConversationCommand>
 {
     public async Task Handle(UpdateConversationCommand request, CancellationToken cancellationToken)
     {
         var conversation = await _unitOfWork.Repository<Conversation>().GetByIdAsync(request.ConversationId, cancellationToken)
             ?? throw new NotFoundException("Conversation", request.ConversationId);
+
+        ConversationAccess.RequireOwnerOrAdministrator(conversation, currentUser);
 
         conversation.Title = TextNormalizer.Optional(request.Title);
         conversation.Status = TextNormalizer.Required(request.Status);

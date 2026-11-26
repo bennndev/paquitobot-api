@@ -19,12 +19,20 @@ public class CoursesController : ControllerBase
         _sender = sender;
     }
 
+    [HttpGet("me")]
+    public async Task<ActionResult<IReadOnlyList<CourseDto>>> GetMine(CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetMyCoursesQuery(), cancellationToken));
+    }
+
+    [Authorize(Policy = "Administrator")]
     [HttpGet]
     public async Task<ActionResult<IReadOnlyList<CourseDto>>> GetAll(CancellationToken cancellationToken)
     {
         return Ok(await _sender.Send(new GetAllCoursesQuery(), cancellationToken));
     }
 
+    [Authorize(Policy = "Administrator")]
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<CourseDto>> GetById(Guid id, CancellationToken cancellationToken)
     {

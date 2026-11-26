@@ -2,6 +2,7 @@ using FluentValidation;
 using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Messages.Query;
@@ -23,17 +24,17 @@ public class GetMessagesByConversationQueryValidator : AbstractValidator<GetMess
     }
 }
 
-public class GetMessagesByConversationQueryHandler(IUnitOfWork _unitOfWork)
+public class GetMessagesByConversationQueryHandler(IUnitOfWork _unitOfWork, ICurrentUser currentUser)
     : IRequestHandler<GetMessagesByConversationQuery, IReadOnlyList<GetMessagesByConversationResponse>>
 {
     public async Task<IReadOnlyList<GetMessagesByConversationResponse>> Handle(
         GetMessagesByConversationQuery request,
         CancellationToken cancellationToken)
     {
-        if (!await _unitOfWork.Repository<Conversation>().ExistsAsync(request.ConversationId, cancellationToken))
-        {
-            throw new NotFoundException("Conversation", request.ConversationId);
-        }
+        var conversation = await _unitOfWork.Repository<Conversation>()
+            .GetByIdAsync(request.ConversationId, cancellationToken)
+            ?? throw new NotFoundException("Conversation", request.ConversationId);
+        ConversationAccess.RequireOwnerOrAdministrator(conversation, currentUser);
 
         var messages = await _unitOfWork.Messages.GetByConversationAsync(request.ConversationId, cancellationToken);
 

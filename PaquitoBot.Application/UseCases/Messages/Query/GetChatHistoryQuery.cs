@@ -6,7 +6,7 @@ using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Chat.Query;
+namespace PaquitoBot.Application.UseCases.Messages.Query;
 
 public record GetChatHistorySourceResponse(Guid DocumentId, string Title);
 
@@ -34,16 +34,15 @@ public class GetChatHistoryQueryHandler(IUnitOfWork _unitOfWork, ICurrentUser _c
         GetChatHistoryQuery request,
         CancellationToken cancellationToken)
     {
-        var userId = _currentUser.UserId
-            ?? throw new UnauthorizedAccessException("The authenticated user could not be identified.");
-
         var conversation = await _unitOfWork.Repository<Conversation>()
             .GetByIdAsync(request.ConversationId, cancellationToken);
 
-        if (conversation is null || conversation.UserId != userId)
+        if (conversation is null)
         {
             throw new NotFoundException("Conversation", request.ConversationId);
         }
+
+        ConversationAccess.RequireOwnerOrAdministrator(conversation, _currentUser);
 
         var messages = await _unitOfWork.Messages.GetByConversationAsync(request.ConversationId, cancellationToken);
 

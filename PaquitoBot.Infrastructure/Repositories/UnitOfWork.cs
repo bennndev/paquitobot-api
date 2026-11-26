@@ -15,6 +15,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IUserStudentRepository UserStudents { get; }
     public IUserRepository Users { get; }
+    public ICourseRepository Courses { get; }
     public IConversationRepository Conversations { get; }
     public IMessageRepository Messages { get; }
     public IAssessmentResultRepository AssessmentResults { get; }
@@ -28,6 +29,7 @@ public class UnitOfWork : IUnitOfWork
         PaquitoBotDbContext context,
         IUserStudentRepository userStudents,
         IUserRepository users,
+        ICourseRepository courses,
         IConversationRepository conversations,
         IMessageRepository messages,
         IAssessmentResultRepository assessmentResults,
@@ -40,6 +42,7 @@ public class UnitOfWork : IUnitOfWork
         _context = context;
         UserStudents = userStudents;
         Users = users;
+        Courses = courses;
         Conversations = conversations;
         Messages = messages;
         AssessmentResults = assessmentResults;

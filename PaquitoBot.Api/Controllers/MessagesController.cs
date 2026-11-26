@@ -7,7 +7,7 @@ using PaquitoBot.Application.UseCases.Messages.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
-[Authorize(Policy = "Administrator")]
+[Authorize(Policy = "AdministratorOrStudent")]
 [Route("api/messages")]
 public class MessagesController : ControllerBase
 {
@@ -32,6 +32,7 @@ public class MessagesController : ControllerBase
         return Ok(await _sender.Send(new GetMessageByIdQuery(id), cancellationToken));
     }
 
+    [Authorize(Policy = "Administrator")]
     [HttpPost]
     public async Task<ActionResult<Guid>> Create(
         [FromBody] CreateMessageCommand command,
@@ -40,5 +41,19 @@ public class MessagesController : ControllerBase
         var messageId = await _sender.Send(command, cancellationToken);
 
         return CreatedAtAction(nameof(GetById), new { id = messageId }, messageId);
+    }
+
+    [HttpGet("conversations/{conversationId:guid}/history")]
+    public async Task<ActionResult<IReadOnlyList<GetChatHistoryResponse>>> GetHistory(
+        Guid conversationId, CancellationToken cancellationToken)
+    {
+        return Ok(await _sender.Send(new GetChatHistoryQuery(conversationId), cancellationToken));
+    }
+
+    [HttpDelete("{id:guid}")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new DeleteMessageCommand(id), cancellationToken);
+        return NoContent();
     }
 }

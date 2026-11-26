@@ -2,7 +2,7 @@ using MediatR;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
 
-namespace PaquitoBot.Application.UseCases.Chat.Query;
+namespace PaquitoBot.Application.UseCases.Conversations.Query;
 
 public record GetMyConversationsResponse(
     Guid ConversationId,
