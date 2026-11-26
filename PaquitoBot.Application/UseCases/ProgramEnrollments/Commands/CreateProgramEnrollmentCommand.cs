@@ -1,12 +1,13 @@
+using PaquitoBot.Domain.Validations;
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.ProgramEnrollments;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.ProgramEnrollments;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.ProgramEnrollments.Command;
+namespace PaquitoBot.Application.UseCases.ProgramEnrollments.Commands;
 
 public record CreateProgramEnrollmentCommand(
     Guid StudentId,
@@ -33,24 +34,16 @@ public class CreateProgramEnrollmentCommandValidator
     }
 }
 
-public class CreateProgramEnrollmentCommandHandler(IUnitOfWork unitOfWork)
+internal sealed class CreateProgramEnrollmentCommandHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<CreateProgramEnrollmentCommand, ProgramEnrollmentDto>
 {
     public async Task<ProgramEnrollmentDto> Handle(
         CreateProgramEnrollmentCommand request,
         CancellationToken cancellationToken)
     {
-        if (!await unitOfWork.Repository<Student>()
-            .ExistsAsync(request.StudentId, cancellationToken))
-        {
-            throw new NotFoundException("Student", request.StudentId);
-        }
+        await unitOfWork.Repository<Student>().EnsureExistsAsync("Student", request.StudentId, cancellationToken);
 
-        if (!await unitOfWork.Repository<Program>()
-            .ExistsAsync(request.ProgramId, cancellationToken))
-        {
-            throw new NotFoundException("Program", request.ProgramId);
-        }
+        await unitOfWork.Repository<Program>().EnsureExistsAsync("Program", request.ProgramId, cancellationToken);
 
         if (request.AcademicPeriodId is Guid periodId &&
             !await unitOfWork.Repository<AcademicPeriod>()
