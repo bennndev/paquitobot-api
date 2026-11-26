@@ -1,15 +1,15 @@
 
 using MediatR;
-using PaquitoBot.Application.DTOs.AcademicPeriods;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.AcademicPeriods;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.AcademicPeriods.Query;
+namespace PaquitoBot.Application.UseCases.AcademicPeriods.Queries;
 
 public record GetAllAcademicPeriodsQuery
     : IRequest<IReadOnlyList<AcademicPeriodDto>>;
 
-public class GetAllAcademicPeriodsQueryHandler(
+internal sealed class GetAllAcademicPeriodsQueryHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<
         GetAllAcademicPeriodsQuery,

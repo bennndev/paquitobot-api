@@ -1,16 +1,16 @@
 
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.AcademicPeriods;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.AcademicPeriods;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.AcademicPeriods.Query;
+namespace PaquitoBot.Application.UseCases.AcademicPeriods.Queries;
 
 public record GetAcademicPeriodByIdQuery(
     Guid AcademicPeriodId) : IRequest<AcademicPeriodDto>;
 
-public class GetAcademicPeriodByIdQueryHandler(
+internal sealed class GetAcademicPeriodByIdQueryHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<
         GetAcademicPeriodByIdQuery,
