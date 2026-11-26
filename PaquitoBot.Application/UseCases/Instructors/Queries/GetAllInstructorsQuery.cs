@@ -1,13 +1,13 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.Instructors;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.Instructors;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Instructors.Query;
+namespace PaquitoBot.Application.UseCases.Instructors.Queries;
 
 public record GetAllInstructorsQuery : IRequest<IReadOnlyList<InstructorDto>>;
 
-public class GetAllInstructorsQueryHandler(IUnitOfWork _unitOfWork) : IRequestHandler<GetAllInstructorsQuery, IReadOnlyList<InstructorDto>>
+internal sealed class GetAllInstructorsQueryHandler(IUnitOfWork _unitOfWork) : IRequestHandler<GetAllInstructorsQuery, IReadOnlyList<InstructorDto>>
 {
     public async Task<IReadOnlyList<InstructorDto>> Handle(
         GetAllInstructorsQuery request,

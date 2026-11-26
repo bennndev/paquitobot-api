@@ -1,14 +1,14 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.Instructors;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.Instructors;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Instructors.Query;
+namespace PaquitoBot.Application.UseCases.Instructors.Queries;
 
 public record GetInstructorByIdQuery(Guid InstructorId) : IRequest<InstructorDto>;
 
-public class GetInstructorByIdQueryHandler(IUnitOfWork _unitOfWork) : IRequestHandler<GetInstructorByIdQuery, InstructorDto>
+internal sealed class GetInstructorByIdQueryHandler(IUnitOfWork _unitOfWork) : IRequestHandler<GetInstructorByIdQuery, InstructorDto>
 {
     public async Task<InstructorDto> Handle(GetInstructorByIdQuery request, CancellationToken cancellationToken)
     {
