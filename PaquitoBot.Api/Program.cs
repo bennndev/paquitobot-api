@@ -1,34 +1,14 @@
-
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using PaquitoBot.Api;
-using PaquitoBot.Api.HealthChecks;
-using PaquitoBot.Api.Middleware;
-using PaquitoBot.Api.Services;
-using PaquitoBot.Application;
-using PaquitoBot.Application.Services;
-using PaquitoBot.Infrastructure;
-using PaquitoBot.Infrastructure.Integrations.Frappe;
+using PaquitoBot.Api.Configuration;
+using PaquitoBot.Application.Configuration;
+using PaquitoBot.Infrastructure.Configuration;
+using PaquitoBot.Infrastructure.Services.Frappe;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException(
-        "Connection string 'DefaultConnection' was not found. Configure it with .NET User Secrets.");
-
-
-builder.Services.AddControllers();
-builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentUser, CurrentUser>();
-builder.Services.AddJwtAuthentication(builder.Configuration);
-builder.Services.AddInfrastructure(connectionString);
-builder.Services.AddApplication();
-builder.Services.AddFrappeIntegration(builder.Configuration);
-builder.Services.AddHealthChecks().AddCheck<FrappeHealthCheck>(FrappeHealthCheck.Name);
-builder.Services.AddExceptionHandler<ApplicationExceptionHandler>();
-builder.Services.AddProblemDetails();
-
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwagger();
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddApiServices();
 
 var app = builder.Build();
 
