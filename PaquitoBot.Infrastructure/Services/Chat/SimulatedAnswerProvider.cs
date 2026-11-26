@@ -1,6 +1,6 @@
 using PaquitoBot.Application.Services;
 
-namespace PaquitoBot.Infrastructure.Services;
+namespace PaquitoBot.Infrastructure.Services.Chat;
 
 public class SimulatedAnswerProvider : IAnswerProvider
 {

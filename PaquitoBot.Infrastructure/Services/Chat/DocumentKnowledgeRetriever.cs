@@ -1,9 +1,9 @@
 using System.Text.RegularExpressions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Constants;
 
-namespace PaquitoBot.Infrastructure.Services;
+namespace PaquitoBot.Infrastructure.Services.Chat;
 
 public class DocumentKnowledgeRetriever(IUnitOfWork unitOfWork) : IKnowledgeRetriever
 {
