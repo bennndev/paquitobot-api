@@ -101,7 +101,8 @@ public class AskPaquitoCommandHandler(
                     modelResponse.ToolRequest.Name != "get_my_grades" &&
                     modelResponse.ToolRequest.Name != "get_my_attendance" &&
                     modelResponse.ToolRequest.Name != "get_my_finances" &&
-                    modelResponse.ToolRequest.Name != "get_my_schedule")
+                    modelResponse.ToolRequest.Name != "get_my_schedule" &&
+                    modelResponse.ToolRequest.Name != "get_my_assessment_plans")
                 {
                     throw new InvalidOperationException("Gemini requested an unsupported tool.");
                 }
@@ -187,7 +188,7 @@ public class AskPaquitoCommandHandler(
                             statement.PaymentsNotCounted
                         });
                     }
-                    else
+                    else if (modelResponse.ToolRequest.Name == "get_my_schedule")
                     {
                         var schedules = await _unitOfWork.CourseSchedules.GetByStudentIdAsync(studentId, cancellationToken);
                         toolResult = JsonSerializer.Serialize(schedules.Select(schedule => new
@@ -200,6 +201,20 @@ public class AskPaquitoCommandHandler(
                             schedule.Location,
                             schedule.DeliveryMode,
                             schedule.Status
+                        }));
+                    }
+                    else
+                    {
+                        var plans = await _unitOfWork.AssessmentPlans.GetByStudentIdAsync(studentId, cancellationToken);
+                        toolResult = JsonSerializer.Serialize(plans.Select(plan => new
+                        {
+                            Course = plan.Section.Course.Name,
+                            plan.Section.SectionCode,
+                            plan.Title,
+                            plan.Description,
+                            plan.ScheduledDate,
+                            plan.MaximumScore,
+                            plan.Status
                         }));
                     }
                 }

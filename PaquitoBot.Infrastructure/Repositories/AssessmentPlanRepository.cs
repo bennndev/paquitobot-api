@@ -18,6 +18,18 @@ public class AssessmentPlanRepository : GenericRepository<AssessmentPlan>, IAsse
             .OrderBy(p => p.ScheduledDate).ThenBy(p => p.AssessmentPlanId).ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<AssessmentPlan>> GetByStudentIdAsync(Guid studentId,
+        CancellationToken cancellationToken = default)
+    {
+        return await DbSet.AsNoTracking()
+            .Include(plan => plan.Section)
+            .ThenInclude(section => section.Course)
+            .Where(plan => plan.Section.SectionEnrollments.Any(enrollment => enrollment.StudentId == studentId))
+            .OrderBy(plan => plan.ScheduledDate)
+            .ThenBy(plan => plan.AssessmentPlanId)
+            .ToListAsync(cancellationToken);
+    }
+
 
     public async Task<IReadOnlyList<AssessmentPlan>> GetUpcomingAsync(DateOnly fromDate, Guid? sectionId = null, CancellationToken cancellationToken = default)
     {

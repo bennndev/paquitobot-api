@@ -14,6 +14,7 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
     private const string AttendanceToolName = "get_my_attendance";
     private const string FinancesToolName = "get_my_finances";
     private const string ScheduleToolName = "get_my_schedule";
+    private const string AssessmentPlanToolName = "get_my_assessment_plans";
 
     public async Task<ChatModelResponse> BeginAnswerAsync(IReadOnlyList<ChatTurn> turns,
         CancellationToken cancellationToken = default)
@@ -32,6 +33,7 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
                      "sin calcular porcentajes ni interpretar códigos de estado. " +
                      "Para consultar saldos y vencimientos, usa get_my_finances; separa los importes por moneda. " +
                      "Para consultar fechas, horas y lugares de clases, usa get_my_schedule. " +
+                     "Para consultar evaluaciones planificadas, usa get_my_assessment_plans; distingue un plan de una evaluación publicada. " +
                      $"Historial: {JsonSerializer.Serialize(turns)}";
 
         var input = new object[] { new { type = "user_input", content = prompt } };
@@ -44,7 +46,8 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
     {
         if (toolRequest.Name != CourseToolName && toolRequest.Name != AssessmentToolName &&
             toolRequest.Name != ResultToolName && toolRequest.Name != AttendanceToolName &&
-            toolRequest.Name != FinancesToolName && toolRequest.Name != ScheduleToolName)
+            toolRequest.Name != FinancesToolName && toolRequest.Name != ScheduleToolName &&
+            toolRequest.Name != AssessmentPlanToolName)
         {
             throw new InvalidOperationException("Gemini requested an unsupported tool.");
         }
@@ -188,6 +191,13 @@ public sealed class GeminiAnswerProvider(HttpClient httpClient, IConfiguration c
                 type = "function",
                 name = ScheduleToolName,
                 description = "Returns the authenticated student's scheduled classes with course names, dates, times, locations and statuses. No arguments are required.",
+                parameters = new { type = "object", properties = new { } }
+            },
+            new
+            {
+                type = "function",
+                name = AssessmentPlanToolName,
+                description = "Returns the authenticated student's assessment plans with course names, descriptions, planned dates, maximum scores and statuses. Plans are not published assessments. No arguments are required.",
                 parameters = new { type = "object", properties = new { } }
             }
         ];
