@@ -36,4 +36,4 @@ The XLSX exports use the same MediatR queries as the JSON endpoints.
 
 ## Quality gates
 
-Run `dotnet build PaquitoBot.sln` and `dotnet test PaquitoBot.Reports.Tests/PaquitoBot.Reports.Tests.csproj` after applying the package. The isolated test project is deliberately **not** added to the main solution, matching the team's current decision to keep tests outside `PaquitoBot.sln`. Do not merge without review and an integration check against a nonproduction database.
+Run `dotnet build PaquitoBot.sln` and `dotnet test PaquitoBot.Reports.Tests/PaquitoBot.Reports.Tests.csproj` after applying the package. The reports test project **is included** in `PaquitoBot.sln` as of commit `f2fbc8b`. Run the solution tests before requesting review. The current CI workflow checks build and publish only; a green CI run does not prove `dotnet test` passed. Do not merge without review and an integration check against a nonproduction database.

@@ -22,3 +22,16 @@
 - No changes to `development` directly; no credentials in Git.
 - ClosedXML 0.105.1 is installed **only** in Infrastructure.
 - CI must not be described as running these tests unless CI is separately updated to do so.
+
+### Executable HTTP smoke (nonproduction only)
+
+Use a locally running TEST API with JWT configuration. The script reads JWTs only from environment variables and never prints them:
+
+```powershell
+$env:PAQUITOBOT_QA_ADMIN_JWT = '<test-admin-jwt>'
+$env:PAQUITOBOT_QA_STUDENT_JWT = '<test-student-jwt>'
+.\pruebas-reportes\smoke-reportes.ps1 -BaseUrl 'http://localhost:5114'
+Remove-Item Env:PAQUITOBOT_QA_ADMIN_JWT, Env:PAQUITOBOT_QA_STUDENT_JWT -ErrorAction SilentlyContinue
+```
+
+For a deliberately selected remote TEST API, add `-AllowRemoteTest`. Never run against production or use production credentials. The script checks 401 without JWT, 403 with student JWT, 200 with admin JWT, 400 on invalid dates, and the downloaded `.xlsx` archive structure. Without the relevant JWT, checks requiring it are skipped and **not** reported as passed. Tests never create, edit or delete financial records.
