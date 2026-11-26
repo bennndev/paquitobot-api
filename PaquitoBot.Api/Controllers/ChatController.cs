@@ -17,6 +17,7 @@ public class ChatController : ControllerBase
         _sender = sender;
     }
 
+    // Delega la pregunta autenticada al caso de uso que guarda la conversación.
     [HttpPost("ask")]
     public async Task<ActionResult<AskPaquitoResponse>> Ask(
         [FromBody] AskPaquitoCommand command,
@@ -24,5 +25,4 @@ public class ChatController : ControllerBase
     {
         return Ok(await _sender.Send(command, cancellationToken));
     }
-
 }
