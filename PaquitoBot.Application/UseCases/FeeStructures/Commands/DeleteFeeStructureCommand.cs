@@ -1,13 +1,13 @@
-﻿using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using MediatR;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.FeeStructures.Command;
+namespace PaquitoBot.Application.UseCases.FeeStructures.Commands;
 
 public record DeleteFeeStructureCommand(Guid FeeStructureId) : IRequest;
 
-public class DeleteFeeStructureCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class DeleteFeeStructureCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<DeleteFeeStructureCommand>
 {
     public async Task Handle(DeleteFeeStructureCommand request, CancellationToken cancellationToken)

@@ -1,14 +1,13 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.FeeStructures;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.FeeStructures;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.FeeStructures.Command;
+namespace PaquitoBot.Application.UseCases.FeeStructures.Commands;
 
-// Los datos que entran. La moneda por defecto es PEN, igual que en la base de datos
 public record CreateFeeStructureCommand(
     string Name,
     string? FrappeExternalId = null,
@@ -18,7 +17,6 @@ public record CreateFeeStructureCommand(
     decimal? TotalAmount = null,
     string? Status = null) : IRequest<FeeStructureDto>;
 
-// Las reglas: los largos máximos salen de las columnas de la base
 public class CreateFeeStructureCommandValidator : AbstractValidator<CreateFeeStructureCommand>
 {
     public CreateFeeStructureCommandValidator()
@@ -34,15 +32,13 @@ public class CreateFeeStructureCommandValidator : AbstractValidator<CreateFeeStr
     }
 }
 
-// El manejador: arma la entidad, la guarda y devuelve el DTO
-public class CreateFeeStructureCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class CreateFeeStructureCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<CreateFeeStructureCommand, FeeStructureDto>
 {
     public async Task<FeeStructureDto> Handle(
         CreateFeeStructureCommand request,
         CancellationToken cancellationToken)
     {
-        // Si mandaron un programa, debe existir
         if (request.ProgramId.HasValue
             && !await _unitOfWork.Repository<Program>().ExistsAsync(request.ProgramId.Value, cancellationToken))
         {

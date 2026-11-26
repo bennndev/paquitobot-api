@@ -1,12 +1,12 @@
-﻿using FluentValidation;
+using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.FeeStructures;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.FeeStructures;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.FeeStructures.Command;
+namespace PaquitoBot.Application.UseCases.FeeStructures.Commands;
 
 public record UpdateFeeStructureCommand(
     Guid FeeStructureId,
@@ -31,14 +31,13 @@ public class UpdateFeeStructureCommandValidator : AbstractValidator<UpdateFeeStr
     }
 }
 
-public class UpdateFeeStructureCommandHandler(IUnitOfWork _unitOfWork)
+internal sealed class UpdateFeeStructureCommandHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<UpdateFeeStructureCommand, FeeStructureDto>
 {
     public async Task<FeeStructureDto> Handle(
         UpdateFeeStructureCommand request,
         CancellationToken cancellationToken)
     {
-        // Buscar; si no existe, error 404
         var feeStructure = await _unitOfWork.Repository<FeeStructure>()
             .GetByIdAsync(request.FeeStructureId, cancellationToken)
             ?? throw new NotFoundException("FeeStructure", request.FeeStructureId);
