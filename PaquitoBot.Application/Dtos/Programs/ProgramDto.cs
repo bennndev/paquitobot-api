@@ -1,7 +1,7 @@
 
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.Programs;
+namespace PaquitoBot.Application.Dtos.Programs;
 
 public record ProgramDto(
     Guid ProgramId,
