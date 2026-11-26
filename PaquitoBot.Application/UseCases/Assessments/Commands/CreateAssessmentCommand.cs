@@ -1,10 +1,10 @@
 using MediatR;
 using FluentValidation;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Assessments.Command;
+namespace PaquitoBot.Application.UseCases.Assessments.Commands;
 
 public record CreateAssessmentCommand(
     Guid SectionId,
