@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.AttendanceRecords;
 using PaquitoBot.Application.UseCases.AttendanceRecords.Command;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.AttendanceRecords.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/attendance-records")]
 public class AttendanceRecordsController(ISender sender) : ControllerBase
 {

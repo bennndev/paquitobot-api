@@ -37,6 +37,7 @@ public static class DependencyInjectionJWT
         services.AddAuthorization(options =>
         {
             options.AddPolicy("Administrator", policy => policy.RequireRole("Admin"));
+            options.AddPolicy("AdministratorOrStudent", policy => policy.RequireRole("Admin", "student"));
         });
 
         return services;

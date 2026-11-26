@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.Instructors;
 using PaquitoBot.Application.UseCases.Instructors.Command;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.Instructors.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "AdministratorOrStudent")]
 [Route("api/instructors")]
 public class InstructorsController : ControllerBase
 {
@@ -29,6 +31,8 @@ public class InstructorsController : ControllerBase
         return Ok(await _sender.Send(new GetInstructorByIdQuery(id), cancellationToken));
     }
 
+    [Authorize(Policy = "Administrator")]
+
     [HttpPost]
     public async Task<ActionResult<InstructorDto>> Create(
         [FromBody] CreateInstructorCommand command,
@@ -39,6 +43,8 @@ public class InstructorsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = instructor.InstructorId }, instructor);
     }
 
+    [Authorize(Policy = "Administrator")]
+
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<InstructorDto>> Update(
         Guid id,
@@ -47,6 +53,8 @@ public class InstructorsController : ControllerBase
     {
         return Ok(await _sender.Send(command with { InstructorId = id }, cancellationToken));
     }
+
+    [Authorize(Policy = "Administrator")]
 
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)

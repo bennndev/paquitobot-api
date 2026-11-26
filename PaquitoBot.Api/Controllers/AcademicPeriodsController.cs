@@ -1,5 +1,6 @@
 
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.AcademicPeriods;
 using PaquitoBot.Application.UseCases.AcademicPeriods.Command;
@@ -8,6 +9,7 @@ using PaquitoBot.Application.UseCases.AcademicPeriods.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "AdministratorOrStudent")]
 [Route("api/academic-periods")]
 [Produces("application/json")]
 public class AcademicPeriodsController : ControllerBase
@@ -51,6 +53,8 @@ public class AcademicPeriodsController : ControllerBase
         return Ok(period);
     }
 
+    [Authorize(Policy = "Administrator")]
+
     [HttpPost]
     [ProducesResponseType(
         typeof(AcademicPeriodDto),
@@ -74,6 +78,8 @@ public class AcademicPeriodsController : ControllerBase
             new { id = period.AcademicPeriodId },
             period);
     }
+
+    [Authorize(Policy = "Administrator")]
 
     [HttpPut("{id:guid}")]
     [ProducesResponseType(
@@ -99,6 +105,8 @@ public class AcademicPeriodsController : ControllerBase
 
         return Ok(period);
     }
+
+    [Authorize(Policy = "Administrator")]
 
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(

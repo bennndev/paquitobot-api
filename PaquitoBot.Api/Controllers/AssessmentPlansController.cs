@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.AssessmentPlans;
 using PaquitoBot.Application.UseCases.AssessmentPlans.Command;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.AssessmentPlans.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/assessment-plans")]
 public class AssessmentPlansController(ISender sender) : ControllerBase
 {

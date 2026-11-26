@@ -5,6 +5,8 @@ namespace PaquitoBot.Api.Services;
 
 public class CurrentUser(IHttpContextAccessor httpContextAccessor) : ICurrentUser
 {
+    public bool IsAdministrator => httpContextAccessor.HttpContext?.User.IsInRole("Admin") == true;
+
     public Guid? UserId
     {
         get

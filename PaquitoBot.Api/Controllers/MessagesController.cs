@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.UseCases.Messages.Command;
 using PaquitoBot.Application.UseCases.Messages.Query;
@@ -6,6 +7,7 @@ using PaquitoBot.Application.UseCases.Messages.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/messages")]
 public class MessagesController : ControllerBase
 {

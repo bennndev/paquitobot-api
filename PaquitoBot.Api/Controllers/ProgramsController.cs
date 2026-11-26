@@ -1,5 +1,6 @@
 
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.Programs;
 using PaquitoBot.Application.UseCases.Programs.Command;
@@ -8,6 +9,7 @@ using PaquitoBot.Application.UseCases.Programs.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "AdministratorOrStudent")]
 [Route("api/programs")]
 [Produces("application/json")]
 public class ProgramsController : ControllerBase
@@ -51,6 +53,8 @@ public class ProgramsController : ControllerBase
         return Ok(program);
     }
 
+    [Authorize(Policy = "Administrator")]
+
     [HttpPost]
     [ProducesResponseType(
         typeof(ProgramDto),
@@ -74,6 +78,8 @@ public class ProgramsController : ControllerBase
             new { id = program.ProgramId },
             program);
     }
+
+    [Authorize(Policy = "Administrator")]
 
     [HttpPut("{id:guid}")]
     [ProducesResponseType(
@@ -99,6 +105,8 @@ public class ProgramsController : ControllerBase
 
         return Ok(program);
     }
+
+    [Authorize(Policy = "Administrator")]
 
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(

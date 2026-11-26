@@ -1,4 +1,5 @@
-﻿using MediatR;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.FeeSchedules;
 using PaquitoBot.Application.UseCases.FeeSchedules.Command;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.FeeSchedules.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/fee-schedules")]
 public class FeeSchedulesController : ControllerBase
 {

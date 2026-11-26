@@ -1,4 +1,5 @@
-﻿using MediatR;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.TuitionFees;
 using PaquitoBot.Application.UseCases.TuitionFees.Command;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.TuitionFees.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/tuition-fees")]
 public class TuitionFeesController : ControllerBase
 {

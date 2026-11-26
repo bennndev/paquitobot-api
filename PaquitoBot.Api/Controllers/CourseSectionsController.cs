@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.CourseSections;
 using PaquitoBot.Application.UseCases.CourseSections.Command;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.CourseSections.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/course-sections")]
 public class CourseSectionsController : ControllerBase
 {

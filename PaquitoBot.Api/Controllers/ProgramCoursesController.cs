@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.ProgramCourses;
 using PaquitoBot.Application.UseCases.ProgramCourses.Command;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.ProgramCourses.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "AdministratorOrStudent")]
 [Route("api/program-courses")]
 [Produces("application/json")]
 public class ProgramCoursesController : ControllerBase
@@ -36,6 +38,8 @@ public class ProgramCoursesController : ControllerBase
         return Ok(await _sender.Send(new GetProgramCourseByIdQuery(id), cancellationToken));
     }
 
+    [Authorize(Policy = "Administrator")]
+
     [HttpPost]
     [ProducesResponseType(typeof(ProgramCourseDto), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -49,6 +53,8 @@ public class ProgramCoursesController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = link.ProgramCourseId }, link);
     }
 
+    [Authorize(Policy = "Administrator")]
+
     [HttpPut("{id:guid}")]
     [ProducesResponseType(typeof(ProgramCourseDto), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ValidationProblemDetails), StatusCodes.Status400BadRequest)]
@@ -61,6 +67,8 @@ public class ProgramCoursesController : ControllerBase
     {
         return Ok(await _sender.Send(command with { ProgramCourseId = id }, cancellationToken));
     }
+
+    [Authorize(Policy = "Administrator")]
 
     [HttpDelete("{id:guid}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]

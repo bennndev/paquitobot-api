@@ -10,7 +10,7 @@ using PaquitoBot.Application.UseCases.StudentFinances.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = "AdministratorOrStudent")]
 [Route("api/student-finances")]
 [Produces("application/json")]
 public sealed class StudentFinancesController(ISender sender) : ControllerBase

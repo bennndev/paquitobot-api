@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.UseCases.KnowledgeDocuments.Command;
 using PaquitoBot.Application.UseCases.KnowledgeDocuments.Query;
@@ -6,6 +7,7 @@ using PaquitoBot.Application.UseCases.KnowledgeDocuments.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/knowledge-documents")]
 public class KnowledgeDocumentsController : ControllerBase
 {

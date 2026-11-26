@@ -3,6 +3,7 @@ using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.DTOs.Payments;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Services;
 
 namespace PaquitoBot.Application.UseCases.StudentFinances.Query;
 
@@ -28,15 +29,15 @@ public sealed class GetStudentFinancialPaymentsQueryValidator
     }
 }
 
-public sealed class GetStudentFinancialPaymentsQueryHandler(IFinancialReadRepository repository)
+public sealed class GetStudentFinancialPaymentsQueryHandler(IFinancialReadRepository repository, ICurrentUser currentUser)
     : IRequestHandler<GetStudentFinancialPaymentsQuery, IReadOnlyList<PaymentDto>>
 {
     public async Task<IReadOnlyList<PaymentDto>> Handle(
         GetStudentFinancialPaymentsQuery request,
         CancellationToken cancellationToken)
     {
-        if (!await repository.CanUserAccessStudentAsync(
-                request.RequestingUserId, request.StudentId, cancellationToken) ||
+        if ((!currentUser.IsAdministrator && !await repository.CanUserAccessStudentAsync(
+                request.RequestingUserId, request.StudentId, cancellationToken)) ||
             !await repository.StudentExistsAsync(request.StudentId, cancellationToken))
         {
             throw new NotFoundException("Student", request.StudentId);

@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.CourseSchedules;
 using PaquitoBot.Application.UseCases.CourseSchedules.Command;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.CourseSchedules.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/course-schedules")]
 public class CourseSchedulesController : ControllerBase
 {

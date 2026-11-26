@@ -13,7 +13,7 @@ namespace PaquitoBot.Api.Controllers;
 [Route("api/frappe")]
 public class FrappeController(ISender sender) : ControllerBase
 {
-    [Authorize]
+    [Authorize(Policy = "AdministratorOrStudent")]
     [HttpGet("connect")]
     public async Task<ActionResult> Connect(CancellationToken cancellationToken)
     {

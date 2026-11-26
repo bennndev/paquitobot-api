@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.ProgramEnrollments;
 using PaquitoBot.Application.UseCases.ProgramEnrollments.Command;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.ProgramEnrollments.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/program-enrollments")]
 [Produces("application/json")]
 public class ProgramEnrollmentsController : ControllerBase

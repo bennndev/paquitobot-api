@@ -3,6 +3,7 @@ using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.DTOs.StudentFinances;
 using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Services;
 using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.StudentFinances.Query;
@@ -22,7 +23,7 @@ public sealed class GetStudentFinancialStatementQueryValidator
     }
 }
 
-public sealed class GetStudentFinancialStatementQueryHandler(IFinancialReadRepository repository)
+public sealed class GetStudentFinancialStatementQueryHandler(IFinancialReadRepository repository, ICurrentUser currentUser)
     : IRequestHandler<GetStudentFinancialStatementQuery, StudentFinancialStatementDto>
 {
     private static readonly HashSet<string> ConfirmedStatuses = new(StringComparer.OrdinalIgnoreCase)
@@ -39,8 +40,8 @@ public sealed class GetStudentFinancialStatementQueryHandler(IFinancialReadRepos
         GetStudentFinancialStatementQuery request, CancellationToken cancellationToken)
     {
         // Return 404 in both cases to avoid exposing the existence of another student's record.
-        if (!await repository.CanUserAccessStudentAsync(
-                request.RequestingUserId, request.StudentId, cancellationToken) ||
+        if ((!currentUser.IsAdministrator && !await repository.CanUserAccessStudentAsync(
+                request.RequestingUserId, request.StudentId, cancellationToken)) ||
             !await repository.StudentExistsAsync(request.StudentId, cancellationToken))
         {
             throw new NotFoundException("Student", request.StudentId);

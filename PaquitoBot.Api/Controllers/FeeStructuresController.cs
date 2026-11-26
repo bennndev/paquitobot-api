@@ -1,4 +1,5 @@
-﻿using MediatR;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.FeeStructures;
 using PaquitoBot.Application.UseCases.FeeStructures.Command;
@@ -7,6 +8,7 @@ using PaquitoBot.Application.UseCases.FeeStructures.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
+[Authorize(Policy = "Administrator")]
 [Route("api/fee-structures")]
 public class FeeStructuresController : ControllerBase
 {

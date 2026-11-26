@@ -7,7 +7,7 @@ using PaquitoBot.Application.UseCases.Chat.Query;
 namespace PaquitoBot.Api.Controllers;
 
 [ApiController]
-[Authorize]
+[Authorize(Policy = "AdministratorOrStudent")]
 [Route("api/chat")]
 public class ChatController : ControllerBase
 {
