@@ -1,11 +1,11 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Students;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Students;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Students.Command;
+namespace PaquitoBot.Application.UseCases.Students.Commands;
 
 public record CreateStudentCommand(
     string FrappeExternalId,
@@ -37,7 +37,7 @@ public class CreateStudentCommandValidator : AbstractValidator<CreateStudentComm
     }
 }
 
-public class CreateStudentCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<CreateStudentCommand, StudentDto>
+internal sealed class CreateStudentCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<CreateStudentCommand, StudentDto>
 {
     public async Task<StudentDto> Handle(CreateStudentCommand request, CancellationToken cancellationToken)
     {

@@ -1,12 +1,12 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Students;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Students;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Students.Command;
+namespace PaquitoBot.Application.UseCases.Students.Commands;
 
 public record UpdateStudentCommand(
     Guid StudentId,
@@ -37,7 +37,7 @@ public class UpdateStudentCommandValidator : AbstractValidator<UpdateStudentComm
     }
 }
 
-public class UpdateStudentCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<UpdateStudentCommand, StudentDto>
+internal sealed class UpdateStudentCommandHandler(IUnitOfWork _unitOfWork) : IRequestHandler<UpdateStudentCommand, StudentDto>
 {
     public async Task<StudentDto> Handle(UpdateStudentCommand request, CancellationToken cancellationToken)
     {
