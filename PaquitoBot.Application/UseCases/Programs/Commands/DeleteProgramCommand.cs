@@ -1,11 +1,11 @@
 
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Programs.Command;
+namespace PaquitoBot.Application.UseCases.Programs.Commands;
 
 public record DeleteProgramCommand(Guid ProgramId) : IRequest;
 
@@ -18,7 +18,7 @@ public class DeleteProgramCommandValidator
     }
 }
 
-public class DeleteProgramCommandHandler(
+internal sealed class DeleteProgramCommandHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<DeleteProgramCommand>
 {

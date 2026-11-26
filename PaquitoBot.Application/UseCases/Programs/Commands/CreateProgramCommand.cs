@@ -1,12 +1,12 @@
 
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Programs;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Programs;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Programs.Command;
+namespace PaquitoBot.Application.UseCases.Programs.Commands;
 
 public record CreateProgramCommand(
     string FrappeExternalId,
@@ -37,7 +37,7 @@ public class CreateProgramCommandValidator
     }
 }
 
-public class CreateProgramCommandHandler(
+internal sealed class CreateProgramCommandHandler(
     IUnitOfWork unitOfWork)
     : IRequestHandler<CreateProgramCommand, ProgramDto>
 {
