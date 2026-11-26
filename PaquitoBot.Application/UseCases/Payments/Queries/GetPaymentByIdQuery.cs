@@ -1,14 +1,14 @@
-﻿using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.Payments;
-using PaquitoBot.Application.Repositories;
+using MediatR;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.Payments;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.Payments.Query;
+namespace PaquitoBot.Application.UseCases.Payments.Queries;
 
 public record GetPaymentByIdQuery(Guid PaymentId) : IRequest<PaymentDto>;
 
-public class GetPaymentByIdQueryHandler(IUnitOfWork _unitOfWork)
+internal sealed class GetPaymentByIdQueryHandler(IUnitOfWork _unitOfWork)
     : IRequestHandler<GetPaymentByIdQuery, PaymentDto>
 {
     public async Task<PaymentDto> Handle(
