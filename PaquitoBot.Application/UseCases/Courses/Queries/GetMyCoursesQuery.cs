@@ -1,9 +1,9 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.Courses;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.Courses;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 
-namespace PaquitoBot.Application.UseCases.Courses.Query;
+namespace PaquitoBot.Application.UseCases.Courses.Queries;
 
 public record GetMyCoursesQuery : IRequest<IReadOnlyList<CourseDto>>;
 
