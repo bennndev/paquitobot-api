@@ -1,6 +1,6 @@
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.CourseSections;
+namespace PaquitoBot.Application.Dtos.CourseSections;
 
 public record CourseSectionDto(
     Guid SectionId,
