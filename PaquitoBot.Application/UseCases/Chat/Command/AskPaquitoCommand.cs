@@ -95,7 +95,8 @@ public class AskPaquitoCommandHandler(
             else
             {
                 if (modelResponse.ToolRequest.Name != "get_my_courses" &&
-                    modelResponse.ToolRequest.Name != "get_my_assessments")
+                    modelResponse.ToolRequest.Name != "get_my_assessments" &&
+                    modelResponse.ToolRequest.Name != "get_my_grades")
                 {
                     throw new InvalidOperationException("Gemini requested an unsupported tool.");
                 }
@@ -118,7 +119,7 @@ public class AskPaquitoCommandHandler(
                             course.Status
                         }));
                     }
-                    else
+                    else if (modelResponse.ToolRequest.Name == "get_my_assessments")
                     {
                         var assessments = await _unitOfWork.Assessments.GetByStudentIdAsync(studentId, cancellationToken);
                         toolResult = JsonSerializer.Serialize(assessments.Select(assessment => new
@@ -128,6 +129,23 @@ public class AskPaquitoCommandHandler(
                             assessment.AssessmentDate,
                             assessment.MaximumScore,
                             assessment.Status
+                        }));
+                    }
+                    else
+                    {
+                        var results = await _unitOfWork.AssessmentResults.GetByStudentIdAsync(studentId, cancellationToken);
+                        var latestResults = results.GroupBy(result => result.AssessmentId)
+                            .Select(group => group.OrderByDescending(result => result.UpdatedAt)
+                                .ThenByDescending(result => result.CreatedAt)
+                                .ThenByDescending(result => result.ResultId)
+                                .First());
+                        toolResult = JsonSerializer.Serialize(latestResults.Select(result => new
+                        {
+                            result.Assessment.Title,
+                            result.Assessment.AssessmentDate,
+                            result.Grade,
+                            result.Assessment.MaximumScore,
+                            result.Notes
                         }));
                     }
                 }
