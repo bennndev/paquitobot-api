@@ -1,6 +1,6 @@
-﻿namespace PaquitoBot.Domain.Models;
+namespace PaquitoBot.Domain.Models;
 
-public partial class CourseSection
+public partial class CourseSection : IFrappeSynced
 {
     public Guid SectionId { get; set; }
 

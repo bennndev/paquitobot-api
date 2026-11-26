@@ -1,6 +1,6 @@
-﻿namespace PaquitoBot.Domain.Models;
+namespace PaquitoBot.Domain.Models;
 
-public partial class Program
+public partial class Program : IFrappeSynced
 {
     public Guid ProgramId { get; set; }
 

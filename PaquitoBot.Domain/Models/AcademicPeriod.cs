@@ -1,6 +1,6 @@
-﻿namespace PaquitoBot.Domain.Models;
+namespace PaquitoBot.Domain.Models;
 
-public partial class AcademicPeriod
+public partial class AcademicPeriod : IFrappeSynced
 {
     public Guid AcademicPeriodId { get; set; }
 
