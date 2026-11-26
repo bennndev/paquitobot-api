@@ -1,15 +1,14 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.Payments;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.Payments;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 
-namespace PaquitoBot.Application.UseCases.StudentFinances.Query;
+namespace PaquitoBot.Application.UseCases.StudentFinances.Queries;
 
 public record GetStudentFinancialPaymentsQuery(
     Guid StudentId,
-    Guid RequestingUserId,
     string? Status = null,
     DateOnly? From = null,
     DateOnly? To = null) : IRequest<IReadOnlyList<PaymentDto>>;
@@ -20,7 +19,6 @@ public sealed class GetStudentFinancialPaymentsQueryValidator
     public GetStudentFinancialPaymentsQueryValidator()
     {
         RuleFor(query => query.StudentId).NotEmpty();
-        RuleFor(query => query.RequestingUserId).NotEmpty();
         RuleFor(query => query.Status).MaximumLength(40);
         RuleFor(query => query.To)
             .Must((query, to) => !query.From.HasValue || !to.HasValue ||
@@ -29,15 +27,16 @@ public sealed class GetStudentFinancialPaymentsQueryValidator
     }
 }
 
-public sealed class GetStudentFinancialPaymentsQueryHandler(IFinancialReadRepository repository, ICurrentUser currentUser)
+internal sealed class GetStudentFinancialPaymentsQueryHandler(IFinancialReadRepository repository, ICurrentUser currentUser)
     : IRequestHandler<GetStudentFinancialPaymentsQuery, IReadOnlyList<PaymentDto>>
 {
     public async Task<IReadOnlyList<PaymentDto>> Handle(
         GetStudentFinancialPaymentsQuery request,
         CancellationToken cancellationToken)
     {
+        var userId = currentUser.UserId ?? throw new UnauthorizedAccessException("The PaquitoBot user is not authenticated.");
         if ((!currentUser.IsAdministrator && !await repository.CanUserAccessStudentAsync(
-                request.RequestingUserId, request.StudentId, cancellationToken)) ||
+                userId, request.StudentId, cancellationToken)) ||
             !await repository.StudentExistsAsync(request.StudentId, cancellationToken))
         {
             throw new NotFoundException("Student", request.StudentId);

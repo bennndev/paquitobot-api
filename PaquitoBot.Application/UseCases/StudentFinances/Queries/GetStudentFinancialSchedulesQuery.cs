@@ -1,15 +1,14 @@
 using FluentValidation;
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.StudentFinances;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.StudentFinances;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Application.Services;
 
-namespace PaquitoBot.Application.UseCases.StudentFinances.Query;
+namespace PaquitoBot.Application.UseCases.StudentFinances.Queries;
 
 public record GetStudentFinancialSchedulesQuery(
     Guid StudentId,
-    Guid RequestingUserId,
     Guid? ProgramId = null,
     Guid? AcademicPeriodId = null) : IRequest<StudentFinancialSchedulesDto>;
 
@@ -19,7 +18,6 @@ public sealed class GetStudentFinancialSchedulesQueryValidator
     public GetStudentFinancialSchedulesQueryValidator()
     {
         RuleFor(q => q.StudentId).NotEmpty();
-        RuleFor(q => q.RequestingUserId).NotEmpty();
         RuleFor(q => q.ProgramId)
             .Must(id => !id.HasValue || id.Value != Guid.Empty);
         RuleFor(q => q.AcademicPeriodId)
@@ -27,7 +25,7 @@ public sealed class GetStudentFinancialSchedulesQueryValidator
     }
 }
 
-public sealed class GetStudentFinancialSchedulesQueryHandler(
+internal sealed class GetStudentFinancialSchedulesQueryHandler(
     IFinancialReadRepository repository, ICurrentUser currentUser)
     : IRequestHandler<GetStudentFinancialSchedulesQuery, StudentFinancialSchedulesDto>
 {
@@ -35,9 +33,9 @@ public sealed class GetStudentFinancialSchedulesQueryHandler(
         GetStudentFinancialSchedulesQuery request,
         CancellationToken cancellationToken)
     {
-        // Do not reveal whether another student's record exists.
+        var userId = currentUser.UserId ?? throw new UnauthorizedAccessException("The PaquitoBot user is not authenticated.");
         if ((!currentUser.IsAdministrator && !await repository.CanUserAccessStudentAsync(
-                request.RequestingUserId, request.StudentId, cancellationToken)) ||
+                userId, request.StudentId, cancellationToken)) ||
             !await repository.StudentExistsAsync(request.StudentId, cancellationToken))
         {
             throw new NotFoundException("Student", request.StudentId);
@@ -64,8 +62,6 @@ public sealed class GetStudentFinancialSchedulesQueryHandler(
 
         var items = enrollments.Select(enrollment =>
         {
-            // A schedule with a specific period must match the enrollment's
-            // period. Unscoped schedules can apply to every period.
             var catalog = structures
                 .Where(s => s.ProgramId == enrollment.ProgramId)
                 .Select(structure => new StudentFeeStructureDto(
