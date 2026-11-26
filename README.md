@@ -1,24 +1,19 @@
 # PaquitoBot API
 
-Backend API for **PaquitoBot**, built with .NET following a hexagonal (ports and adapters) architecture.
+Backend API for **PaquitoBot**, built with .NET following four-layer Clean Architecture with CQRS and MediatR.
 
 ## Entorno local de Frappe Education
 
-El entorno reproducible para el equipo está documentado en
-[`infra/frappe/README.md`](infra/frappe/README.md). Con Docker Desktop iniciado:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\infra\frappe\setup.ps1
-```
+El entorno local de Frappe Education se ejecuta desde la rama del equipo dedicada a Docker. Sigue su guía y configura PaquitoBot con la URL y los secretos de Frappe según las secciones de abajo.
 
 ## Solution Structure
 
 | Project | Responsibility |
 |---|---|
-| `PaquitoBot.Api` | Controllers, endpoints and application configuration |
-| `PaquitoBot.Application` | DTOs, use cases (commands and queries) and repository contracts |
-| `PaquitoBot.Domain` | Domain entities and business rules |
-| `PaquitoBot.Infrastructure` | Persistence, repository implementations and the Frappe HTTP client |
+| `PaquitoBot.Api` | Controllers grouped by module, endpoint configuration and composition |
+| `PaquitoBot.Application` | Commands, queries, DTOs, validation behavior and service interfaces |
+| `PaquitoBot.Domain` | Domain models, repository and Unit of Work contracts, and business validations |
+| `PaquitoBot.Infrastructure` | Entity Framework mappings, repository implementations, Frappe adapters and middleware |
 
 ## Tech Stack
 
@@ -36,12 +31,12 @@ powershell -ExecutionPolicy Bypass -File .\infra\frappe\setup.ps1
 The API validates the Frappe URL and credentials at startup. Set the following .NET User Secrets for local development and replace the placeholders with credentials for your Frappe service account.
 
 ```powershell
-dotnet user-secrets set "Frappe:BaseUrl" "http://education.localhost:8000" --project PaquitoBot.Api
-dotnet user-secrets set "Frappe:ApiKey" "<api-key>" --project PaquitoBot.Api
-dotnet user-secrets set "Frappe:ApiSecret" "<api-secret>" --project PaquitoBot.Api
+dotnet user-secrets set "FrappeOAuth:BaseUrl" "http://localhost:8000" --project PaquitoBot.Api
+dotnet user-secrets set "FrappeOAuth:ApiKey" "<api-key>" --project PaquitoBot.Api
+dotnet user-secrets set "FrappeOAuth:ApiSecret" "<api-secret>" --project PaquitoBot.Api
 ```
 
-For deployments, use `Frappe__BaseUrl`, `Frappe__ApiKey` and `Frappe__ApiSecret` through your deployment configuration and secret store. Use HTTPS for remote instances. The optional `Frappe__TimeoutSeconds` defaults to 15 and covers both the response headers and body.
+For deployments, use `FrappeOAuth__BaseUrl`, `FrappeOAuth__ApiKey` and `FrappeOAuth__ApiSecret` through your deployment configuration and secret store. Use HTTPS for remote instances. The optional `FrappeOAuth__TimeoutSeconds` defaults to 15 and covers both the response headers and body.
 
 Send an API bearer token to `GET /health/frappe`. The endpoint returns HTTP 200 when Frappe accepts the configured service account and HTTP 503 when the check fails.
 
@@ -65,7 +60,7 @@ Two integrations with Frappe Education coexist. They use different credentials a
 
 ### Master-data sync
 
-`POST api/academic-sync` runs `RunAcademicSyncCommand`, which executes one synchronizer per entity (`PaquitoBot.Application/Services/Sync/`) fed by a Frappe source (`PaquitoBot.Infrastructure/Services/Frappe/`). Every source reads through the shared `IFrappeClient` (see [Frappe Client](#frappe-client)), which pages in a stable order and reports failures as `FrappeException`.
+`POST api/academic-sync` runs `RunAcademicSyncCommand`, which executes one synchronizer per entity (`PaquitoBot.Infrastructure/Services/Frappe/Sync/`) fed by a Frappe source (`PaquitoBot.Infrastructure/Services/Frappe/`). Every source reads through the shared `IFrappeClient` (see [Frappe Client](#frappe-client)), which pages in a stable order and reports failures as `FrappeException`.
 
 - **Dependency order.** Synchronizers run by `SyncOrder` tier, so every tier only references lower ones: `MasterData` (10: academic periods, programs, courses, instructors, students), `ProgramStructure` (20: program courses), `Sections` (30: course sections), `SectionDetails` (40: course schedules, program enrollments, section enrollments).
 - **Idempotent.** Records are matched by `FrappeExternalId`; a record is created, updated or left unchanged, so running it again is safe.
@@ -74,13 +69,13 @@ Two integrations with Frappe Education coexist. They use different credentials a
 - **Never deletes.** Local data is never removed, even if it no longer exists in Frappe.
 - **Results.** The response lists processed, created, updated, unchanged and failed counts per entity. `GET api/sync-runs/latest` returns the latest run for each entity.
 
-Configuration keys: `Frappe:BaseUrl`, `Frappe:ApiKey`, `Frappe:ApiSecret`. Do not set them by hand: `infra/frappe/run-api.ps1` loads them as environment variables (`Frappe__BaseUrl`, and so on) from the local Frappe environment described in [`infra/frappe/README.md`](infra/frappe/README.md).
+Configuration keys for the API client are described under [Frappe Client](#frappe-client).
 
 ### Per-student OAuth snapshot
 
 A signed-in user calls `GET api/frappe/connect`, which returns the Frappe authorization URL. After the student authorizes, Frappe redirects to `GET api/frappe/callback`, which exchanges the code, checks that the Frappe account matches the PaquitoBot user, and imports that student's snapshot through the server script `paquitobot_student_snapshot`.
 
-The script and how to install it are in [`integrations/frappe/README.md`](integrations/frappe/README.md). Set `FrappeOAuth:BaseUrl`, `FrappeOAuth:ClientId`, `FrappeOAuth:ClientSecret` and `FrappeOAuth:RedirectUri` in User Secrets; the redirect URI must match the Frappe OAuth Client exactly.
+Use the snapshot server script provided with the Frappe environment. Set `FrappeOAuth:BaseUrl`, `FrappeOAuth:ClientId`, `FrappeOAuth:ClientSecret` and `FrappeOAuth:RedirectUri` in User Secrets; the redirect URI must match the Frappe OAuth Client exactly.
 
 ### Local configuration
 
@@ -95,8 +90,12 @@ dotnet user-secrets set "JWTVariable:Audience" "<audience>" --project PaquitoBot
 
 ### Gotchas
 
-1. .NET on Windows cannot resolve `*.localhost` names. The API reaches Frappe through `http://localhost:8000`, while the browser uses `http://education.localhost:8000`. Use the `localhost` form for `Frappe:BaseUrl`.
-2. Start the API with `infra/frappe/run-api.ps1`, not from an IDE run configuration. Otherwise the Frappe API key is not injected and Frappe answers 403.
+1. .NET on Windows cannot resolve `*.localhost` names. The API reaches Frappe through `http://localhost:8000`, while the browser uses `http://education.localhost:8000`. Use the `localhost` form for `FrappeOAuth:BaseUrl`.
+2. Provide the Frappe credentials through User Secrets or process environment variables before starting the API.
+
+## API responses
+
+Create, update and delete endpoints return HTTP 200 with a JSON message. Login and registration retain their authentication data, and chat, synchronization and financial preview endpoints return their results.
 
 ## Contributing
 
