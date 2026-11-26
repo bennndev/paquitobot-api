@@ -1,3 +1,4 @@
+using System.Text.Json;
 using FluentValidation;
 using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
@@ -41,7 +42,7 @@ public class AskPaquitoCommandHandler(
     private const int MaxTitleLength = 80;
     private const int MaxContextMessages = 10;
     private const int MaxContextMessageLength = 2000;
-    private const string FailureAnswer = "Sorry, I could not generate an answer right now. Please try again later.";
+    private const string FailureAnswer = "No pude generar una respuesta ahora. Inténtalo de nuevo más tarde.";
 
     public async Task<AskPaquitoResponse> Handle(AskPaquitoCommand request, CancellationToken cancellationToken)
     {
@@ -85,7 +86,39 @@ public class AskPaquitoCommandHandler(
 
         try
         {
-            answer = await _answerProvider.GenerateAnswerAsync(turns, cancellationToken);
+            var modelResponse = await _answerProvider.BeginAnswerAsync(turns, cancellationToken);
+            if (modelResponse.ToolRequest is null)
+            {
+                answer = modelResponse.Answer
+                    ?? throw new InvalidOperationException("Gemini returned no answer.");
+            }
+            else
+            {
+                if (modelResponse.ToolRequest.Name != "get_my_courses")
+                {
+                    throw new InvalidOperationException("Gemini requested an unsupported tool.");
+                }
+
+                string toolResult;
+                if (_currentUser.StudentId is not Guid studentId ||
+                    !await _unitOfWork.UserStudents.PairExistsAsync(userId, studentId, cancellationToken))
+                {
+                    toolResult = JsonSerializer.Serialize(new { error = "student_account_not_connected" });
+                }
+                else
+                {
+                    var courses = await _unitOfWork.Courses.GetByStudentIdAsync(studentId, cancellationToken);
+                    toolResult = JsonSerializer.Serialize(courses.Select(course => new
+                    {
+                        course.Code,
+                        course.Name,
+                        course.Status
+                    }));
+                }
+
+                answer = await _answerProvider.CompleteToolAsync(
+                    modelResponse.ToolRequest, toolResult, cancellationToken);
+            }
         }
         catch (Exception exception) when (exception is not OperationCanceledException)
         {
