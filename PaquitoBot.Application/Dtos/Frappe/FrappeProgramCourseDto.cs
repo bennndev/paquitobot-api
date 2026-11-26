@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.DTOs.Frappe;
+namespace PaquitoBot.Application.Dtos.Frappe;
 
 public record FrappeProgramCourseDto(
     string ProgramExternalId,

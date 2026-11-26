@@ -1,9 +1,5 @@
-namespace PaquitoBot.Application.DTOs.Frappe;
+namespace PaquitoBot.Application.Dtos.Frappe;
 
-/// <summary>
-/// ProgramExternalId is null when the source could not resolve the program of the enrollment;
-/// the synchronizer reports that record as failed.
-/// </summary>
 public record FrappeProgramEnrollmentDto(
     string ExternalId,
     string StudentExternalId,

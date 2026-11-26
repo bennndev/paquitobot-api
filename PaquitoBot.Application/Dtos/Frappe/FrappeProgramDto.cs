@@ -1,10 +1,9 @@
-namespace PaquitoBot.Application.DTOs.Frappe;
+namespace PaquitoBot.Application.Dtos.Frappe;
 
-public record FrappeCourseDto(
+public record FrappeProgramDto(
     string ExternalId,
     string? Code,
     string Name,
     string? Description,
-    int? Credits,
     string? Status,
     DateTime? ModifiedAt);
