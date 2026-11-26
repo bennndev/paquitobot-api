@@ -1,6 +1,6 @@
-﻿using PaquitoBot.Domain.Models;
+using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.DTOs.FeeSchedules;
+namespace PaquitoBot.Application.Dtos.FeeSchedules;
 
 public record FeeScheduleDto(
     Guid FeeScheduleId,
