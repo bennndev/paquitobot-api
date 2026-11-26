@@ -1,14 +1,12 @@
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.Sync;
+using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Frappe;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Services.Sync;
+namespace PaquitoBot.Infrastructure.Services.Frappe.Sync;
 
-/// <summary>
-/// Maps Frappe class slots to course schedules. The section is a required parent and the
-/// instructor an optional one, both resolved by external id.
-/// </summary>
 public class CourseScheduleSynchronizer(
     IFrappeSource<FrappeCourseScheduleDto> source,
     IFrappeSyncedRepository<CourseSchedule> repository,

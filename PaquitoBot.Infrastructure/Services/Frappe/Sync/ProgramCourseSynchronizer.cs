@@ -1,13 +1,11 @@
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.Sync;
+using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Dtos.Frappe;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Services.Sync;
+namespace PaquitoBot.Infrastructure.Services.Frappe.Sync;
 
-/// <summary>
-/// Links programs and courses. The pair has no Frappe id of its own, so it is matched by (program, course).
-/// Frappe only tells which program a course belongs to, so an existing link is never rewritten.
-/// </summary>
 public class ProgramCourseSynchronizer(
     IFrappeSource<FrappeProgramCourseDto> source,
     IFrappeSyncedRepository<Program> programs,

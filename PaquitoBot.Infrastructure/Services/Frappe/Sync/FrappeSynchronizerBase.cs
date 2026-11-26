@@ -1,12 +1,10 @@
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.Sync;
+using PaquitoBot.Application.Services;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Services.Sync;
+namespace PaquitoBot.Infrastructure.Services.Frappe.Sync;
 
-/// <summary>
-/// Template for idempotent upserts keyed by the Frappe external id.
-/// Concrete synchronizers only fetch and map; matching, change detection and bookkeeping live here.
-/// </summary>
 public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
     IFrappeSyncedRepository<TEntity> repository,
     IUnitOfWork unitOfWork,
@@ -23,17 +21,10 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
 
     protected abstract DateTime? GetModifiedAt(TExternal external);
 
-    /// <summary>Builds a new entity, including its external id.</summary>
     protected abstract TEntity Create(TExternal external);
 
-    /// <summary>Copies the mutable fields from the external record onto an existing entity.</summary>
     protected abstract void Apply(TExternal external, TEntity entity);
 
-    /// <summary>
-    /// Runs once after fetching and before mapping. Synchronizers with parents load them here
-    /// in batch and throw from <see cref="Create"/> or <see cref="Apply"/> when a parent is missing,
-    /// so only that record is reported as failed.
-    /// </summary>
     protected virtual Task PrepareAsync(IReadOnlyList<TExternal> items, CancellationToken cancellationToken)
         => Task.CompletedTask;
 

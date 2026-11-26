@@ -1,15 +1,12 @@
-using PaquitoBot.Application.Common.Text;
-using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.Sync;
+using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Helpers;
+using PaquitoBot.Application.Dtos.Frappe;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Services.Sync;
+namespace PaquitoBot.Infrastructure.Services.Frappe.Sync;
 
-/// <summary>
-/// Maps Frappe batches to course sections. The course is a parent resolved by external id. The academic period
-/// is the term reported by the batch enrollments; without one it is deduced as the single period that
-/// contains the batch start date.
-/// </summary>
 public class CourseSectionSynchronizer(
     IFrappeSource<FrappeCourseSectionDto> source,
     IFrappeSyncedRepository<CourseSection> repository,

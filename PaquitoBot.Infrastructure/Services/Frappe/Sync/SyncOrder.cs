@@ -1,8 +1,7 @@
-namespace PaquitoBot.Application.Services.Sync;
+using PaquitoBot.Application.Dtos.Sync;
+using PaquitoBot.Application.Services;
+namespace PaquitoBot.Infrastructure.Services.Frappe.Sync;
 
-/// <summary>
-/// Dependency tiers for a sync run: each tier only references entities from lower tiers.
-/// </summary>
 public static class SyncOrder
 {
     public const int MasterData = 10;
