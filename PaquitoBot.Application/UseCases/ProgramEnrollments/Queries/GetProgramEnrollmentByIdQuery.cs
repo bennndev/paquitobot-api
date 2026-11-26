@@ -1,15 +1,15 @@
 using MediatR;
-using PaquitoBot.Application.Common.Exceptions;
-using PaquitoBot.Application.DTOs.ProgramEnrollments;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Domain.Exceptions;
+using PaquitoBot.Application.Dtos.ProgramEnrollments;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.ProgramEnrollments.Query;
+namespace PaquitoBot.Application.UseCases.ProgramEnrollments.Queries;
 
 public record GetProgramEnrollmentByIdQuery(Guid ProgramEnrollmentId)
     : IRequest<ProgramEnrollmentDto>;
 
-public class GetProgramEnrollmentByIdQueryHandler(IUnitOfWork unitOfWork)
+internal sealed class GetProgramEnrollmentByIdQueryHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<GetProgramEnrollmentByIdQuery, ProgramEnrollmentDto>
 {
     public async Task<ProgramEnrollmentDto> Handle(

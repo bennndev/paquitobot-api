@@ -1,14 +1,14 @@
 using MediatR;
-using PaquitoBot.Application.DTOs.ProgramEnrollments;
-using PaquitoBot.Application.Repositories;
+using PaquitoBot.Application.Dtos.ProgramEnrollments;
+using PaquitoBot.Domain.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.UseCases.ProgramEnrollments.Query;
+namespace PaquitoBot.Application.UseCases.ProgramEnrollments.Queries;
 
 public record GetAllProgramEnrollmentsQuery
     : IRequest<IReadOnlyList<ProgramEnrollmentDto>>;
 
-public class GetAllProgramEnrollmentsQueryHandler(IUnitOfWork unitOfWork)
+internal sealed class GetAllProgramEnrollmentsQueryHandler(IUnitOfWork unitOfWork)
     : IRequestHandler<GetAllProgramEnrollmentsQuery, IReadOnlyList<ProgramEnrollmentDto>>
 {
     public async Task<IReadOnlyList<ProgramEnrollmentDto>> Handle(
