@@ -1,4 +1,5 @@
 using PaquitoBot.Application.Services.Sync;
+using PaquitoBot.Application.DTOs.Sync;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
 

@@ -1,3 +1,5 @@
+using PaquitoBot.Application.DTOs.Sync;
+
 namespace PaquitoBot.Application.Services.Sync;
 
 public interface IEntitySynchronizer

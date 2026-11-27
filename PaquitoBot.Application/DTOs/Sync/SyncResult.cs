@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.Services.Sync;
+namespace PaquitoBot.Application.DTOs.Sync;
 
 public record SyncError(string ExternalId, string Message);
 

@@ -1,5 +1,3 @@
-﻿using PaquitoBot.Application.Services.Sync;
-
 namespace PaquitoBot.Application.DTOs.Sync;
 
 public record EntitySyncResponse(
