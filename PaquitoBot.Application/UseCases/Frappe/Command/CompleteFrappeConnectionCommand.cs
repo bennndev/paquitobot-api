@@ -198,13 +198,15 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         {
             var name = Required(row, "name");
             var course = courses[Required(row, "course")];
-            var period = periods[batchTerms[name]];
+            batchTerms.TryGetValue(name, out var termName);
+            var startDate = Date(row, "start_date");
+            var period = AcademicPeriodResolver.Resolve(termName, startDate, periods, periods.Values);
             sections[name] = await Upsert(unitOfWork.Repository<CourseSection>(), name, entity =>
             {
                 var source = new FrappeCourseSectionDto(
                     name,
                     Required(row, "course"),
-                    Date(row, "start_date"),
+                    startDate,
                     Date(row, "end_date"),
                     Optional(row, "batch_name") ?? name,
                     null,
@@ -212,7 +214,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                     Integer(row, "max_strength"),
                     Optional(row, "disabled") == "1" ? "inactive" : "active",
                     null,
-                    batchTerms[name]);
+                    termName);
                 CourseSectionSyncMapper.Apply(source, entity, course.CourseId, period.AcademicPeriodId);
                 MarkSharedRecord(entity, now);
             }, cancellationToken);

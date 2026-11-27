@@ -65,36 +65,8 @@ public class CourseSectionSynchronizer(
             throw new InvalidOperationException($"Course '{courseExternalId}' was not found.");
         }
 
-        CourseSectionSyncMapper.Apply(external, section, course.CourseId, ResolvePeriod(external).AcademicPeriodId);
-    }
-
-    private AcademicPeriod ResolvePeriod(FrappeCourseSectionDto external)
-    {
-        var explicitPeriodId = TextNormalizer.Optional(external.AcademicPeriodExternalId);
-
-        if (explicitPeriodId is not null)
-        {
-            return _periodsByExternalId.TryGetValue(explicitPeriodId, out var explicitPeriod)
-                ? explicitPeriod
-                : throw new InvalidOperationException($"Academic period '{explicitPeriodId}' was not found.");
-        }
-
-        if (external.StartDate is not { } start)
-        {
-            throw new InvalidOperationException(
-                "The batch has no start date, so its academic period cannot be deduced.");
-        }
-
-        var matches = _knownPeriods
-            .Where(p => p.StartDate <= start && start <= p.EndDate)
-            .ToList();
-
-        return matches.Count switch
-        {
-            1 => matches[0],
-            0 => throw new InvalidOperationException($"No academic period contains the batch start date {start:yyyy-MM-dd}."),
-            _ => throw new InvalidOperationException(
-                $"More than one academic period contains the batch start date {start:yyyy-MM-dd}.")
-        };
+        var period = AcademicPeriodResolver.Resolve(external.AcademicPeriodExternalId, external.StartDate,
+            _periodsByExternalId, _knownPeriods);
+        CourseSectionSyncMapper.Apply(external, section, course.CourseId, period.AcademicPeriodId);
     }
 }
