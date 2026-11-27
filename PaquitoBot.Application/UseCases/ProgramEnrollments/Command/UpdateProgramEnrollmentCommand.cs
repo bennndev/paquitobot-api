@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
+using PaquitoBot.Application.Common.Frappe;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.ProgramEnrollments;
 using PaquitoBot.Application.Repositories;
@@ -43,6 +44,8 @@ public class UpdateProgramEnrollmentCommandHandler(IUnitOfWork unitOfWork)
         var enrollment = await unitOfWork.Repository<ProgramEnrollment>()
             .GetByIdAsync(request.ProgramEnrollmentId, cancellationToken)
             ?? throw new NotFoundException("ProgramEnrollment", request.ProgramEnrollmentId);
+
+        FrappeRecordOwnership.RequireLocal(enrollment);
 
         if (!await unitOfWork.Repository<Student>()
             .ExistsAsync(request.StudentId, cancellationToken))

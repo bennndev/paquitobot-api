@@ -28,7 +28,8 @@ public class CreateProgramEnrollmentCommandValidator
         RuleFor(x => x.AcademicPeriodId)
             .Must(id => !id.HasValue || id.Value != Guid.Empty)
             .WithMessage("AcademicPeriodId must be a non-empty GUID when provided.");
-        RuleFor(x => x.FrappeExternalId).MaximumLength(140);
+        RuleFor(x => x.FrappeExternalId).Null()
+            .WithMessage("FrappeExternalId is assigned by synchronization.");
         RuleFor(x => x.Status).MaximumLength(40);
     }
 }
@@ -64,7 +65,6 @@ public class CreateProgramEnrollmentCommandHandler(IUnitOfWork unitOfWork)
             StudentId = request.StudentId,
             ProgramId = request.ProgramId,
             AcademicPeriodId = request.AcademicPeriodId,
-            FrappeExternalId = TextNormalizer.Optional(request.FrappeExternalId),
             EnrollmentDate = request.EnrollmentDate,
             Status = TextNormalizer.Optional(request.Status)
         };

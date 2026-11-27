@@ -31,7 +31,8 @@ public class CreateCourseScheduleCommandValidator
         RuleFor(x => x.EndTime)
             .GreaterThan(x => x.StartTime)
             .WithMessage("EndTime must be later than StartTime.");
-        RuleFor(x => x.FrappeExternalId).MaximumLength(140);
+        RuleFor(x => x.FrappeExternalId).Null()
+            .WithMessage("FrappeExternalId is assigned by synchronization.");
         RuleFor(x => x.Location).MaximumLength(255);
         RuleFor(x => x.DeliveryMode).MaximumLength(40);
         RuleFor(x => x.Status).MaximumLength(40);
@@ -66,7 +67,6 @@ public class CreateCourseScheduleCommandHandler(
             ClassDate = request.ClassDate,
             StartTime = request.StartTime,
             EndTime = request.EndTime,
-            FrappeExternalId = TextNormalizer.Optional(request.FrappeExternalId),
             Location = TextNormalizer.Optional(request.Location),
             DeliveryMode = TextNormalizer.Optional(request.DeliveryMode),
             Status = TextNormalizer.Optional(request.Status)

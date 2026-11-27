@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
+using PaquitoBot.Application.Common.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
 
@@ -28,6 +29,8 @@ public class DeleteCourseScheduleCommandHandler(
         var schedule = await unitOfWork.Repository<CourseSchedule>()
             .GetByIdAsync(request.ScheduleId, cancellationToken)
             ?? throw new NotFoundException("CourseSchedule", request.ScheduleId);
+
+        FrappeRecordOwnership.RequireLocal(schedule);
 
         unitOfWork.Repository<CourseSchedule>().Remove(schedule);
 
