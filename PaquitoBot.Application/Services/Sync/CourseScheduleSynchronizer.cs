@@ -2,6 +2,7 @@ using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
+using PaquitoBot.Application.UseCases.Sync.Mapping;
 
 namespace PaquitoBot.Application.Services.Sync;
 
@@ -54,11 +55,6 @@ public class CourseScheduleSynchronizer(
 
     protected override void Apply(FrappeCourseScheduleDto external, CourseSchedule schedule)
     {
-        if (external.EndTime <= external.StartTime)
-        {
-            throw new InvalidOperationException("The end time must be after the start time.");
-        }
-
         var sectionExternalId = external.SectionExternalId.Trim();
 
         if (!_knownSections.TryGetValue(sectionExternalId, out var section))
@@ -66,14 +62,8 @@ public class CourseScheduleSynchronizer(
             throw new InvalidOperationException($"Section '{sectionExternalId}' was not found.");
         }
 
-        schedule.SectionId = section.SectionId;
-        schedule.InstructorId = ResolveInstructor(external.InstructorExternalId);
-        schedule.ClassDate = external.ClassDate;
-        schedule.StartTime = external.StartTime;
-        schedule.EndTime = external.EndTime;
-        schedule.Location = TextNormalizer.Optional(external.Location);
-        schedule.DeliveryMode = TextNormalizer.Optional(external.DeliveryMode);
-        schedule.Status = TextNormalizer.OptionalLower(external.Status);
+        CourseScheduleSyncMapper.Apply(external, schedule, section.SectionId,
+            ResolveInstructor(external.InstructorExternalId));
     }
 
     private Guid? ResolveInstructor(string? instructorExternalId)

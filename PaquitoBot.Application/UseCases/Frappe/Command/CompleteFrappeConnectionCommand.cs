@@ -275,14 +275,20 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
             section.InstructorName = Optional(row, "faculty_name");
             await Upsert(unitOfWork.Repository<CourseSchedule>(), name, entity =>
             {
-                entity.SectionId = section.SectionId;
-                entity.InstructorId = facultyName is not null && instructors.TryGetValue(facultyName, out var instructor)
-                    ? instructor.InstructorId : null;
-                entity.ClassDate = Date(row, "schedule_date") ?? throw new InvalidOperationException("Schedule date is missing.");
-                entity.StartTime = Time(row, "from_time");
-                entity.EndTime = Time(row, "to_time");
-                entity.Location = Optional(row, "room");
-                entity.Status = "scheduled";
+                var source = new FrappeCourseScheduleDto(
+                    name,
+                    Required(row, "student_batch"),
+                    facultyName,
+                    Date(row, "schedule_date") ?? throw new InvalidOperationException("Schedule date is missing."),
+                    Time(row, "from_time"),
+                    Time(row, "to_time"),
+                    Optional(row, "room"),
+                    null,
+                    "scheduled",
+                    null);
+                var instructorId = facultyName is not null && instructors.TryGetValue(facultyName, out var instructor)
+                    ? instructor.InstructorId : (Guid?)null;
+                CourseScheduleSyncMapper.Apply(source, entity, section.SectionId, instructorId);
                 entity.SyncedAt = now;
             }, cancellationToken);
             processed++;
