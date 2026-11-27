@@ -74,7 +74,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                 Optional(studentRow, "enabled") == "1" ? "active" : "inactive",
                 null);
             StudentSyncMapper.Apply(source, entity);
-            entity.SyncedAt = now;
+            MarkSharedRecord(entity, now);
         }, cancellationToken);
         processed++;
 
@@ -93,7 +93,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                     "active",
                     null);
                 AcademicPeriodSyncMapper.Apply(period, entity);
-                entity.SyncedAt = now;
+                MarkSharedRecord(entity, now);
             }, cancellationToken);
             processed++;
         }
@@ -112,7 +112,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                     "active",
                     null);
                 ProgramSyncMapper.Apply(program, entity);
-                entity.SyncedAt = now;
+                MarkSharedRecord(entity, now);
             }, cancellationToken);
             processed++;
         }
@@ -134,7 +134,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                     "active",
                     null);
                 CourseSyncMapper.Apply(course, entity);
-                entity.SyncedAt = now;
+                MarkSharedRecord(entity, now);
             }, cancellationToken);
             processed++;
         }
@@ -155,7 +155,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                     Optional(row, "status"),
                     null);
                 InstructorSyncMapper.Apply(instructor, entity);
-                entity.SyncedAt = now;
+                MarkSharedRecord(entity, now);
             }, cancellationToken);
             processed++;
         }
@@ -214,7 +214,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                     null,
                     batchTerms[name]);
                 CourseSectionSyncMapper.Apply(source, entity, course.CourseId, period.AcademicPeriodId);
-                entity.SyncedAt = now;
+                MarkSharedRecord(entity, now);
             }, cancellationToken);
             processed++;
         }
@@ -242,7 +242,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                     Optional(row, "status"),
                     null);
                 SectionEnrollmentSyncMapper.Apply(source, entity, student.StudentId, section.SectionId);
-                entity.SyncedAt = now;
+                MarkSharedRecord(entity, now);
             }, cancellationToken);
             var programName = Optional(row, "program");
             var termName = Optional(row, "academic_term");
@@ -289,7 +289,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                 var instructorId = facultyName is not null && instructors.TryGetValue(facultyName, out var instructor)
                     ? instructor.InstructorId : (Guid?)null;
                 CourseScheduleSyncMapper.Apply(source, entity, section.SectionId, instructorId);
-                entity.SyncedAt = now;
+                MarkSharedRecord(entity, now);
             }, cancellationToken);
             processed++;
         }
@@ -428,6 +428,13 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         CancellationToken cancellationToken) where T : class
     {
         return repository.UpsertByFrappeExternalIdAsync(externalId, update, cancellationToken);
+    }
+
+    // The admin sync must recheck shared records after the student snapshot changes them.
+    private static void MarkSharedRecord(IFrappeSynced entity, DateTime syncedAt)
+    {
+        entity.FrappeModifiedAt = null;
+        entity.SyncedAt = syncedAt;
     }
 
     private static IReadOnlyList<JsonElement> Rows(JsonElement root, string property)
