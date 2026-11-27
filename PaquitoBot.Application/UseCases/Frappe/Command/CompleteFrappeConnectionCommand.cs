@@ -178,19 +178,20 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                 }, cancellationToken);
         }
 
-        var batchTerms = new Dictionary<string, string>();
+        var termsByBatch = new Dictionary<string, HashSet<string>>();
         foreach (var enrollment in Rows(snapshot, "enrollments"))
         {
             var batchName = Optional(enrollment, "student_batch");
             var termName = Optional(enrollment, "academic_term");
             if (batchName is not null && termName is not null)
             {
-                if (batchTerms.TryGetValue(batchName, out var existingTerm) && existingTerm != termName)
+                if (!termsByBatch.TryGetValue(batchName, out var terms))
                 {
-                    throw new InvalidOperationException($"Batch {batchName} has conflicting academic terms.");
+                    terms = [];
+                    termsByBatch.Add(batchName, terms);
                 }
 
-                batchTerms[batchName] = termName;
+                terms.Add(termName);
             }
         }
         var sections = new Dictionary<string, CourseSection>();
@@ -198,7 +199,9 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         {
             var name = Required(row, "name");
             var course = courses[Required(row, "course")];
-            batchTerms.TryGetValue(name, out var termName);
+            var termName = termsByBatch.TryGetValue(name, out var terms) && terms.Count == 1
+                ? terms.Single()
+                : null;
             var startDate = Date(row, "start_date");
             var period = AcademicPeriodResolver.Resolve(termName, startDate, periods, periods.Values);
             sections[name] = await Upsert(unitOfWork.Repository<CourseSection>(), name, entity =>
