@@ -149,7 +149,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                     name,
                     Optional(row, "first_name"),
                     Optional(row, "last_name"),
-                    Optional(row, "faculty_name") ?? Join(Optional(row, "first_name"), Optional(row, "last_name")),
+                    Optional(row, "faculty_name"),
                     Optional(row, "email_address"),
                     Optional(row, "phone_number"),
                     Optional(row, "status"),

@@ -10,7 +10,9 @@ internal static class InstructorSyncMapper
     {
         instructor.FirstName = TextNormalizer.Optional(source.FirstName);
         instructor.LastName = TextNormalizer.Optional(source.LastName);
-        instructor.FullName = TextNormalizer.Optional(source.FullName);
+        var fullName = $"{instructor.FirstName} {instructor.LastName}".Trim();
+        instructor.FullName = TextNormalizer.Optional(source.FullName) ??
+                              (fullName.Length == 0 ? null : fullName);
         instructor.Email = TextNormalizer.OptionalEmail(source.Email);
         instructor.Phone = TextNormalizer.Optional(source.Phone);
 
