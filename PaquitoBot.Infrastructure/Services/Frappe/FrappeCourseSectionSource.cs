@@ -6,11 +6,6 @@ using PaquitoBot.Application.Services.Sync;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-/// <summary>
-/// Course sections live in the Frappe "Student Batch Name" doctype, which has no academic term.
-/// The term is taken from the batch's non-cancelled "Course Enrollment" records, and only when
-/// they all agree on a single one; otherwise it is left empty for the synchronizer to deduce.
-/// </summary>
 public sealed class FrappeCourseSectionSource(IFrappeClient client, FrappeCourseEnrollmentCatalog enrollmentCatalog)
     : IFrappeSource<FrappeCourseSectionDto>
 {

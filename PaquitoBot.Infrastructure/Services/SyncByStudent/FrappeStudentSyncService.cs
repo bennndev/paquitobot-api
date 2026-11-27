@@ -1,10 +1,9 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
-using PaquitoBot.Application.Services;
 using PaquitoBot.Application.Services.SyncByStudent;
 
-namespace PaquitoBot.Infrastructure.Services;
+namespace PaquitoBot.Infrastructure.Services.SyncByStudent;
 
 public sealed class FrappeStudentSyncService(HttpClient httpClient, IConfiguration configuration)
     : IFrappeStudentSyncService

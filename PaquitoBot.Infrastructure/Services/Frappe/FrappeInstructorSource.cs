@@ -6,7 +6,6 @@ using PaquitoBot.Application.Services.Sync;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-/// <summary>Instructors live in the Frappe "Faculty" doctype.</summary>
 public sealed class FrappeInstructorSource(IFrappeClient client) : IFrappeSource<FrappeInstructorDto>
 {
     private const string DocType = "Faculty";

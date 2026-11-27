@@ -13,6 +13,7 @@ using PaquitoBot.Infrastructure.Services;
 using PaquitoBot.Infrastructure.Services.Authenticate;
 using PaquitoBot.Infrastructure.Services.ChatBot;
 using PaquitoBot.Infrastructure.Services.Frappe;
+using PaquitoBot.Infrastructure.Services.SyncByStudent;
 
 namespace PaquitoBot.Infrastructure;
 

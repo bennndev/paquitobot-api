@@ -3,10 +3,6 @@ using PaquitoBot.Application.Services.Sync;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-/// <summary>
-/// Student-section enrollments come from the Frappe "Course Enrollment" doctype. Cancelled enrollments and
-/// those without a batch are skipped, and a student appears once per batch because that pair is unique locally.
-/// </summary>
 public sealed class FrappeSectionEnrollmentSource(FrappeCourseEnrollmentCatalog catalog)
     : IFrappeSource<FrappeSectionEnrollmentDto>
 {

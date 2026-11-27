@@ -4,10 +4,9 @@ using System.Text;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
-using PaquitoBot.Application.Services;
 using PaquitoBot.Application.Services.SyncByStudent;
 
-namespace PaquitoBot.Infrastructure.Services;
+namespace PaquitoBot.Infrastructure.Services.SyncByStudent;
 
 public sealed class FrappeOAuthService(HttpClient httpClient, IMemoryCache cache, IConfiguration configuration)
     : IFrappeOAuthService
