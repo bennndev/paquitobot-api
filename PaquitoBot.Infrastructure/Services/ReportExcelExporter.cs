@@ -129,7 +129,6 @@ public sealed class ReportExcelExporter : IReportExcelExporter
         return Save(workbook);
     }
 
-    // Display only: the statement keeps its English status names.
     private static string StatusInSpanish(string status) => status switch
     {
         "Cancelled" => "Anulado",
