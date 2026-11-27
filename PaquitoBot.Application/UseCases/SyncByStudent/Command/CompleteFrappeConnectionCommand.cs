@@ -178,8 +178,11 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                 }, cancellationToken);
         }
 
+        var enrollmentRows = Rows(snapshot, "enrollments")
+            .Where(row => Optional(row, "docstatus") != "2")
+            .ToList();
         var termsByBatch = new Dictionary<string, HashSet<string>>();
-        foreach (var enrollment in Rows(snapshot, "enrollments"))
+        foreach (var enrollment in enrollmentRows)
         {
             var batchName = Optional(enrollment, "student_batch");
             var termName = Optional(enrollment, "academic_term");
@@ -227,7 +230,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
         var seenProgramEnrollments = new HashSet<(Guid ProgramId, Guid PeriodId)>();
-        foreach (var row in Rows(snapshot, "enrollments"))
+        foreach (var row in enrollmentRows)
         {
             EnsureStudent(row, studentName);
             var name = Required(row, "name");
