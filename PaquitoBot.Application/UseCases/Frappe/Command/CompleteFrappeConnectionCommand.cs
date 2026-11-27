@@ -185,7 +185,12 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
             var termName = Optional(enrollment, "academic_term");
             if (batchName is not null && termName is not null)
             {
-                batchTerms.Add(batchName, termName);
+                if (batchTerms.TryGetValue(batchName, out var existingTerm) && existingTerm != termName)
+                {
+                    throw new InvalidOperationException($"Batch {batchName} has conflicting academic terms.");
+                }
+
+                batchTerms[batchName] = termName;
             }
         }
         var sections = new Dictionary<string, CourseSection>();
@@ -196,11 +201,19 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
             var period = periods[batchTerms[name]];
             sections[name] = await Upsert(unitOfWork.Repository<CourseSection>(), name, entity =>
             {
-                entity.CourseId = course.CourseId;
-                entity.AcademicPeriodId = period.AcademicPeriodId;
-                entity.SectionCode = name;
-                entity.Capacity = Integer(row, "max_strength");
-                entity.Status = Optional(row, "disabled") == "1" ? "inactive" : "active";
+                var source = new FrappeCourseSectionDto(
+                    name,
+                    Required(row, "course"),
+                    Date(row, "start_date"),
+                    Date(row, "end_date"),
+                    Optional(row, "batch_name") ?? name,
+                    null,
+                    null,
+                    Integer(row, "max_strength"),
+                    Optional(row, "disabled") == "1" ? "inactive" : "active",
+                    null,
+                    batchTerms[name]);
+                CourseSectionSyncMapper.Apply(source, entity, course.CourseId, period.AcademicPeriodId);
                 entity.SyncedAt = now;
             }, cancellationToken);
             processed++;

@@ -2,6 +2,7 @@ using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
+using PaquitoBot.Application.UseCases.Sync.Mapping;
 
 namespace PaquitoBot.Application.Services.Sync;
 
@@ -63,13 +64,7 @@ public class CourseSectionSynchronizer(
             throw new InvalidOperationException($"Course '{courseExternalId}' was not found.");
         }
 
-        section.CourseId = course.CourseId;
-        section.AcademicPeriodId = ResolvePeriod(external).AcademicPeriodId;
-        section.SectionCode = TextNormalizer.Optional(external.SectionCode);
-        section.InstructorName = TextNormalizer.Optional(external.InstructorName);
-        section.DeliveryMode = TextNormalizer.Optional(external.DeliveryMode);
-        section.Capacity = external.Capacity;
-        section.Status = TextNormalizer.OptionalLower(external.Status);
+        CourseSectionSyncMapper.Apply(external, section, course.CourseId, ResolvePeriod(external).AcademicPeriodId);
     }
 
     private AcademicPeriod ResolvePeriod(FrappeCourseSectionDto external)
