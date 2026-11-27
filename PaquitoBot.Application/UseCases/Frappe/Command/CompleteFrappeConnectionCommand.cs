@@ -7,6 +7,7 @@ using PaquitoBot.Application.Services.Authenticate;
 using PaquitoBot.Application.Services.SyncByStudent;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
+using PaquitoBot.Application.UseCases.Sync.Mapping;
 
 namespace PaquitoBot.Application.UseCases.Frappe.Command;
 
@@ -110,11 +111,17 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
             var name = Required(row, "name");
             courses[name] = await Upsert(unitOfWork.Repository<Course>(), name, entity =>
             {
-                entity.Name = name;
-                entity.Code = Optional(row, "course_abbreviation");
-                entity.Description = Optional(row, "short_description");
-                entity.Credits = Integer(row, "course_credit");
-                entity.Status = "active";
+                var credit = Number(row, "course_credit");
+                var credits = credit is null ? (int?)null : checked((int)Math.Round(credit.Value));
+                var course = new FrappeCourseDto(
+                    name,
+                    Optional(row, "course_abbreviation"),
+                    Optional(row, "course_name") ?? name,
+                    Optional(row, "short_description"),
+                    credits,
+                    "active",
+                    null);
+                CourseSyncMapper.Apply(course, entity);
                 entity.SyncedAt = now;
             }, cancellationToken);
             processed++;
