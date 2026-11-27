@@ -41,8 +41,8 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
     protected virtual Task PrepareAsync(IReadOnlyList<TExternal> items, CancellationToken cancellationToken)
         => Task.CompletedTask;
 
-    // A synchronizer may attach a uniquely matched local placeholder to a Frappe id.
-    protected virtual Task<TEntity?> FindUnlinkedAsync(TExternal item,
+    // A synchronizer may match a local record by its business identity when its Frappe id differs.
+    protected virtual Task<TEntity?> FindByLocalIdentityAsync(TExternal item,
         CancellationToken cancellationToken) => Task.FromResult<TEntity?>(null);
 
     protected virtual void AttachExternalId(TEntity entity, string externalId)
@@ -81,7 +81,7 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
 
                 if (!known.TryGetValue(externalId, out var entity))
                 {
-                    entity = await FindUnlinkedAsync(item, cancellationToken);
+                    entity = await FindByLocalIdentityAsync(item, cancellationToken);
                     if (entity is null)
                     {
                         entity = Create(item);

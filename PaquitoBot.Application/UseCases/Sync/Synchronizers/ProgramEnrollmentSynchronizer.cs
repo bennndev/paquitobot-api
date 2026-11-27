@@ -71,7 +71,7 @@ public class ProgramEnrollmentSynchronizer(
         }
     }
 
-    protected override async Task<ProgramEnrollment?> FindUnlinkedAsync(FrappeProgramEnrollmentDto item,
+    protected override async Task<ProgramEnrollment?> FindByLocalIdentityAsync(FrappeProgramEnrollmentDto item,
         CancellationToken cancellationToken)
     {
         var key = TryGetKey(item);

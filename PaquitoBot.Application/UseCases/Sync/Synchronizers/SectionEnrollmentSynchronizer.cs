@@ -44,6 +44,25 @@ public class SectionEnrollmentSynchronizer(
 
     protected override DateTime? GetModifiedAt(FrappeSectionEnrollmentDto external) => external.ModifiedAt;
 
+    protected override Task<SectionEnrollment?> FindByLocalIdentityAsync(FrappeSectionEnrollmentDto item,
+        CancellationToken cancellationToken)
+    {
+        if (!_knownStudents.TryGetValue(item.StudentExternalId.Trim(), out var student) ||
+            !_knownSections.TryGetValue(item.SectionExternalId.Trim(), out var section))
+        {
+            return Task.FromResult<SectionEnrollment?>(null);
+        }
+
+        return Repository.FirstOrDefaultAsync(enrollment =>
+            enrollment.StudentId == student.StudentId && enrollment.SectionId == section.SectionId,
+            cancellationToken);
+    }
+
+    protected override void AttachExternalId(SectionEnrollment enrollment, string externalId)
+    {
+        enrollment.FrappeExternalId = externalId;
+    }
+
     protected override SectionEnrollment Create(FrappeSectionEnrollmentDto external)
     {
         var enrollment = new SectionEnrollment { FrappeExternalId = TextNormalizer.Required(external.ExternalId) };
