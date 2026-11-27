@@ -61,15 +61,19 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         var studentName = Required(studentRow, "name");
         var student = await Upsert(unitOfWork.Repository<Student>(), studentName, entity =>
         {
-            entity.StudentCode = studentName;
-            entity.FirstNames = Join(Optional(studentRow, "first_name"), Optional(studentRow, "middle_name"));
-            entity.LastNames = Optional(studentRow, "last_name");
-            entity.FullName = Optional(studentRow, "student_name");
-            entity.Email = email;
-            entity.Phone = Optional(studentRow, "student_mobile_number");
-            entity.BirthDate = Date(studentRow, "date_of_birth");
-            entity.Gender = Optional(studentRow, "gender");
-            entity.Status = Optional(studentRow, "enabled") == "1" ? "active" : "inactive";
+            var source = new FrappeStudentDto(
+                studentName,
+                studentName,
+                Join(Optional(studentRow, "first_name"), Optional(studentRow, "middle_name")),
+                Optional(studentRow, "last_name"),
+                Optional(studentRow, "student_name"),
+                email,
+                Optional(studentRow, "student_mobile_number"),
+                Date(studentRow, "date_of_birth"),
+                Optional(studentRow, "gender"),
+                Optional(studentRow, "enabled") == "1" ? "active" : "inactive",
+                null);
+            StudentSyncMapper.Apply(source, entity);
             entity.SyncedAt = now;
         }, cancellationToken);
         processed++;

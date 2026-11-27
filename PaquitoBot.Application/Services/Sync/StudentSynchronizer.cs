@@ -2,6 +2,7 @@ using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
+using PaquitoBot.Application.UseCases.Sync.Mapping;
 
 namespace PaquitoBot.Application.Services.Sync;
 
@@ -33,24 +34,6 @@ public class StudentSynchronizer(
 
     protected override void Apply(FrappeStudentDto external, Student student)
     {
-        var firstNames = TextNormalizer.Optional(external.FirstNames);
-        var lastNames = TextNormalizer.Optional(external.LastNames);
-
-        student.StudentCode = TextNormalizer.Optional(external.StudentCode);
-        student.FirstNames = firstNames;
-        student.LastNames = lastNames;
-        student.FullName = TextNormalizer.Optional(external.FullName) ?? BuildFullName(firstNames, lastNames);
-        student.Email = TextNormalizer.OptionalEmail(external.Email);
-        student.Phone = TextNormalizer.Optional(external.Phone);
-        student.BirthDate = external.BirthDate;
-        student.Gender = TextNormalizer.Optional(external.Gender);
-        student.Status = TextNormalizer.OptionalLower(external.Status);
-    }
-
-    private static string? BuildFullName(string? firstNames, string? lastNames)
-    {
-        var fullName = $"{firstNames} {lastNames}".Trim();
-
-        return fullName.Length == 0 ? null : fullName;
+        StudentSyncMapper.Apply(external, student);
     }
 }
