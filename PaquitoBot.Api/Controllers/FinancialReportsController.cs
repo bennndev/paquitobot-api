@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.StudentFinances;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
 using PaquitoBot.Application.UseCases.StudentFinances.Query;
 
 namespace PaquitoBot.Api.Controllers;
