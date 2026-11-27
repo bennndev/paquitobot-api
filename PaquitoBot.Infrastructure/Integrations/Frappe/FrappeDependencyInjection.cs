@@ -14,13 +14,11 @@ public static class FrappeDependencyInjection
     {
         services.AddOptions<FrappeOptions>()
             .Bind(configuration.GetSection(FrappeOptions.SectionName))
-            .Configure(options =>
-            {
-                options.ApiKey = configuration["FrappeOAuth:ApiKey"] ?? string.Empty;
-                options.ApiSecret = configuration["FrappeOAuth:ApiSecret"] ?? string.Empty;
-            })
+            .Validate(options => IsHttpBaseUrl(options.BaseUrl), "Frappe base URL inválida.")
             .Validate(options => IsCredential(options.ApiKey), "Frappe API key inválida.")
             .Validate(options => IsCredential(options.ApiSecret), "Frappe API secret inválida.")
+            .Validate(options => options.TimeoutSeconds is > 0 and <= 300,
+                "Frappe timeout debe estar entre 1 y 300 segundos.")
             .ValidateOnStart();
 
         return services.AddHttpClient<IFrappeClient, FrappeClient>((provider, client) =>
