@@ -1,7 +1,4 @@
-using System.Text.Json.Serialization;
 using PaquitoBot.Application.DTOs.Frappe;
-using PaquitoBot.Application.Integrations.Frappe;
-using PaquitoBot.Application.Services;
 using PaquitoBot.Application.Services.Sync;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
@@ -10,50 +7,23 @@ namespace PaquitoBot.Infrastructure.Services.Frappe;
 /// Student-section enrollments come from the Frappe "Course Enrollment" doctype. Cancelled enrollments and
 /// those without a batch are skipped, and a student appears once per batch because that pair is unique locally.
 /// </summary>
-public sealed class FrappeSectionEnrollmentSource(IFrappeClient client) : IFrappeSource<FrappeSectionEnrollmentDto>
+public sealed class FrappeSectionEnrollmentSource(FrappeCourseEnrollmentCatalog catalog)
+    : IFrappeSource<FrappeSectionEnrollmentDto>
 {
     private const int CancelledDocStatus = 2;
 
-    private static readonly string[] Fields =
-        ["name", "student", "student_batch", "enrollment_date", "status", "docstatus", "modified"];
-
     public async Task<IReadOnlyList<FrappeSectionEnrollmentDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        var enrollments = await client.GetListAsync<FrappeEnrollment>("Course Enrollment", Fields, cancellationToken);
+        var enrollments = await catalog.GetAllAsync(cancellationToken);
 
         return enrollments
             .Where(e => e.DocStatus != CancelledDocStatus
                         && !string.IsNullOrWhiteSpace(e.Student)
                         && !string.IsNullOrWhiteSpace(e.StudentBatch))
             .DistinctBy(e => (e.Student, e.StudentBatch))
-            .Select(e => e.ToDto())
+            .Select(e => new FrappeSectionEnrollmentDto(
+                e.Name, e.Student!, e.StudentBatch!, e.EnrollmentDate, e.Status,
+                FrappeFormats.ParseTimestamp(e.Modified)))
             .ToList();
-    }
-
-    private sealed record FrappeEnrollment
-    {
-        [JsonPropertyName("name")]
-        public string Name { get; init; } = string.Empty;
-
-        [JsonPropertyName("student")]
-        public string? Student { get; init; }
-
-        [JsonPropertyName("student_batch")]
-        public string? StudentBatch { get; init; }
-
-        [JsonPropertyName("enrollment_date")]
-        public DateOnly? EnrollmentDate { get; init; }
-
-        [JsonPropertyName("status")]
-        public string? Status { get; init; }
-
-        [JsonPropertyName("docstatus")]
-        public int DocStatus { get; init; }
-
-        [JsonPropertyName("modified")]
-        public string? Modified { get; init; }
-
-        public FrappeSectionEnrollmentDto ToDto() => new(
-            Name, Student!, StudentBatch!, EnrollmentDate, Status, FrappeFormats.ParseTimestamp(Modified));
     }
 }
