@@ -1,5 +1,6 @@
 using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
+using PaquitoBot.Application.DTOs.Sync;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services.Sync;
 using PaquitoBot.Application.UseCases.SyncRuns.Command;
@@ -7,27 +8,6 @@ using PaquitoBot.Application.UseCases.SyncRuns.Query;
 using PaquitoBot.Domain.Constants;
 
 namespace PaquitoBot.Application.UseCases.Sync.Command;
-
-public record EntitySyncResponse(
-    string EntityName,
-    Guid SyncRunId,
-    string Status,
-    int Processed,
-    int Created,
-    int Updated,
-    int Unchanged,
-    int Failed,
-    IReadOnlyList<SyncError> Errors);
-
-public record AcademicSyncResponse(
-    DateTime StartedAt,
-    DateTime FinishedAt,
-    int Processed,
-    int Created,
-    int Updated,
-    int Unchanged,
-    int Failed,
-    IReadOnlyList<EntitySyncResponse> Entities);
 
 public record RunAcademicSyncCommand : IRequest<AcademicSyncResponse>;
 
