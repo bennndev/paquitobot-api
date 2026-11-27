@@ -2,6 +2,7 @@ using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
+using PaquitoBot.Application.UseCases.Sync.Mapping;
 
 namespace PaquitoBot.Application.Services.Sync;
 
@@ -33,11 +34,6 @@ public class InstructorSynchronizer(
 
     protected override void Apply(FrappeInstructorDto external, Instructor entity)
     {
-        entity.FirstName = TextNormalizer.Optional(external.FirstName);
-        entity.LastName = TextNormalizer.Optional(external.LastName);
-        entity.FullName = TextNormalizer.Optional(external.FullName);
-        entity.Email = TextNormalizer.OptionalEmail(external.Email);
-        entity.Phone = TextNormalizer.Optional(external.Phone);
-        entity.Status = TextNormalizer.OptionalLower(external.Status);
+        InstructorSyncMapper.Apply(external, entity);
     }
 }

@@ -141,13 +141,16 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
             var name = Required(row, "name");
             instructors[name] = await Upsert(unitOfWork.Repository<Instructor>(), name, entity =>
             {
-                entity.FirstName = Optional(row, "first_name");
-                entity.LastName = Optional(row, "last_name");
-                entity.FullName = Optional(row, "faculty_name") ??
-                    Join(Optional(row, "first_name"), Optional(row, "last_name"));
-                entity.Email = Optional(row, "email_address");
-                entity.Phone = Optional(row, "phone_number");
-                entity.Status = Optional(row, "status");
+                var instructor = new FrappeInstructorDto(
+                    name,
+                    Optional(row, "first_name"),
+                    Optional(row, "last_name"),
+                    Optional(row, "faculty_name") ?? Join(Optional(row, "first_name"), Optional(row, "last_name")),
+                    Optional(row, "email_address"),
+                    Optional(row, "phone_number"),
+                    Optional(row, "status"),
+                    null);
+                InstructorSyncMapper.Apply(instructor, entity);
                 entity.SyncedAt = now;
             }, cancellationToken);
             processed++;
