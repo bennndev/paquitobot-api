@@ -83,7 +83,7 @@ public sealed class ReportQualityTests
             new EnrollmentReportRowDto(Guid.NewGuid(), unsafeLabel, null, "2026-II", 1, 1)
         ]);
         using var workbook = new XLWorkbook(new MemoryStream(bytes));
-        var cell = workbook.Worksheet("Matrículas").Cell(2, 1);
+        var cell = workbook.Worksheet("Matriculas").Cell(2, 1);
         Assert.False(cell.HasFormula);
         Assert.Equal(unsafeLabel, cell.GetString());
     }
@@ -116,6 +116,45 @@ public sealed class ReportQualityTests
         using var workbook = new XLWorkbook(new MemoryStream(bytes));
         Assert.Equal(3, workbook.Worksheets.Count);
         Assert.Equal("Moneda", workbook.Worksheet("Resumen financiero").Cell(1, 1).GetString());
-        Assert.Equal("Descripción", workbook.Worksheet("Obligaciones").Cell(1, 1).GetString());
+        Assert.Equal("Descripcion", workbook.Worksheet("Obligaciones").Cell(1, 1).GetString());
+    }
+
+    [Fact]
+    public void ObligationStatusIsWrittenInSpanishWithoutAccents()
+    {
+        var obligation = new TuitionFeeBalanceDto(
+            Guid.NewGuid(), null, "Cuota 1", "PEN", 100m, 40m, 60m, 0m, null,
+            false, new DateOnly(2026, 12, 1), "Partial", false);
+        var statement = new StudentFinancialStatementDto(
+            Guid.NewGuid(), new DateOnly(2026, 11, 26), [], [obligation], 0);
+        var bytes = exporter.ExportStudentFinance(statement);
+        using var workbook = new XLWorkbook(new MemoryStream(bytes));
+        var sheet = workbook.Worksheet("Obligaciones");
+        Assert.Equal("Parcial", sheet.Cell(2, 9).GetString());
+        Assert.Equal("No", sheet.Cell(2, 10).GetString());
+    }
+
+    [Fact]
+    public void EveryHeaderAndSheetNameIsPlainAscii()
+    {
+        var statement = new StudentFinancialStatementDto(
+            Guid.NewGuid(), new DateOnly(2026, 11, 26), [], [], 0);
+        var workbooks = new[]
+        {
+            exporter.ExportEnrollments([]),
+            exporter.ExportAttendance([]),
+            exporter.ExportAssessments([]),
+            exporter.ExportStudentFinance(statement)
+        };
+        foreach (var bytes in workbooks)
+        {
+            using var workbook = new XLWorkbook(new MemoryStream(bytes));
+            foreach (var sheet in workbook.Worksheets)
+            {
+                Assert.All(sheet.Name, character => Assert.True(character < 128, sheet.Name));
+                foreach (var cell in sheet.Row(1).CellsUsed())
+                    Assert.All(cell.GetString(), character => Assert.True(character < 128, cell.GetString()));
+            }
+        }
     }
 }

@@ -18,7 +18,7 @@ public sealed class ReportTests
             new EnrollmentReportRowDto(Guid.NewGuid(), "Software", Guid.NewGuid(), "2026-II", 12, 10)
         ]);
         using var workbook = new XLWorkbook(new MemoryStream(bytes));
-        var sheet = workbook.Worksheet("Matrículas");
+        var sheet = workbook.Worksheet("Matriculas");
         Assert.Equal("Programa", sheet.Cell(1, 1).GetString());
         Assert.Equal("Software", sheet.Cell(2, 1).GetString());
         Assert.Equal(12d, sheet.Cell(2, 3).GetDouble());
@@ -80,7 +80,7 @@ public sealed class ReportTests
     {
         var bytes = exporter.ExportEnrollments([]);
         using var workbook = new XLWorkbook(new MemoryStream(bytes));
-        Assert.Equal("Programa", workbook.Worksheet("Matrículas").Cell(1, 1).GetString());
+        Assert.Equal("Programa", workbook.Worksheet("Matriculas").Cell(1, 1).GetString());
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public sealed class ReportTests
             new EnrollmentReportRowDto(Guid.NewGuid(), "=2+2", null, "Q", 1, 1)
         ]);
         using var workbook = new XLWorkbook(new MemoryStream(bytes));
-        var cell = workbook.Worksheet("Matrículas").Cell(2, 1);
+        var cell = workbook.Worksheet("Matriculas").Cell(2, 1);
         Assert.Equal("=2+2", cell.GetString());
         Assert.False(cell.HasFormula);
     }
