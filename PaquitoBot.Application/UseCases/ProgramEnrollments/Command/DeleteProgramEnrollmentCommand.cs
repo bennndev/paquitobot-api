@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
+using PaquitoBot.Application.Common.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
 
@@ -27,6 +28,8 @@ public class DeleteProgramEnrollmentCommandHandler(IUnitOfWork unitOfWork)
         var enrollment = await unitOfWork.Repository<ProgramEnrollment>()
             .GetByIdAsync(request.ProgramEnrollmentId, cancellationToken)
             ?? throw new NotFoundException("ProgramEnrollment", request.ProgramEnrollmentId);
+
+        FrappeRecordOwnership.RequireLocal(enrollment);
 
         unitOfWork.Repository<ProgramEnrollment>().Remove(enrollment);
         await unitOfWork.SaveChangesAsync(cancellationToken);

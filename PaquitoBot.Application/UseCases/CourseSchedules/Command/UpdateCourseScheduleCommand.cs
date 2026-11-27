@@ -1,6 +1,7 @@
 using FluentValidation;
 using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
+using PaquitoBot.Application.Common.Frappe;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.CourseSchedules;
 using PaquitoBot.Application.Repositories;
@@ -49,6 +50,8 @@ public class UpdateCourseScheduleCommandHandler(
         var schedule = await unitOfWork.Repository<CourseSchedule>()
             .GetByIdAsync(request.ScheduleId, cancellationToken)
             ?? throw new NotFoundException("CourseSchedule", request.ScheduleId);
+
+        FrappeRecordOwnership.RequireLocal(schedule);
 
         if (!await unitOfWork.Repository<CourseSection>()
             .ExistsAsync(request.SectionId, cancellationToken))
