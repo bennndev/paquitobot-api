@@ -11,8 +11,8 @@ public sealed class ReportExcelExporter : IReportExcelExporter
     public byte[] ExportEnrollments(IReadOnlyList<EnrollmentReportRowDto> rows)
     {
         using var workbook = new XLWorkbook();
-        var sheet = NewSheet(workbook, "Enrollments", [
-            "Program", "Academic period", "Enrollment records", "Distinct students"]);
+        var sheet = NewSheet(workbook, "Matrículas", [
+            "Programa", "Periodo académico", "Registros de matrícula", "Estudiantes distintos"]);
         for (var index = 0; index < rows.Count; index++)
         {
             var row = rows[index];
@@ -29,8 +29,8 @@ public sealed class ReportExcelExporter : IReportExcelExporter
     public byte[] ExportAttendance(IReadOnlyList<AttendanceReportRowDto> rows)
     {
         using var workbook = new XLWorkbook();
-        var sheet = NewSheet(workbook, "Attendance", [
-            "Course", "Section", "Records", "Present", "Absent", "Late", "Excused", "Other", "Attendance %"]);
+        var sheet = NewSheet(workbook, "Asistencia", [
+            "Curso", "Sección", "Registros", "Presente", "Ausente", "Tarde", "Justificado", "Otro", "Asistencia %"]);
         for (var index = 0; index < rows.Count; index++)
         {
             var row = rows[index];
@@ -55,8 +55,8 @@ public sealed class ReportExcelExporter : IReportExcelExporter
     public byte[] ExportAssessments(IReadOnlyList<AssessmentReportRowDto> rows)
     {
         using var workbook = new XLWorkbook();
-        var sheet = NewSheet(workbook, "Assessments", [
-            "Course", "Section", "Graded results", "Average score %"]);
+        var sheet = NewSheet(workbook, "Evaluaciones", [
+            "Curso", "Sección", "Resultados calificados", "Nota promedio %"]);
         for (var index = 0; index < rows.Count; index++)
         {
             var row = rows[index];
@@ -75,8 +75,8 @@ public sealed class ReportExcelExporter : IReportExcelExporter
     public byte[] ExportStudentFinance(StudentFinancialStatementDto statement)
     {
         using var workbook = new XLWorkbook();
-        var summary = NewSheet(workbook, "Financial summary", [
-            "Currency", "Scheduled", "Paid", "Outstanding", "Overdue", "Excess", "Next due date"]);
+        var summary = NewSheet(workbook, "Resumen financiero", [
+            "Moneda", "Programado", "Pagado", "Pendiente", "Vencido", "Excedente", "Próximo vencimiento"]);
         for (var index = 0; index < statement.Currencies.Count; index++)
         {
             var row = statement.Currencies[index];
@@ -93,9 +93,9 @@ public sealed class ReportExcelExporter : IReportExcelExporter
             summary.Range(2, 2, statement.Currencies.Count + 1, 6).Style.NumberFormat.Format = "#,##0.00";
         Finish(summary, 7);
 
-        var obligations = NewSheet(workbook, "Obligations", [
-            "Description", "Currency", "Original", "Confirmed paid", "Outstanding",
-            "Excess", "Reported balance", "Due date", "Status", "Reconciliation needed"]);
+        var obligations = NewSheet(workbook, "Obligaciones", [
+            "Descripción", "Moneda", "Original", "Pagado confirmado", "Pendiente",
+            "Excedente", "Saldo reportado", "Vencimiento", "Estado", "Requiere conciliación"]);
         for (var index = 0; index < statement.Obligations.Count; index++)
         {
             var row = statement.Obligations[index];
@@ -110,21 +110,21 @@ public sealed class ReportExcelExporter : IReportExcelExporter
                 obligations.Cell(line, 7).Value = row.ReportedOutstandingBalance.Value;
             Text(obligations, line, 8, row.DueDate?.ToString("yyyy-MM-dd") ?? "");
             Text(obligations, line, 9, row.CalculatedStatus);
-            Text(obligations, line, 10, row.ReconciliationRequired ? "Yes" : "No");
+            Text(obligations, line, 10, row.ReconciliationRequired ? "Sí" : "No");
         }
         if (statement.Obligations.Count > 0)
             obligations.Range(2, 3, statement.Obligations.Count + 1, 7).Style.NumberFormat.Format = "#,##0.00";
         Finish(obligations, 10);
 
-        var metadata = NewSheet(workbook, "Metadata", ["Key", "Value"]);
-        Text(metadata, 2, 1, "Student ID");
+        var metadata = NewSheet(workbook, "Metadatos", ["Clave", "Valor"]);
+        Text(metadata, 2, 1, "ID del estudiante");
         Text(metadata, 2, 2, statement.StudentId.ToString());
-        Text(metadata, 3, 1, "Statement as of");
+        Text(metadata, 3, 1, "Estado de cuenta al");
         Text(metadata, 3, 2, statement.AsOf.ToString("yyyy-MM-dd"));
-        Text(metadata, 4, 1, "Payments not counted");
+        Text(metadata, 4, 1, "Pagos no contados");
         metadata.Cell(4, 2).Value = statement.PaymentsNotCounted;
-        Text(metadata, 5, 1, "Source");
-        Text(metadata, 5, 2, "Local PaquitoBot statement (Issue #41)");
+        Text(metadata, 5, 1, "Fuente");
+        Text(metadata, 5, 2, "Estado de cuenta local de PaquitoBot (Issue #41)");
         Finish(metadata, 2);
         return Save(workbook);
     }

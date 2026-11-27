@@ -67,7 +67,7 @@ public sealed class ReportQualityTests
             new AttendanceReportRowDto(Guid.NewGuid(), "Course", "A", 3, 1, 1, 1, 0, 0)
         ]);
         using var workbook = new XLWorkbook(new MemoryStream(bytes));
-        var cell = workbook.Worksheet("Attendance").Cell(2, 9);
+        var cell = workbook.Worksheet("Asistencia").Cell(2, 9);
         Assert.Equal(66.67d, cell.GetDouble(), 2);
         Assert.False(cell.HasFormula);
     }
@@ -83,7 +83,7 @@ public sealed class ReportQualityTests
             new EnrollmentReportRowDto(Guid.NewGuid(), unsafeLabel, null, "2026-II", 1, 1)
         ]);
         using var workbook = new XLWorkbook(new MemoryStream(bytes));
-        var cell = workbook.Worksheet("Enrollments").Cell(2, 1);
+        var cell = workbook.Worksheet("Matrículas").Cell(2, 1);
         Assert.False(cell.HasFormula);
         Assert.Equal(unsafeLabel, cell.GetString());
     }
@@ -100,7 +100,7 @@ public sealed class ReportQualityTests
             [], 0);
         var bytes = exporter.ExportStudentFinance(statement);
         using var workbook = new XLWorkbook(new MemoryStream(bytes));
-        var sheet = workbook.Worksheet("Financial summary");
+        var sheet = workbook.Worksheet("Resumen financiero");
         Assert.Equal("PEN", sheet.Cell(2, 1).GetString());
         Assert.Equal("USD", sheet.Cell(3, 1).GetString());
         Assert.Equal(300d, sheet.Cell(2, 4).GetDouble());
@@ -115,7 +115,7 @@ public sealed class ReportQualityTests
         var bytes = exporter.ExportStudentFinance(statement);
         using var workbook = new XLWorkbook(new MemoryStream(bytes));
         Assert.Equal(3, workbook.Worksheets.Count);
-        Assert.Equal("Currency", workbook.Worksheet("Financial summary").Cell(1, 1).GetString());
-        Assert.Equal("Description", workbook.Worksheet("Obligations").Cell(1, 1).GetString());
+        Assert.Equal("Moneda", workbook.Worksheet("Resumen financiero").Cell(1, 1).GetString());
+        Assert.Equal("Descripción", workbook.Worksheet("Obligaciones").Cell(1, 1).GetString());
     }
 }
