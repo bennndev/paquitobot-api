@@ -96,10 +96,14 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
             var name = Required(row, "name");
             programs[name] = await Upsert(unitOfWork.Repository<Program>(), name, entity =>
             {
-                entity.Name = name;
-                entity.Code = Optional(row, "program_abbreviation");
-                entity.Description = Optional(row, "short_description");
-                entity.Status = "active";
+                var program = new FrappeProgramDto(
+                    name,
+                    Optional(row, "program_abbreviation"),
+                    Optional(row, "program_name") ?? name,
+                    Optional(row, "short_description"),
+                    "active",
+                    null);
+                ProgramSyncMapper.Apply(program, entity);
                 entity.SyncedAt = now;
             }, cancellationToken);
             processed++;
