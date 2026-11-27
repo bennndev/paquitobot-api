@@ -1,11 +1,11 @@
 using System.Globalization;
 using System.Text.Json;
 using MediatR;
+using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services.Authenticate;
 using PaquitoBot.Application.Services.SyncByStudent;
-using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 using PaquitoBot.Application.UseCases.Sync.Mapping;
 
@@ -14,7 +14,8 @@ namespace PaquitoBot.Application.UseCases.SyncByStudent.Command;
 public record CompleteFrappeConnectionCommand(string Code, string State) : IRequest<FrappeConnectionResponse>;
 
 internal sealed class CompleteFrappeConnectionCommandHandler(
-    IUnitOfWork unitOfWork, IFrappeOAuthService oauth, IFrappeStudentSyncService sync, ITokenService tokenService)
+    IUnitOfWork unitOfWork, IFrappeOAuthService oauth, IFrappeStudentSyncService sync,
+    ITokenService tokenService, IFrappeSyncRunService syncRuns)
     : IRequestHandler<CompleteFrappeConnectionCommand, FrappeConnectionResponse>
 {
     public async Task<FrappeConnectionResponse> Handle(CompleteFrappeConnectionCommand request, CancellationToken cancellationToken)
@@ -25,23 +26,37 @@ internal sealed class CompleteFrappeConnectionCommandHandler(
             !string.Equals(user.Email, result.Email, StringComparison.OrdinalIgnoreCase))
             throw new UnauthorizedAccessException("The Frappe account does not match the PaquitoBot user.");
 
-        var snapshot = await sync.FetchSnapshotAsync(result.AccessToken, cancellationToken);
-        var persister = new FrappeStudentSnapshotPersister(unitOfWork);
-        async Task<FrappeSyncSummary> PersistWithinTransaction(CancellationToken token)
+        var syncRunId = await syncRuns.StartAsync("student_snapshot", cancellationToken);
+        int processed;
+        try
         {
-            return await persister.PersistAsync(snapshot, user.UserId, result.Email, token);
+            var snapshot = await sync.FetchSnapshotAsync(result.AccessToken, cancellationToken);
+            var persister = new FrappeStudentSnapshotPersister(unitOfWork);
+            async Task<int> PersistWithinTransaction(CancellationToken token)
+            {
+                return await persister.PersistAsync(snapshot, user.UserId, result.Email, token);
+            }
+
+            processed = await unitOfWork.ExecuteInTransactionAsync(PersistWithinTransaction, cancellationToken);
+        }
+        catch (Exception exception)
+        {
+            unitOfWork.DiscardPendingChanges();
+            await syncRuns.FailAsync(syncRunId, 0, exception, CancellationToken.None);
+            throw;
         }
 
-        var summary = await unitOfWork.ExecuteInTransactionAsync(PersistWithinTransaction, cancellationToken);
+        await syncRuns.CompleteAsync(syncRunId, processed, cancellationToken);
         var studentId = await unitOfWork.UserStudents.GetPrimaryStudentIdAsync(user.UserId, cancellationToken);
         var token = tokenService.GenerateToken(user.UserId, user.Role, user.Email, studentId);
-        return new FrappeConnectionResponse(user.UserId, result.Email, summary, token);
+        return new FrappeConnectionResponse(user.UserId, result.Email,
+            new FrappeSyncSummary(syncRunId, processed), token);
     }
 }
 
 internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
 {
-    public async Task<FrappeSyncSummary> PersistAsync(JsonElement snapshot, Guid userId, string email,
+    public async Task<int> PersistAsync(JsonElement snapshot, Guid userId, string email,
         CancellationToken cancellationToken)
     {
         var studentRow = snapshot.GetProperty("student");
@@ -51,10 +66,9 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         return await PersistSnapshotAsync(snapshot, studentRow, userId, email, cancellationToken);
     }
 
-    private async Task<FrappeSyncSummary> PersistSnapshotAsync(JsonElement snapshot, JsonElement studentRow,
+    private async Task<int> PersistSnapshotAsync(JsonElement snapshot, JsonElement studentRow,
         Guid userId, string email, CancellationToken cancellationToken)
     {
-        var startedAt = DateTime.UtcNow;
         var now = DateTime.UtcNow;
         var processed = 0;
 
@@ -425,14 +439,8 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                 IsPrimary = !await unitOfWork.UserStudents.UserHasPrimaryAsync(userId, cancellationToken: cancellationToken)
             }, cancellationToken);
 
-        var run = new SyncRun
-        {
-            EntityName = "student_snapshot", StartDate = startedAt, EndDate = DateTime.UtcNow,
-            Status = SyncRunStatus.Completed, ProcessedRecords = processed
-        };
-        await unitOfWork.SyncRuns.AddAsync(run, cancellationToken);
         await unitOfWork.SaveChangesAsync(cancellationToken);
-        return new FrappeSyncSummary(run.SyncRunId, processed);
+        return processed;
     }
 
     private static Task<T> Upsert<T>(IGenericRepository<T> repository, string externalId, Action<T> update,
