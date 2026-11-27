@@ -3,11 +3,18 @@ using Microsoft.Extensions.DependencyInjection;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
+using PaquitoBot.Application.Services.ChatBot;
+using PaquitoBot.Application.Services.Sync;
+using PaquitoBot.Application.Services.SyncByStudent;
 using PaquitoBot.Application.UseCases.StudentAgenda.Query;
 using PaquitoBot.Infrastructure.Data;
 using PaquitoBot.Infrastructure.Repositories;
 using PaquitoBot.Infrastructure.Services;
+using PaquitoBot.Infrastructure.Services.Authenticate;
+using PaquitoBot.Infrastructure.Services.ChatBot;
 using PaquitoBot.Infrastructure.Services.Frappe;
+using PaquitoBot.Infrastructure.Services.SyncByStudent;
 
 namespace PaquitoBot.Infrastructure;
 
@@ -28,8 +35,12 @@ public static class DependencyInjection
         services.AddSingleton(new HttpClient());
         services.AddScoped<IFrappeOAuthService, FrappeOAuthService>();
         services.AddScoped<IFrappeStudentSyncService, FrappeStudentSyncService>();
-        services.AddScoped<IKnowledgeRetriever, DocumentKnowledgeRetriever>();
-        services.AddScoped<IAnswerProvider, SimulatedAnswerProvider>();
+        services.AddHttpClient<IAnswerProvider, GeminiAnswerProvider>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(30);
+        });
+        services.AddScoped<IChatToolExecutor, ChatToolExecutor>();
+        services.AddScoped<IReportExcelExporter, ReportExcelExporter>();
 
         var repositories = typeof(DependencyInjection).Assembly.GetTypes()
             .Where(type => type is { IsClass: true, IsAbstract: false } && type.Name.EndsWith("Repository"));
@@ -45,6 +56,8 @@ public static class DependencyInjection
             }
         }
 
+        services.AddScoped<FrappeCourseCatalog>();
+        services.AddScoped<FrappeCourseEnrollmentCatalog>();
         services.AddScoped<IFrappeSource<FrappeStudentDto>, FrappeStudentSource>();
         services.AddScoped<IFrappeSource<FrappeAcademicPeriodDto>, FrappeAcademicPeriodSource>();
         services.AddScoped<IFrappeSource<FrappeProgramDto>, FrappeProgramSource>();

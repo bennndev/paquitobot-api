@@ -4,6 +4,7 @@ using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Auth;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
 
 namespace PaquitoBot.Application.UseCases.Auth.Command;
 

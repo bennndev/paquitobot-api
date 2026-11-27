@@ -2,27 +2,22 @@ using System.Text.Json.Serialization;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Sync;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-/// <summary>
-/// Course sections live in the Frappe "Student Batch Name" doctype, which has no academic term.
-/// The term is taken from the batch's non-cancelled "Course Enrollment" records, and only when
-/// they all agree on a single one; otherwise it is left empty for the synchronizer to deduce.
-/// </summary>
-public sealed class FrappeCourseSectionSource(IFrappeClient client) : IFrappeSource<FrappeCourseSectionDto>
+public sealed class FrappeCourseSectionSource(IFrappeClient client, FrappeCourseEnrollmentCatalog enrollmentCatalog)
+    : IFrappeSource<FrappeCourseSectionDto>
 {
     private const int CancelledDocStatus = 2;
 
     private static readonly string[] BatchFields =
         ["name", "batch_name", "course", "max_strength", "disabled", "start_date", "end_date", "modified"];
 
-    private static readonly string[] EnrollmentFields = ["student_batch", "academic_term", "docstatus"];
-
     public async Task<IReadOnlyList<FrappeCourseSectionDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var batches = await client.GetListAsync<FrappeBatch>("Student Batch Name", BatchFields, cancellationToken);
-        var enrollments = await client.GetListAsync<FrappeEnrollment>("Course Enrollment", EnrollmentFields, cancellationToken);
+        var enrollments = await enrollmentCatalog.GetAllAsync(cancellationToken);
 
         var termByBatch = enrollments
             .Where(e => e.DocStatus != CancelledDocStatus
@@ -70,15 +65,4 @@ public sealed class FrappeCourseSectionSource(IFrappeClient client) : IFrappeSou
             Disabled == 1 ? "Inactive" : "Active", FrappeFormats.ParseTimestamp(Modified), academicTerm);
     }
 
-    private sealed record FrappeEnrollment
-    {
-        [JsonPropertyName("student_batch")]
-        public string? StudentBatch { get; init; }
-
-        [JsonPropertyName("academic_term")]
-        public string? AcademicTerm { get; init; }
-
-        [JsonPropertyName("docstatus")]
-        public int DocStatus { get; init; }
-    }
 }
