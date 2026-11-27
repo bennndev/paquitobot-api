@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using System.Threading.RateLimiting;
 using PaquitoBot.Api;
 using PaquitoBot.Api.HealthChecks;
 using PaquitoBot.Api.Middleware;
@@ -20,6 +21,18 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<ICurrentUser, CurrentUser>();
+builder.Services.AddDataProtection();
+builder.Services.AddScoped<IPasswordResetDelivery, PasswordResetDelivery>();
+builder.Services.AddSingleton<PasswordResetQueue>();
+builder.Services.AddSingleton<IPasswordResetQueue>(services => services.GetRequiredService<PasswordResetQueue>());
+builder.Services.AddHostedService(services => services.GetRequiredService<PasswordResetQueue>());
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("password-reset", context => RateLimitPartition.GetFixedWindowLimiter(
+        context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+        _ => new FixedWindowRateLimiterOptions { PermitLimit = 8, Window = TimeSpan.FromMinutes(10) }));
+});
 builder.Services.AddCorsPolicy(builder.Configuration);
 builder.Services.AddJwtAuthentication(builder.Configuration);
 builder.Services.AddInfrastructure(connectionString);
@@ -42,6 +55,7 @@ app.UseHttpsRedirection();
 app.UseCorsPolicy();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 app.MapControllers();
 app.MapHealthChecks("/health/frappe", new HealthCheckOptions
 {
