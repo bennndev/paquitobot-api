@@ -1,7 +1,8 @@
+using PaquitoBot.Application.Services.Sync;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Services.Sync;
+namespace PaquitoBot.Application.UseCases.Sync.Synchronizers;
 
 /// <summary>
 /// Template for idempotent upserts keyed by the Frappe external id.

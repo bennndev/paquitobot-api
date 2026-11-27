@@ -1,9 +1,10 @@
+using PaquitoBot.Application.Services.Sync;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Services.Sync;
+namespace PaquitoBot.Application.UseCases.Sync.Synchronizers;
 
 /// <summary>
 /// Maps Frappe enrollments to program enrollments. Student and program are required parents,

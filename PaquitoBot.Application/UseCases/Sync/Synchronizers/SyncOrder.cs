@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.Services.Sync;
+namespace PaquitoBot.Application.UseCases.Sync.Synchronizers;
 
 /// <summary>
 /// Dependency tiers for a sync run: each tier only references entities from lower tiers.

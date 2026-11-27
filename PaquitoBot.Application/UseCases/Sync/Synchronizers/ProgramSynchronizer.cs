@@ -1,10 +1,11 @@
+using PaquitoBot.Application.Services.Sync;
 using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
 using PaquitoBot.Application.UseCases.Sync.Mapping;
 
-namespace PaquitoBot.Application.Services.Sync;
+namespace PaquitoBot.Application.UseCases.Sync.Synchronizers;
 
 public class ProgramSynchronizer(
     IFrappeSource<FrappeProgramDto> source,

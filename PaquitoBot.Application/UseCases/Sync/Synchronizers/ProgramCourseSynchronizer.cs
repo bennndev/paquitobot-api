@@ -1,8 +1,9 @@
+using PaquitoBot.Application.Services.Sync;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Services.Sync;
+namespace PaquitoBot.Application.UseCases.Sync.Synchronizers;
 
 /// <summary>
 /// Links programs and courses. The pair has no Frappe id of its own, so it is matched by (program, course).
