@@ -51,3 +51,5 @@ Thumbs.db
 /docs/
 /integrations/frappe/
 /pruebas-financieras/
+/pruebas-reportes/
+/PaquitoBot.Reports.Tests/
