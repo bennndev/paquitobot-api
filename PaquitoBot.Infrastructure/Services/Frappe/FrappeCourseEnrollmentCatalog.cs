@@ -1,5 +1,5 @@
-using System.Globalization;
 using System.Text.Json.Serialization;
+using PaquitoBot.Application.Common.Frappe;
 using PaquitoBot.Application.Integrations.Frappe;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
@@ -23,18 +23,10 @@ public sealed class FrappeCourseEnrollmentCatalog(IFrappeClient client)
             "Course Enrollment", Fields, cancellationToken);
 
         return enrollments
-            .OrderByDescending(row => ModifiedAt(row.Modified))
+            .OrderByDescending(row => FrappeTimestampOrder.ParseOrMinimum(row.Modified))
             .ThenByDescending(row => row.EnrollmentDate)
             .ThenByDescending(row => row.Name, StringComparer.Ordinal)
             .ToList();
-    }
-
-    private static DateTime ModifiedAt(string? value)
-    {
-        return DateTime.TryParse(value, CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var modifiedAt)
-            ? modifiedAt
-            : DateTime.MinValue;
     }
 }
 

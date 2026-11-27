@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text.Json;
 using MediatR;
+using PaquitoBot.Application.Common.Frappe;
 using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
@@ -195,6 +196,11 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         var enrollmentRows = Rows(snapshot, "enrollments")
             .Where(row => Optional(row, "docstatus") != "2")
             .ToList();
+        foreach (var enrollment in enrollmentRows)
+        {
+            EnsureStudent(enrollment, studentName);
+        }
+
         var termsByBatch = new Dictionary<string, HashSet<string>>();
         foreach (var enrollment in enrollmentRows)
         {
@@ -243,25 +249,46 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         }
         await unitOfWork.SaveChangesAsync(cancellationToken);
 
+        var latestEnrollments = enrollmentRows
+            .GroupBy(row => Required(row, "student_batch"))
+            .Select(group => group
+                .OrderByDescending(row => FrappeTimestampOrder.ParseOrMinimum(Optional(row, "modified")))
+                .ThenByDescending(row => Date(row, "enrollment_date"))
+                .ThenByDescending(row => Required(row, "name"), StringComparer.Ordinal)
+                .First())
+            .ToList();
         var seenProgramEnrollments = new HashSet<(Guid ProgramId, Guid PeriodId)>();
-        foreach (var row in enrollmentRows)
+        foreach (var row in latestEnrollments)
         {
-            EnsureStudent(row, studentName);
             var name = Required(row, "name");
             var sectionName = Required(row, "student_batch");
             var section = sections[sectionName];
-            await Upsert(unitOfWork.Repository<SectionEnrollment>(), name, entity =>
+            var source = new FrappeSectionEnrollmentDto(
+                name,
+                studentName,
+                sectionName,
+                Date(row, "enrollment_date"),
+                Optional(row, "status"),
+                null);
+            void ApplyEnrollment(SectionEnrollment entity)
             {
-                var source = new FrappeSectionEnrollmentDto(
-                    name,
-                    studentName,
-                    sectionName,
-                    Date(row, "enrollment_date"),
-                    Optional(row, "status"),
-                    null);
                 SectionEnrollmentSyncMapper.Apply(source, entity, student.StudentId, section.SectionId);
                 MarkSharedRecord(entity, now);
-            }, cancellationToken);
+            }
+
+            var repository = unitOfWork.Repository<SectionEnrollment>();
+            var existing = await repository.FirstOrDefaultAsync(entity =>
+                entity.StudentId == student.StudentId && entity.SectionId == section.SectionId,
+                cancellationToken);
+            if (existing is null)
+            {
+                await Upsert(repository, name, ApplyEnrollment, cancellationToken);
+            }
+            else
+            {
+                existing.FrappeExternalId = name;
+                ApplyEnrollment(existing);
+            }
             var programName = Optional(row, "program");
             var termName = Optional(row, "academic_term");
             if (programName is not null && termName is not null &&
