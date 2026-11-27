@@ -22,6 +22,7 @@ public class ProgramEnrollmentSynchronizer(
     private IReadOnlyDictionary<string, Student> _knownStudents = new Dictionary<string, Student>();
     private IReadOnlyDictionary<string, Program> _knownPrograms = new Dictionary<string, Program>();
     private IReadOnlyDictionary<string, AcademicPeriod> _knownPeriods = new Dictionary<string, AcademicPeriod>();
+    private readonly Dictionary<(Guid StudentId, Guid ProgramId, Guid PeriodId), Guid> _unlinked = [];
 
     public override string EntityName => nameof(ProgramEnrollment);
 
@@ -44,6 +45,68 @@ public class ProgramEnrollmentSynchronizer(
         _knownPeriods = await periods.GetByFrappeExternalIdsAsync(
             items.Where(i => !string.IsNullOrWhiteSpace(i.AcademicPeriodExternalId)).Select(i => i.AcademicPeriodExternalId!.Trim()),
             cancellationToken);
+
+        _unlinked.Clear();
+        var uniqueRemoteKeys = items
+            .Select(TryGetKey)
+            .Where(key => key.HasValue)
+            .Select(key => key!.Value)
+            .GroupBy(key => key)
+            .Where(group => group.Count() == 1)
+            .Select(group => group.Key)
+            .ToHashSet();
+
+        var localEnrollments = await Repository.GetAllAsync(cancellationToken);
+        foreach (var group in localEnrollments
+                     .Where(enrollment => enrollment.AcademicPeriodId.HasValue)
+                     .GroupBy(enrollment => (enrollment.StudentId, enrollment.ProgramId,
+                         PeriodId: enrollment.AcademicPeriodId!.Value)))
+        {
+            var records = group.ToList();
+            if (records.Count == 1 && records[0].FrappeExternalId is null && uniqueRemoteKeys.Contains(group.Key))
+            {
+                _unlinked.Add(group.Key, records[0].ProgramEnrollmentId);
+            }
+        }
+    }
+
+    protected override async Task<ProgramEnrollment?> FindUnlinkedAsync(FrappeProgramEnrollmentDto item,
+        CancellationToken cancellationToken)
+    {
+        var key = TryGetKey(item);
+        if (!key.HasValue || !_unlinked.Remove(key.Value, out var enrollmentId))
+        {
+            return null;
+        }
+
+        var enrollment = await Repository.GetByIdAsync(enrollmentId, cancellationToken);
+        if (enrollment is null || enrollment.FrappeExternalId is not null)
+        {
+            return null;
+        }
+
+        return enrollment;
+    }
+
+    protected override void AttachExternalId(ProgramEnrollment enrollment, string externalId)
+    {
+        enrollment.FrappeExternalId = externalId;
+    }
+
+    private (Guid StudentId, Guid ProgramId, Guid PeriodId)? TryGetKey(FrappeProgramEnrollmentDto item)
+    {
+        var studentId = TextNormalizer.Optional(item.StudentExternalId);
+        var programId = TextNormalizer.Optional(item.ProgramExternalId);
+        var periodId = TextNormalizer.Optional(item.AcademicPeriodExternalId);
+        if (studentId is null || programId is null || periodId is null ||
+            !_knownStudents.TryGetValue(studentId, out var student) ||
+            !_knownPrograms.TryGetValue(programId, out var program) ||
+            !_knownPeriods.TryGetValue(periodId, out var period))
+        {
+            return null;
+        }
+
+        return (student.StudentId, program.ProgramId, period.AcademicPeriodId);
     }
 
     protected override string GetExternalId(FrappeProgramEnrollmentDto external) => external.ExternalId;

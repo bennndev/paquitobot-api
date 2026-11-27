@@ -13,6 +13,8 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
     TimeProvider timeProvider) : IEntitySynchronizer
     where TEntity : class, IFrappeSynced
 {
+    protected IFrappeSyncedRepository<TEntity> Repository { get; } = repository;
+
     public abstract string EntityName { get; }
 
     public abstract int Order { get; }
@@ -37,6 +39,15 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
     protected virtual Task PrepareAsync(IReadOnlyList<TExternal> items, CancellationToken cancellationToken)
         => Task.CompletedTask;
 
+    // A synchronizer may attach a uniquely matched local placeholder to a Frappe id.
+    protected virtual Task<TEntity?> FindUnlinkedAsync(TExternal item,
+        CancellationToken cancellationToken) => Task.FromResult<TEntity?>(null);
+
+    protected virtual void AttachExternalId(TEntity entity, string externalId)
+    {
+        throw new InvalidOperationException("This synchronizer cannot attach an external id.");
+    }
+
     public async Task<SyncResult> SyncAsync(CancellationToken cancellationToken = default)
     {
         var items = await FetchAsync(cancellationToken);
@@ -47,7 +58,7 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
             .Where(id => !string.IsNullOrEmpty(id))
             .Select(id => id!);
 
-        var known = (await repository.GetByFrappeExternalIdsAsync(externalIds, cancellationToken))
+        var known = (await Repository.GetByFrappeExternalIdsAsync(externalIds, cancellationToken))
             .ToDictionary(pair => pair.Key, pair => pair.Value);
 
         int created = 0, updated = 0, unchanged = 0;
@@ -68,11 +79,22 @@ public abstract class FrappeSynchronizerBase<TExternal, TEntity>(
 
                 if (!known.TryGetValue(externalId, out var entity))
                 {
-                    entity = Create(item);
+                    entity = await FindUnlinkedAsync(item, cancellationToken);
+                    if (entity is null)
+                    {
+                        entity = Create(item);
+                        await Repository.AddAsync(entity, cancellationToken);
+                        created++;
+                    }
+                    else
+                    {
+                        Apply(item, entity);
+                        AttachExternalId(entity, externalId);
+                        updated++;
+                    }
+
                     Stamp(entity, modifiedAt);
-                    await repository.AddAsync(entity, cancellationToken);
                     known[externalId] = entity;
-                    created++;
                 }
                 else if (HasChanged(entity, modifiedAt))
                 {
