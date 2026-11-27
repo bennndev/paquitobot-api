@@ -80,11 +80,15 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
             var name = Required(row, "name");
             periods[name] = await Upsert(unitOfWork.Repository<AcademicPeriod>(), name, entity =>
             {
-                entity.Code = Optional(row, "term_name");
-                entity.Name = name;
-                entity.StartDate = Date(row, "term_start_date");
-                entity.EndDate = Date(row, "term_end_date");
-                entity.Status = "active";
+                var period = new FrappeAcademicPeriodDto(
+                    name,
+                    Optional(row, "term_name"),
+                    name,
+                    Date(row, "term_start_date"),
+                    Date(row, "term_end_date"),
+                    "active",
+                    null);
+                AcademicPeriodSyncMapper.Apply(period, entity);
                 entity.SyncedAt = now;
             }, cancellationToken);
             processed++;

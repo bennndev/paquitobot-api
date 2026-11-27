@@ -2,6 +2,7 @@ using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
+using PaquitoBot.Application.UseCases.Sync.Mapping;
 
 namespace PaquitoBot.Application.Services.Sync;
 
@@ -33,10 +34,6 @@ public class AcademicPeriodSynchronizer(
 
     protected override void Apply(FrappeAcademicPeriodDto external, AcademicPeriod entity)
     {
-        entity.Code = TextNormalizer.Optional(external.Code);
-        entity.Name = TextNormalizer.Required(external.Name);
-        entity.StartDate = external.StartDate;
-        entity.EndDate = external.EndDate;
-        entity.Status = TextNormalizer.OptionalLower(external.Status);
+        AcademicPeriodSyncMapper.Apply(external, entity);
     }
 }
