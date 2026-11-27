@@ -3,9 +3,8 @@ using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using PaquitoBot.Application.UseCases.Frappe;
-using PaquitoBot.Application.UseCases.Frappe.Command;
-using PaquitoBot.Application.UseCases.Frappe.Query;
+using PaquitoBot.Application.UseCases.SyncByStudent.Command;
+using PaquitoBot.Application.UseCases.SyncByStudent.Query;
 
 namespace PaquitoBot.Api.Controllers;
 

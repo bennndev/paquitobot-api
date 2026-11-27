@@ -3,6 +3,8 @@ using MediatR;
 using PaquitoBot.Application.Common.Exceptions;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
+using PaquitoBot.Application.Services.ChatBot;
 using PaquitoBot.Domain.Models;
 
 namespace PaquitoBot.Application.UseCases.Messages.Query;

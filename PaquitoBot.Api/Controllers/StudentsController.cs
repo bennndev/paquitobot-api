@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.DTOs.Students;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Sync;
 using PaquitoBot.Application.UseCases.Students.Command;
 using PaquitoBot.Application.UseCases.Students.Query;
 

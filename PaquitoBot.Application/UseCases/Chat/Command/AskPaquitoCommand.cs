@@ -5,6 +5,8 @@ using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Chat;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
+using PaquitoBot.Application.Services.ChatBot;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 

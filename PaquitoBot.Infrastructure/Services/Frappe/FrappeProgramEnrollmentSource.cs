@@ -2,28 +2,23 @@ using System.Text.Json.Serialization;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Integrations.Frappe;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Sync;
 
 namespace PaquitoBot.Infrastructure.Services.Frappe;
 
-/// <summary>
-/// This Frappe Education version has no program enrollment doctype, so enrollments come from
-/// "Student Applicant" records that already point to a student. An applicant carries no program:
-/// it is resolved from its admission register, then from its course, then from the register's course.
-/// </summary>
-public sealed class FrappeProgramEnrollmentSource(IFrappeClient client) : IFrappeSource<FrappeProgramEnrollmentDto>
+public sealed class FrappeProgramEnrollmentSource(IFrappeClient client, FrappeCourseCatalog catalog)
+    : IFrappeSource<FrappeProgramEnrollmentDto>
 {
     private static readonly string[] ApplicantFields =
         ["name", "student", "admission_register", "course", "academic_term", "application_date", "application_status", "modified"];
 
     private static readonly string[] RegisterFields = ["name", "program", "course"];
 
-    private static readonly string[] CourseFields = ["name", "program"];
-
     public async Task<IReadOnlyList<FrappeProgramEnrollmentDto>> GetAllAsync(CancellationToken cancellationToken = default)
     {
         var applicants = await client.GetListAsync<FrappeApplicant>("Student Applicant", ApplicantFields, cancellationToken);
         var registers = await client.GetListAsync<FrappeRegister>("Admission Register", RegisterFields, cancellationToken);
-        var courses = await client.GetListAsync<FrappeCourseProgram>("Course", CourseFields, cancellationToken);
+        var courses = await catalog.GetAllAsync(cancellationToken);
 
         var registerById = registers.ToDictionary(register => register.Name);
         var programByCourse = courses
@@ -106,12 +101,4 @@ public sealed class FrappeProgramEnrollmentSource(IFrappeClient client) : IFrapp
         public string? Course { get; init; }
     }
 
-    private sealed record FrappeCourseProgram
-    {
-        [JsonPropertyName("name")]
-        public string Name { get; init; } = string.Empty;
-
-        [JsonPropertyName("program")]
-        public string? Program { get; init; }
-    }
 }

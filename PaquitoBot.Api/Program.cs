@@ -6,6 +6,7 @@ using PaquitoBot.Api.Middleware;
 using PaquitoBot.Api.Services;
 using PaquitoBot.Application;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
 using PaquitoBot.Infrastructure;
 using PaquitoBot.Infrastructure.Integrations.Frappe;
 

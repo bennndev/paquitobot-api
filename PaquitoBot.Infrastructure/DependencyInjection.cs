@@ -3,10 +3,17 @@ using Microsoft.Extensions.DependencyInjection;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
+using PaquitoBot.Application.Services.ChatBot;
+using PaquitoBot.Application.Services.Sync;
+using PaquitoBot.Application.Services.SyncByStudent;
 using PaquitoBot.Infrastructure.Data;
 using PaquitoBot.Infrastructure.Repositories;
 using PaquitoBot.Infrastructure.Services;
+using PaquitoBot.Infrastructure.Services.Authenticate;
+using PaquitoBot.Infrastructure.Services.ChatBot;
 using PaquitoBot.Infrastructure.Services.Frappe;
+using PaquitoBot.Infrastructure.Services.SyncByStudent;
 
 namespace PaquitoBot.Infrastructure;
 
@@ -44,6 +51,8 @@ public static class DependencyInjection
             }
         }
 
+        services.AddScoped<FrappeCourseCatalog>();
+        services.AddScoped<FrappeCourseEnrollmentCatalog>();
         services.AddScoped<IFrappeSource<FrappeStudentDto>, FrappeStudentSource>();
         services.AddScoped<IFrappeSource<FrappeAcademicPeriodDto>, FrappeAcademicPeriodSource>();
         services.AddScoped<IFrappeSource<FrappeProgramDto>, FrappeProgramSource>();

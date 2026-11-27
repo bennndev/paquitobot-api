@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using PaquitoBot.Application.DTOs.Sync;
 using PaquitoBot.Application.UseCases.Sync.Command;
 
 namespace PaquitoBot.Api.Controllers;

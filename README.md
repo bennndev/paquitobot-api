@@ -65,7 +65,7 @@ Two integrations with Frappe Education coexist. They use different credentials a
 
 ### Master-data sync
 
-`POST api/academic-sync` runs `RunAcademicSyncCommand`, which executes one synchronizer per entity (`PaquitoBot.Application/Services/Sync/`) fed by a Frappe source (`PaquitoBot.Infrastructure/Services/Frappe/`). Every source reads through the shared `IFrappeClient` (see [Frappe Client](#frappe-client)), which pages in a stable order and reports failures as `FrappeException`.
+`POST api/academic-sync` runs `RunAcademicSyncCommand`, which executes one synchronizer per entity (`PaquitoBot.Application/UseCases/Sync/Synchronizers/`) fed by a Frappe source (`PaquitoBot.Infrastructure/Services/Frappe/`). The sources use `IFrappeClient` (see [Frappe Client](#frappe-client)), which pages in a stable order and reports failures as `FrappeException`. Sources that need `Course` or `Course Enrollment` share each list within one admin sync request.
 
 - **Dependency order.** Synchronizers run by `SyncOrder` tier, so every tier only references lower ones: `MasterData` (10: academic periods, programs, courses, instructors, students), `ProgramStructure` (20: program courses), `Sections` (30: course sections), `SectionDetails` (40: course schedules, program enrollments, section enrollments).
 - **Idempotent.** Records are matched by `FrappeExternalId`; a record is created, updated or left unchanged, so running it again is safe.
@@ -79,6 +79,8 @@ Configuration keys: `Frappe:BaseUrl`, `Frappe:ApiKey`, `Frappe:ApiSecret`. Do no
 ### Per-student OAuth snapshot
 
 A signed-in user calls `GET api/frappe/connect`, which returns the Frappe authorization URL. After the student authorizes, Frappe redirects to `GET api/frappe/callback`, which exchanges the code, checks that the Frappe account matches the PaquitoBot user, and imports that student's snapshot through the server script `paquitobot_student_snapshot`.
+
+The student flow lives in `PaquitoBot.Application/UseCases/SyncByStudent/`. It shares academic field mappings with the admin flow but keeps its OAuth token, Frappe endpoint, and student-only scope. Its `SyncRun` records success or failure independently of the snapshot transaction.
 
 The script and how to install it are in [`integrations/frappe/README.md`](integrations/frappe/README.md). Set `FrappeOAuth:BaseUrl`, `FrappeOAuth:ClientId`, `FrappeOAuth:ClientSecret` and `FrappeOAuth:RedirectUri` in User Secrets; the redirect URI must match the Frappe OAuth Client exactly.
 
