@@ -2,7 +2,7 @@ using MediatR;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services.SyncByStudent;
 
-namespace PaquitoBot.Application.UseCases.Frappe.Query;
+namespace PaquitoBot.Application.UseCases.SyncByStudent.Query;
 
 public record ConnectToFrappeQuery(Guid UserId) : IRequest<FrappeAuthorization>;
 

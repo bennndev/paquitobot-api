@@ -9,7 +9,7 @@ using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 using PaquitoBot.Application.UseCases.Sync.Mapping;
 
-namespace PaquitoBot.Application.UseCases.Frappe.Command;
+namespace PaquitoBot.Application.UseCases.SyncByStudent.Command;
 
 public record CompleteFrappeConnectionCommand(string Code, string State) : IRequest<FrappeConnectionResponse>;
 
