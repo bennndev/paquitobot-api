@@ -3,7 +3,8 @@ using System.Text.Json;
 using MediatR;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
+using PaquitoBot.Application.Services.SyncByStudent;
 using PaquitoBot.Domain.Constants;
 using PaquitoBot.Domain.Models;
 

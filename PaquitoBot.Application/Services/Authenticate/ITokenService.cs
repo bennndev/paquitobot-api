@@ -1,4 +1,4 @@
-﻿namespace PaquitoBot.Application.Services;
+﻿namespace PaquitoBot.Application.Services.Authenticate;
 
 public interface ITokenService
 {

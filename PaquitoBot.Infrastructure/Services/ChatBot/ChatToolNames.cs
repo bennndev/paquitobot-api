@@ -1,4 +1,4 @@
-namespace PaquitoBot.Infrastructure.Services;
+namespace PaquitoBot.Infrastructure.Services.ChatBot;
 
 internal static class ChatToolNames
 {

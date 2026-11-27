@@ -1,4 +1,5 @@
 ﻿using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.SyncByStudent;
 
 namespace PaquitoBot.Application.DTOs.Frappe;
 

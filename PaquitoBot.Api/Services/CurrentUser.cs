@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
 
 namespace PaquitoBot.Api.Services;
 

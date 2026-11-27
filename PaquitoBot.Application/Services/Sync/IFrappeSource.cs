@@ -1,4 +1,4 @@
-namespace PaquitoBot.Application.Services;
+namespace PaquitoBot.Application.Services.Sync;
 
 /// <summary>
 /// Read-only port to fetch every record of one Frappe document type as its external DTO.

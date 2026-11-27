@@ -3,9 +3,9 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
 
-namespace PaquitoBot.Infrastructure.Services;
+namespace PaquitoBot.Infrastructure.Services.Authenticate;
 
 public class TokenService(IConfiguration configuration) : ITokenService
 {

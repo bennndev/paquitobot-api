@@ -1,6 +1,6 @@
 using PaquitoBot.Application.DTOs.Chat;
 
-namespace PaquitoBot.Application.Services;
+namespace PaquitoBot.Application.Services.ChatBot;
 
 public interface IAnswerProvider
 {

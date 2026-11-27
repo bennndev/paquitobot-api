@@ -5,6 +5,7 @@ using System.Text.Json;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.SyncByStudent;
 
 namespace PaquitoBot.Infrastructure.Services;
 

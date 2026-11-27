@@ -1,10 +1,11 @@
 using System.Text.Json;
 using MediatR;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
+using PaquitoBot.Application.Services.ChatBot;
 using PaquitoBot.Application.UseCases.StudentFinances.Query;
 
-namespace PaquitoBot.Infrastructure.Services;
+namespace PaquitoBot.Infrastructure.Services.ChatBot;
 
 public sealed class ChatToolExecutor(IUnitOfWork unitOfWork, ICurrentUser currentUser, ISender sender)
     : IChatToolExecutor

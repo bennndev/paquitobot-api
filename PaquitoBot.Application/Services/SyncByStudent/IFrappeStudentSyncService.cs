@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace PaquitoBot.Application.Services;
+namespace PaquitoBot.Application.Services.SyncByStudent;
 
 public record FrappeSyncSummary(Guid SyncRunId, int ProcessedRecords);
 

@@ -1,6 +1,7 @@
 using MediatR;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.Authenticate;
 
 namespace PaquitoBot.Application.UseCases.Conversations.Query;
 

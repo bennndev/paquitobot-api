@@ -1,6 +1,6 @@
 using MediatR;
 using PaquitoBot.Application.Repositories;
-using PaquitoBot.Application.Services;
+using PaquitoBot.Application.Services.SyncByStudent;
 
 namespace PaquitoBot.Application.UseCases.Frappe.Query;
 

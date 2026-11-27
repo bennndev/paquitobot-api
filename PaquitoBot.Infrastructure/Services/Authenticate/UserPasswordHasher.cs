@@ -1,8 +1,8 @@
-﻿using PaquitoBot.Application.Services;
+﻿using Microsoft.AspNetCore.Identity;
+using PaquitoBot.Application.Services.Authenticate;
 using PaquitoBot.Domain.Models;
-using Microsoft.AspNetCore.Identity;
 
-namespace PaquitoBot.Infrastructure.Services;
+namespace PaquitoBot.Infrastructure.Services.Authenticate;
 
 public class UserPasswordHasher : IUserPasswordHasher
 {

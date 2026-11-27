@@ -1,7 +1,8 @@
 using PaquitoBot.Application.Common.Exceptions;
+using PaquitoBot.Application.Services.Authenticate;
 using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Services;
+namespace PaquitoBot.Application.Services.ChatBot;
 
 public static class ConversationAccess
 {

@@ -1,6 +1,6 @@
 ﻿using PaquitoBot.Domain.Models;
 
-namespace PaquitoBot.Application.Services;
+namespace PaquitoBot.Application.Services.Authenticate;
 
 public interface IUserPasswordHasher
 {
