@@ -2,6 +2,7 @@ using PaquitoBot.Application.Common.Text;
 using PaquitoBot.Application.DTOs.Frappe;
 using PaquitoBot.Application.Repositories;
 using PaquitoBot.Domain.Models;
+using PaquitoBot.Application.UseCases.Sync.Mapping;
 
 namespace PaquitoBot.Application.Services.Sync;
 
@@ -65,9 +66,6 @@ public class SectionEnrollmentSynchronizer(
             throw new InvalidOperationException($"Section '{sectionId}' was not found.");
         }
 
-        enrollment.StudentId = student.StudentId;
-        enrollment.SectionId = section.SectionId;
-        enrollment.EnrollmentDate = external.EnrollmentDate;
-        enrollment.Status = TextNormalizer.OptionalLower(external.Status);
+        SectionEnrollmentSyncMapper.Apply(external, enrollment, student.StudentId, section.SectionId);
     }
 }

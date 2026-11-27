@@ -224,13 +224,24 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         foreach (var row in Rows(snapshot, "enrollments"))
         {
             var name = Required(row, "name");
-            var section = sections[Required(row, "student_batch")];
+            var enrollmentStudent = Optional(row, "student");
+            if (enrollmentStudent is not null && enrollmentStudent != studentName)
+            {
+                throw new UnauthorizedAccessException("Frappe returned another student's enrollment.");
+            }
+
+            var sectionName = Required(row, "student_batch");
+            var section = sections[sectionName];
             await Upsert(unitOfWork.Repository<SectionEnrollment>(), name, entity =>
             {
-                entity.StudentId = student.StudentId;
-                entity.SectionId = section.SectionId;
-                entity.EnrollmentDate = Date(row, "enrollment_date");
-                entity.Status = Optional(row, "status");
+                var source = new FrappeSectionEnrollmentDto(
+                    name,
+                    studentName,
+                    sectionName,
+                    Date(row, "enrollment_date"),
+                    Optional(row, "status"),
+                    null);
+                SectionEnrollmentSyncMapper.Apply(source, entity, student.StudentId, section.SectionId);
                 entity.SyncedAt = now;
             }, cancellationToken);
             var programName = Optional(row, "program");
