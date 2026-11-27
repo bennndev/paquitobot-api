@@ -280,6 +280,12 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
                         EnrollmentDate = Date(row, "enrollment_date"), Status = "active", SyncedAt = now
                     }, cancellationToken);
                 }
+                else if (programEnrollment.FrappeExternalId is null)
+                {
+                    programEnrollment.EnrollmentDate = Date(row, "enrollment_date") ?? programEnrollment.EnrollmentDate;
+                    programEnrollment.Status = "active";
+                    programEnrollment.SyncedAt = now;
+                }
             }
             processed++;
         }
