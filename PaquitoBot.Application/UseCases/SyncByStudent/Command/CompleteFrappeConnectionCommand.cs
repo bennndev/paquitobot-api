@@ -197,6 +197,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         var sections = new Dictionary<string, CourseSection>();
         foreach (var row in Rows(snapshot, "batches"))
         {
+            EnsureStudent(row, studentName);
             var name = Required(row, "name");
             var course = courses[Required(row, "course")];
             var termName = termsByBatch.TryGetValue(name, out var terms) && terms.Count == 1
@@ -228,13 +229,8 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         var seenProgramEnrollments = new HashSet<(Guid ProgramId, Guid PeriodId)>();
         foreach (var row in Rows(snapshot, "enrollments"))
         {
+            EnsureStudent(row, studentName);
             var name = Required(row, "name");
-            var enrollmentStudent = Optional(row, "student");
-            if (enrollmentStudent is not null && enrollmentStudent != studentName)
-            {
-                throw new UnauthorizedAccessException("Frappe returned another student's enrollment.");
-            }
-
             var sectionName = Required(row, "student_batch");
             var section = sections[sectionName];
             await Upsert(unitOfWork.Repository<SectionEnrollment>(), name, entity =>
@@ -274,6 +270,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
 
         foreach (var row in Rows(snapshot, "schedules"))
         {
+            EnsureStudent(row, studentName);
             var name = Required(row, "name");
             var section = sections[Required(row, "student_batch")];
             var facultyName = Optional(row, "faculty");
@@ -303,6 +300,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         var assessmentPlans = new Dictionary<string, AssessmentPlan>();
         foreach (var row in Rows(snapshot, "plans"))
         {
+            EnsureStudent(row, studentName);
             var name = Required(row, "name");
             var section = sections[Required(row, "student_batch")];
             var title = Optional(row, "assessment_name") ?? Optional(row, "subject") ?? name;
@@ -334,6 +332,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
 
         foreach (var row in Rows(snapshot, "results"))
         {
+            EnsureStudent(row, studentName);
             var planName = Required(row, "assessment_plan");
             if (!assessments.TryGetValue(planName, out var assessment))
                 throw new InvalidOperationException($"Assessment plan {planName} is missing from the snapshot.");
@@ -351,6 +350,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         }
         foreach (var row in Rows(snapshot, "attendance"))
         {
+            EnsureStudent(row, studentName);
             var section = sections[Required(row, "student_batch")];
             await Upsert(unitOfWork.Repository<AttendanceRecord>(), Required(row, "name"), entity =>
             {
@@ -366,6 +366,7 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         var fees = new Dictionary<string, TuitionFee>();
         foreach (var row in Rows(snapshot, "invoices"))
         {
+            EnsureStudent(row, studentName);
             var name = Required(row, "name");
             fees[name] = await Upsert(unitOfWork.Repository<TuitionFee>(), name, entity =>
             {
@@ -386,10 +387,12 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         var paymentRows = new Dictionary<string, JsonElement>();
         foreach (var payment in Rows(snapshot, "payments"))
         {
+            EnsureStudent(payment, studentName);
             paymentRows.Add(Required(payment, "name"), payment);
         }
         foreach (var row in Rows(snapshot, "payment_references"))
         {
+            EnsureStudent(row, studentName);
             var paymentName = Required(row, "parent");
             var invoiceName = Required(row, "reference_name");
             if (!paymentRows.TryGetValue(paymentName, out var payment) ||
@@ -472,6 +475,15 @@ internal sealed class FrappeStudentSnapshotPersister(IUnitOfWork unitOfWork)
         }
 
         return value.ToString();
+    }
+
+    private static void EnsureStudent(JsonElement row, string studentName)
+    {
+        var owner = Optional(row, "student");
+        if (owner is not null && !string.Equals(owner, studentName, StringComparison.Ordinal))
+        {
+            throw new UnauthorizedAccessException("Frappe returned another student's records.");
+        }
     }
 
     private static DateOnly? Date(JsonElement row, string property)
