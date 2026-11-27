@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json.Serialization;
 using PaquitoBot.Application.Integrations.Frappe;
 
@@ -13,8 +14,27 @@ public sealed class FrappeCourseEnrollmentCatalog(IFrappeClient client)
 
     public Task<IReadOnlyList<FrappeCourseEnrollmentRow>> GetAllAsync(CancellationToken cancellationToken = default)
     {
-        return _enrollments ??= client.GetListAsync<FrappeCourseEnrollmentRow>(
+        return _enrollments ??= FetchAsync(cancellationToken);
+    }
+
+    private async Task<IReadOnlyList<FrappeCourseEnrollmentRow>> FetchAsync(CancellationToken cancellationToken)
+    {
+        var enrollments = await client.GetListAsync<FrappeCourseEnrollmentRow>(
             "Course Enrollment", Fields, cancellationToken);
+
+        return enrollments
+            .OrderByDescending(row => ModifiedAt(row.Modified))
+            .ThenByDescending(row => row.EnrollmentDate)
+            .ThenByDescending(row => row.Name, StringComparer.Ordinal)
+            .ToList();
+    }
+
+    private static DateTime ModifiedAt(string? value)
+    {
+        return DateTime.TryParse(value, CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var modifiedAt)
+            ? modifiedAt
+            : DateTime.MinValue;
     }
 }
 
