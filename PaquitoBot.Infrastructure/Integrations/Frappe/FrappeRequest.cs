@@ -36,6 +36,11 @@ internal static class FrappeRequest
             parameters.Add($"filters={Uri.EscapeDataString(JsonSerializer.Serialize(filters))}");
         }
 
+        if (!string.IsNullOrWhiteSpace(query.ParentDocType))
+        {
+            parameters.Add($"parent={Uri.EscapeDataString(query.ParentDocType)}");
+        }
+
         return $"api/resource/{Uri.EscapeDataString(query.Resource)}?{string.Join('&', parameters)}";
     }
 }
